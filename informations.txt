@@ -1,0 +1,15 @@
+iBilling - Accounting and Billing Software
+==========================================
+Version : 		4.8.2 [Build 4802]
+==========================================
+Documentation: Documentation is available in documentation folder.
+
+
+For changelings visit client portal- https://www.cloudonex.com
+==============================================
+
+====================================
+|| HAVE A QUESTION, Need Support? ||
+====================================
+Don't hesitate to send me a message on Codecanyon for any questions or for improvement ideas.
+Use This Link to Contact With us for Support- https://www.cloudonex.com/services/new
