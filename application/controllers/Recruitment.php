@@ -10,6 +10,7 @@ class Recruitment extends CIUIS_Controller {
 			die;
 		}
 		$this->load->model('Recruitment_Model');
+		$this->load->model('Staff_Model');
 	}
 	function index() {
 		$path = $this->uri->segment( 1 );
@@ -56,7 +57,12 @@ class Recruitment extends CIUIS_Controller {
 	}
 	function get_Recruitment($type="") {
         $tasks = array();
+		$tickets = array();
+		if ( $this->Privileges_Model->check_privilege( 'recruitment', 'all' ) ) {
 		$tasks = $this->Recruitment_Model->get_all_candidates($type);
+		} else if ( $this->Privileges_Model->check_privilege( 'recruitment', 'own' ) ) {
+			$tasks = $this->Tickets_Model->get_all_candidates_privileges($type,$this->session->usr_id);
+		}
         $data_tasks = array();
         foreach ($tasks as $task) {
             $settings = $this->Settings_Model->get_settings_ciuis();
@@ -72,10 +78,13 @@ class Recruitment extends CIUIS_Controller {
 			$data[ 'title' ] = 'Create Candidates';
 			if ( isset( $_POST ) && count( $_POST ) > 0 ) {
 				$applicant_name = $this->input->post( 'applicant_name' );
+				$gender = $this->input->post( 'gender' );
+				$phone = $this->input->post( 'phone' );
 				$position_applied_for = $this->input->post( 'position_applied_for' );
 				$status = $this->input->post( 'status' );
 				$entered_date = $this->input->post('entered_date');
 				$location = $this->input->post( 'location' );
+				$homeaddress = $this->input->post( 'homeaddress' );
 				$appconfig = get_appconfig();
 				$params = array(
 					'applicant_name' => $applicant_name,
@@ -84,10 +93,22 @@ class Recruitment extends CIUIS_Controller {
 					'entered_date' => $entered_date,
 					'location' => $location,
 					'user_id' => $this->session->userdata( 'usr_id' ),
+					'gender' => $gender,
+					'phone' => $phone,
+					'homeaddress' => $homeaddress
 					
 				);
 				$this->db->insert( 'recruitment_candidates', $params );
 				$candidate_id = $this->db->insert_id();
+				////Add History Logs///////
+				$loggedinuserid = $this->session->usr_id;
+				$this->db->insert( 'history_logs', array(
+					'date' => date( 'Y-m-d H:i:s' ),
+					'detail' => ( '<a href="staff/staffmember/' . $this->session->usr_id . '"> ' . $this->session->staffname . '</a> ' . lang( 'added' ) . ' <a href="recruitment/GetRecruitment/' . $candidate_id . '">' . $applicant_name . '</a>.' ),
+					'staff_id' => $loggedinuserid,
+					'type'=>'Recruitment',
+					'vendor_id'=>$candidate_id
+				) );
 				if (!is_dir('uploads/files/candidates/'.$candidate_id)) { 
 					mkdir('./uploads/files/candidates/'.$candidate_id, 0777, true);
 				}
@@ -113,6 +134,20 @@ class Recruitment extends CIUIS_Controller {
 			}
 		}
 	}
+	function download($userfile) {
+        if (isset($userfile)) {
+            $fileData = $this->Recruitment_Model->get_file_new($userfile);
+            if (is_file('./uploads/files/candidates/' . $fileData['candidate_id'] . '/' . $fileData['document_name'])) {
+                $this->load->helper('file');
+                $this->load->helper('download');
+                $data = file_get_contents('./uploads/files/candidates/' . $fileData['candidate_id'] . '/' . $fileData['document_name']);
+                force_download($fileData['document_name'], $data);
+            } else {
+                $this->session->set_flashdata('ntf4', lang('filenotexist'));
+                redirect('recruitment/GetRecruitment/' . $userfile);
+            }
+        }
+    }	
 	function GetRecruitment( $id ) {
 		if ( $this->Privileges_Model->check_privilege( 'recruitment', 'all' ) ) {
 			$data['recruitment'] = $this->Recruitment_Model->GetRecruitment( $id );
@@ -132,21 +167,79 @@ class Recruitment extends CIUIS_Controller {
 	function update($candidate_id){
 		if ( isset( $_POST ) && count( $_POST ) > 0 ) {
 			$applicant_name = $this->input->post( 'applicant_name' );
+			$gender = $this->input->post( 'gender' );
+			$phone = $this->input->post( 'phone' );
 			$position_applied_for = $this->input->post( 'position_applied_for' );
 			$entered_date = date('Y-m-d',strtotime($this->input->post('entered_date')));
 			$location = $this->input->post( 'location' );
+			$homeaddress = $this->input->post( 'homeaddress' );
 			$appconfig = get_appconfig();
 			$params = array(
 				'applicant_name' => $applicant_name,
 				'position_applied_for' => $position_applied_for,				
 				'entered_date' => $entered_date,
-				'location' => $location
+				'location' => $location,
+				'gender' => $gender,
+				'phone' => $phone,
+				'homeaddress' => $homeaddress
 			);
 			$response = $this->Recruitment_Model->update($candidate_id,$params);
 		}
    		redirect(base_url().'recruitment/GetRecruitment/'.$candidate_id);
-   
-    
+	}
+	function convert( $id ) {
+		if ( $this->Privileges_Model->check_privilege( 'staff', 'create' ) ) {
+			$Recruitment = $this->Recruitment_Model->GetRecruitment( $id );
+			$settings = $this->Settings_Model->get_settings_ciuis();
+			if ( $Recruitment[ 'dateconverted' ] != 0 ) {
+				$data['success'] = false;
+				$data['message'] = lang('recruitmentalreadyconverted');
+				echo json_encode($data);
+			} else {
+				$appconfig = get_appconfig();
+				$params = array(
+					'staffname' => $Recruitment[ 'applicant_name' ],
+					'staffavatar' => 'n-img.jpg',
+					'department_id' => 0,
+					'phone' => $Recruitment[ 'phone' ],
+					'birthday' => $Recruitment[ 'entered_date' ],
+					'gender' => $Recruitment[ 'gender' ],
+					'joining_date' => date( 'Y-m-d' ),
+					'status' => 1,
+					'homeaddress' => $Recruitment[ 'homeaddress' ],
+					'other' => null,
+					'staffmember' => null,
+					'inactive' => NULL,
+					'createdat'=>date('Y-M-D'),
+					'user_id' => $this->session->userdata( 'usr_id' )
+				);
+				$staff_id = $this->Staff_Model->add_staff( $params );
+				$this->db->set('recruitment_status','1');
+				$this->db->where('candidate_id', $id);
+				$result=$this->db->update('recruitment_candidates');
+				$this->db->insert( 'history_logs', array(
+					'date' => date( 'Y-m-d H:i:s' ),
+					'detail' => ( '<a href="staff/staffmember/' . $this->session->usr_id . '"> ' . $this->session->staffname . '</a> ' . lang( 'Convert Staff' ) . ' <a href="recruitment/GetRecruitment/' .$id . '">' . $status. '</a>.' ),
+					'staff_id' => $loggedinuserid,
+					'type'=>'Recruitment',
+					'vendor_id'=>$id
+				) );
+				if ($staff_id) {
+					$data['success'] = true;
+					if($appconfig['staff_series']){
+						$staff_number = $appconfig['staff_series'];
+						$staff_number = $staff_number + 1 ;
+						$this->Settings_Model->increment_series('staff_series',$staff_number);
+					}
+					$data['message'] = lang('staff'). ' '.lang('addmessage');
+					echo json_encode($data);
+				}
+			}
+		} else {
+			$data['success'] = false;
+			$data['message'] = lang('you_dont_have_permission');
+			echo json_encode($data);
+		}
 }
 	function update_reject_remark(){
 		$id = $this->input->post('id');

@@ -24,9 +24,7 @@ class Payroll extends CIUIS_Controller {
 		 }else{
 			$data['year'] =  $year;
 		 }
-	//	$getpayslip = $this->Payroll_Model->getrecords();
-	//	$data['getpayslip'] = $getpayslip;
-//print_r($data['year']);
+	
 		$this->load->view( 'payroll/index', $data );
 	}
 function payroll_view($from_date,$to_date) {

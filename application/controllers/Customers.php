@@ -337,7 +337,7 @@ class Customers extends CIUIS_Controller {
 								'address' => $this->input->post( 'address' ),
 								'phone' => $this->input->post( 'phone' ),
 								//'email' => $this->input->post( 'email' ),
-								'email'=> $this->input->post( 'companyemail' ),
+								'email'=> $this->input->post( 'email' ),
 								'fax' => $this->input->post( 'fax' ),
 								'web' => $this->input->post( 'web' ),
 								'taxoffice' => $this->input->post( 'taxoffice' ),
@@ -491,6 +491,94 @@ function delete_liscence_document($id) {
 			$data[ 'customers' ] = $this->Customers_Model->get_customers_for_import();
 			$data[ 'error' ] = '';
 			$config[ 'upload_path' ] = './uploads/imports/';
+		$config['allowed_types'] = 'xlsx|xls|csv';
+			$config[ 'max_size' ] = '1000';
+			$this->load->library( 'upload', $config ); 
+			if ( !$this->upload->do_upload('file') ) {
+				$data[ 'error' ] = $this->upload->display_errors();
+					$error = array('error' => $this->upload->display_errors());
+				$this->session->set_flashdata( 'ntf1', lang('csvimporterror') );
+				//redirect( 'customers/index' );
+			} else {
+			    	$file_data = $this->upload->data();
+				$file_path = './uploads/imports/' . $file_data[ 'file_name' ];
+			 $inputFileName = $file_path;
+		 require_once APPPATH . "./third_party/PHPExcel.php";
+			try {
+				$inputFileType = PHPExcel_IOFactory::identify($inputFileName);
+				$objReader = PHPExcel_IOFactory::createReader($inputFileType);
+				$objPHPExcel = $objReader->load($inputFileName);
+				$allDataInSheet = $objPHPExcel->getActiveSheet()->toArray(null, true, true, true);
+				$flag = true;
+				$i=0;
+				foreach ($allDataInSheet as $row) {
+				  if($flag){
+					$flag =false;
+					continue;
+				  }
+				  $businesstype = $this->Leads_Model->get_businesstype_by_name($row[ 'B' ]);
+				  if(sizeof($businesstype) > 0){
+					$businesstypeid = $businesstype['id']; 
+				  } else {
+						$param = array('name'=>$row[ 'B' ]);
+						$this->db->insert('customergroups',$param);
+						$businesstypeid = $this->db->insert_id();
+				  }
+				  $appconfig = get_appconfig();
+				  $inserdata[$i]['created'] = date( 'Y-m-d H:i:s');
+				  $inserdata[$i]['company'] = $row['A'];
+				  $inserdata[$i]['groupid'] = $businesstypeid;
+				  $inserdata[$i]['account_contact_number'] = $row['C'];
+				  $inserdata[$i]['email'] = $row['D'];
+				  $inserdata[$i]['address'] = $row['E'];
+				  $inserdata[$i]['taxoffice'] = $row['F'];
+				  $inserdata[$i]['taxnumber'] = $row['G'];
+				  $inserdata[$i]['phone'] = $row['H'];
+				  $inserdata[$i]['fax'] = $row['I'];
+				  $inserdata[$i]['web'] =$row['J'];
+				  $inserdata[$i]['zipcode'] = $row['K'];
+				  $inserdata[$i]['licence_no'] = $row['L'];
+				  $inserdata[$i]['trade_expiry_date'] = date('Y-m-d',strtotime($row['M']));
+				  $inserdata[$i]['terms_and_conditions'] =$row['N'];
+				  $inserdata[$i]['notes'] = $row['O'];
+				  $inserdata[$i]['creditperiod'] = $row['P'];
+				  $inserdata[$i]['creditlimit'] = $row['Q'];
+				  $inserdata[$i]['staff_id'] = $this->session->userdata('usr_id');
+				   $inserdata[$i]['type'] ='0';
+				  $result =	$this->Customers_Model->insert_customers_csv( $inserdata[$i] );
+						if($appconfig['customer_series']){
+							$customer_number = $appconfig['customer_series'];
+							$customer_number = $customer_number + 1 ;
+							$this->Settings_Model->increment_series('customer_series',$customer_number);
+							}
+					if($result){
+				  	$datas['success'] = true;
+					$datas['message'] = lang('file') . ' ' . lang('excelimportsuccess');
+					echo json_encode($datas);
+				}else{
+				    	$datas['success'] = false;
+					$datas['message'] = lang('errormessage').' row '.$i;
+					echo json_encode($datas);
+				}    
+				  $i++;
+				} 
+		  } catch (Exception $e) {
+			   die('Error loading file "' . pathinfo($inputFileName, PATHINFO_BASENAME)
+						. '": ' .$e->getMessage());
+			}
+		  }
+		}else {
+			$datas['success'] = false;
+			$datas['message'] = lang('you_dont_have_permission');
+			echo json_encode($datas);
+		}
+	}
+	function customersimport_csv () {
+		if ( $this->Privileges_Model->check_privilege( 'customers', 'create' ) ) {
+			$this->load->library( 'import' );
+			$data[ 'customers' ] = $this->Customers_Model->get_customers_for_import();
+			$data[ 'error' ] = '';
+			$config[ 'upload_path' ] = './uploads/imports/';
 			$config[ 'allowed_types' ] = 'csv';
 			$config[ 'max_size' ] = '1000';
 			$this->load->library( 'upload', $config ); 
@@ -593,12 +681,12 @@ $this->load->library('excel');
 
         
         if ( $this->Privileges_Model->check_privilege( 'customers', 'all' ) ) {
-			$this->db->select('type, created, company, namesurname, taxoffice, taxnumber, ssn, executive, address, zipcode, country_id, state, city, town, phone, fax, email, web, customer_status_id, risk,customergroups.name as group,customergroups.id as group_id');
+			$this->db->select('type, created, company, namesurname, taxoffice, taxnumber, ssn, executive, address, zipcode, country_id, state, city, town, phone, fax, email, web, customer_status_id, risk,customergroups.name as group,customergroups.id as group_id,customers.*');
 			$this->db->join('customergroups','customers.groupid = customergroups.id','left');
 			$this->db->order_by( 'customers.id', 'desc' );
 			$q = $this->db->get_where( 'customers', array( ''  ) );
 		} else if ($this->Privileges_Model->check_privilege( 'customers', 'own') ) {
-			$this->db->select('type, created, company, namesurname, taxoffice, taxnumber, ssn, executive, address, zipcode, country_id, state, city, town, phone, fax, email, web, customer_status_id, risk,customergroups.name as group,customergroups.id as group_id');
+			$this->db->select('type, created, company, namesurname, taxoffice, taxnumber, ssn, executive, address, zipcode, country_id, state, city, town, phone, fax, email, web, customer_status_id, risk,customergroups.name as group,customergroups.id as group_id,customers.*');
 			$this->db->join('customergroups','customers.groupid = customergroups.id','left');
 			$this->db->order_by( 'customers.id', 'desc' );
 			$q = $this->db->get_where( 'customers', array( 'staff_id' => $this->session->usr_id ) );
@@ -644,44 +732,41 @@ $styleArray = array(
       )
   );
 $objPHPExcel->getDefaultStyle()->applyFromArray($styleArray);
-        $objPHPExcel->getActiveSheet()->SetCellValue('A1', 'Created');
-        $objPHPExcel->getActiveSheet()->SetCellValue('B1', 'Company');
-        $objPHPExcel->getActiveSheet()->SetCellValue('C1', 'Taxoffice');    
-        $objPHPExcel->getActiveSheet()->SetCellValue('D1', 'Taxnumber');    
-          $objPHPExcel->getActiveSheet()->SetCellValue('E1', 'Address');    
-           $objPHPExcel->getActiveSheet()->SetCellValue('F1', 'Zipcode');    
-            $objPHPExcel->getActiveSheet()->SetCellValue('G1', 'State');    
-         $objPHPExcel->getActiveSheet()->SetCellValue('H1', 'City');    
-          $objPHPExcel->getActiveSheet()->SetCellValue('I1', 'Town');    
-           $objPHPExcel->getActiveSheet()->SetCellValue('J1', 'Phone');    
-            $objPHPExcel->getActiveSheet()->SetCellValue('K1', 'Fax'); 
-             $objPHPExcel->getActiveSheet()->SetCellValue('L1', 'Email');    
-         $objPHPExcel->getActiveSheet()->SetCellValue('M1', 'Web');    
-          $objPHPExcel->getActiveSheet()->SetCellValue('N1', 'Customer Status Id');
-           $objPHPExcel->getActiveSheet()->SetCellValue('O1', 'Risk');    
-         $objPHPExcel->getActiveSheet()->SetCellValue('P1', 'Group');    
+
+        $objPHPExcel->getActiveSheet()->SetCellValue('A1', 'Company Name');
+        $objPHPExcel->getActiveSheet()->SetCellValue('B1', 'Industry Type');
+        $objPHPExcel->getActiveSheet()->SetCellValue('C1', 'Company Address');    
+        $objPHPExcel->getActiveSheet()->SetCellValue('D1', 'Vat Office');    
+          $objPHPExcel->getActiveSheet()->SetCellValue('E1', 'Vat Number');    
+           $objPHPExcel->getActiveSheet()->SetCellValue('F1', 'Phone');    
+            $objPHPExcel->getActiveSheet()->SetCellValue('G1', 'Fax');    
+         $objPHPExcel->getActiveSheet()->SetCellValue('H1', 'Web');    
+            $objPHPExcel->getActiveSheet()->SetCellValue('I1', 'Post Code'); 
+             $objPHPExcel->getActiveSheet()->SetCellValue('J1', 'Trade Liscence Number');    
+         $objPHPExcel->getActiveSheet()->SetCellValue('K1', 'Expiry Date');    
+             
+         $objPHPExcel->getActiveSheet()->SetCellValue('L1', 'Credit Period'); 
+		$objPHPExcel->getActiveSheet()->SetCellValue('M1', 'Credit Limit');    
          $from = "A1"; // or any value
-$to = "P1"; // or any value
+$to = "N1"; // or any value
 $objPHPExcel->getActiveSheet()->getStyle( "$from:$to" )->getFont()->setBold( true );
         // set Row
         $rowCount = 2;
         foreach ($listInfo as $list) {
-            $objPHPExcel->getActiveSheet()->SetCellValue('A' . $rowCount, $list->created);
-            $objPHPExcel->getActiveSheet()->SetCellValue('B' . $rowCount, $list->company);
-            $objPHPExcel->getActiveSheet()->SetCellValue('C' . $rowCount, $list->taxoffice);
-            $objPHPExcel->getActiveSheet()->SetCellValue('D' . $rowCount, $list->taxnumber);
-            $objPHPExcel->getActiveSheet()->SetCellValue('E' . $rowCount, $list->address);
-            $objPHPExcel->getActiveSheet()->SetCellValue('F' . $rowCount, $list->zipcode);
-            $objPHPExcel->getActiveSheet()->SetCellValue('G' . $rowCount, $list->state);
-            $objPHPExcel->getActiveSheet()->SetCellValue('H' . $rowCount, $list->city);
-            $objPHPExcel->getActiveSheet()->SetCellValue('I' . $rowCount, $list->town);
-            $objPHPExcel->getActiveSheet()->SetCellValue('J' . $rowCount, $list->phone);
-             $objPHPExcel->getActiveSheet()->SetCellValue('K' . $rowCount, $list->fax);
-            $objPHPExcel->getActiveSheet()->SetCellValue('L' . $rowCount, $list->email);
-            $objPHPExcel->getActiveSheet()->SetCellValue('M' . $rowCount, $list->web);
-            $objPHPExcel->getActiveSheet()->SetCellValue('N' . $rowCount, $list->customer_status_id);
-            $objPHPExcel->getActiveSheet()->SetCellValue('O' . $rowCount, $list->risk);
-            $objPHPExcel->getActiveSheet()->SetCellValue('P' . $rowCount, $list->group);
+            $objPHPExcel->getActiveSheet()->SetCellValue('A' . $rowCount, $list->company);
+            $objPHPExcel->getActiveSheet()->SetCellValue('B' . $rowCount, $list->group);
+            $objPHPExcel->getActiveSheet()->SetCellValue('C' . $rowCount, $list->address);
+            $objPHPExcel->getActiveSheet()->SetCellValue('D' . $rowCount, $list->taxoffice);
+            $objPHPExcel->getActiveSheet()->SetCellValue('E' . $rowCount, $list->taxnumber);
+            $objPHPExcel->getActiveSheet()->SetCellValue('F' . $rowCount, $list->phone);
+            $objPHPExcel->getActiveSheet()->SetCellValue('G' . $rowCount, $list->fax);
+            $objPHPExcel->getActiveSheet()->SetCellValue('H' . $rowCount, $list->web);
+             $objPHPExcel->getActiveSheet()->SetCellValue('I' . $rowCount, $list->zipcode);
+            $objPHPExcel->getActiveSheet()->SetCellValue('J' . $rowCount, $list->licence_no);
+            $objPHPExcel->getActiveSheet()->SetCellValue('K' . $rowCount, $list->trade_expiry_date);
+            $objPHPExcel->getActiveSheet()->SetCellValue('L' . $rowCount, $list->creditperiod);
+			 $objPHPExcel->getActiveSheet()->SetCellValue('M' . $rowCount, $list->creditlimit);
+      
             $rowCount++;
         }
       
@@ -1198,7 +1283,7 @@ exit;
 				'phone' => $customer[ 'phone' ],
 				'fax' => $customer[ 'fax' ],
 				'email' => $customer[ 'email' ],
-				'companyemail' => $customer[ 'companyemail' ],
+				'companyemail' => $customer[ 'email' ],
 				'contactpersonname' => $customer[ 'contactpersonname' ],
 				'web' => $customer[ 'web' ],
 				'risk' => intval( $customer[ 'risk' ] ),

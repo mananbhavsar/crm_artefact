@@ -2986,4 +2986,91 @@ class Projects extends CIUIS_Controller {
 		}
 		echo json_encode($data);
 	}
+	function deliveryitem($id){
+		$project_tracking = $this->db->select( '*' )->get_where( 'project_tracking', array( 'project_id' => $id))->result_array();
+		if($project_tracking){
+			$delivery['items']=$project_tracking;
+		}else{
+			$delivery['items'][]=array("id"=>0,"name"=>"New","description"=>"","quantity"=>"1","tracking_date"=>"","reference"=>"");
+		}
+		echo json_encode($delivery);
+	}
+	function create_project_tracking(){
+		if ( isset( $_POST ) && count( $_POST ) > 0 ) {
+			$hasError = false;
+			$data['message'] = '';
+			if($this->input->post('projectId') == '') {
+				$hasError = true;
+				$data['message'] = lang('invalidmessage').' '.lang('projectId');
+			}else if (((int)($this->input->post('totalItems'))) == 0) {
+				$hasError = true;
+				$data['message'] = lang('invalid_items');
+			}
+			if($hasError){
+				$data['success'] = false;
+				echo json_encode($data);
+			}
+			if(!$hasError){
+				$trackingItem=$this->input->post('trackingItem');
+				$projectId=$this->input->post('projectId');
+				foreach($trackingItem as $eachItem){
+					if($eachItem['name'] !='' && $eachItem['quantity'] >0){
+						$strDate = substr($eachItem['tracking_date'],4,11);
+						$tracking_date= date('Y-m-d', strtotime($strDate));
+						if($eachItem['id']==0){
+							$trackingparams = array(
+								'project_id'=>$projectId,
+								'name'=>$eachItem['name'],
+								'quantity'=>$eachItem['quantity'],
+								'description'=>$eachItem['description'],
+								'reference'=>$eachItem['reference'],
+								'tracking_date'=>$tracking_date,
+								'created_on'=> date('Y-m-d H:i:s'),
+								'created_by'=>$this->session->usr_id,
+							);
+							$this->db->insert( 'project_tracking', $trackingparams);
+						}else{
+							$this->db->where('id', $eachItem['id'])->update( 'project_tracking', array('project_id' =>$projectId,'name'=>$eachItem['name'],'quantity'=>$eachItem['quantity'],'description'=>$eachItem['description'],'reference'=>$eachItem['reference'],'tracking_date'=>$tracking_date,'created_on'=> date('Y-m-d H:i:s'),'created_by'=>$this->session->usr_id));
+						}
+					}
+				}
+				$data['success'] = true;
+				$data['message'] = lang('update').' '.lang('Project Tracker');
+				echo json_encode($data);
+			}	
+		}else{
+			$data['success'] = false;
+			$data['message'] ='No data present';
+			echo json_encode($data);
+		}
+	}
+	function delect_project_tracking(){
+		if ( isset( $_POST ) && count( $_POST ) > 0 ) {
+			$hasError = false;
+			$data['message'] = '';
+			if($this->input->post('projectId') == '') {
+				$hasError = true;
+				$data['message'] = lang('invalidmessage').' '.lang('projectId');
+			}else if($this->input->post('deleteItemId') == 0) {
+				$hasError = true;
+				$data['message'] = lang('invalid_items');
+			}
+			if($hasError){
+				$data['success'] = false;
+				echo json_encode($data);
+			}
+			if(!$hasError){
+				$projectId=$this->input->post('projectId');
+				$deleteItemId=$this->input->post('deleteItemId');
+				$response = $this->db->delete( 'project_tracking', array( 'id' => $deleteItemId,'project_id'=>$projectId));
+				$data['success'] = true;
+				$data['message'] = lang('delete').' '.lang('Project Tracker');
+				echo json_encode($data);
+			}	
+		}else{
+			$data['success'] = false;
+			$data['message'] ='No data present';
+			echo json_encode($data);
+		}
+	}
 }

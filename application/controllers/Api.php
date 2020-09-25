@@ -1273,11 +1273,11 @@ class Api extends CIUIS_Controller {
 		};
 		echo json_encode( $data_logs );
 	}
-	function doclogs($doc_id=0,$loadMore='') {
+	function doclogs($doc_id=0,$loadMore='',$type='') {
 		if($loadMore){
-			$logs = $this->Logs_Model->doc_last_logs($doc_id,$loadMore);
+			$logs = $this->Logs_Model->doc_last_logs($doc_id,$loadMore,$type);
 		} else {
-			$logs = $this->Logs_Model->doc_last_logs($doc_id);
+			$logs = $this->Logs_Model->doc_last_logs($doc_id,$type);
 		}
 		
 		$data_logs = array();

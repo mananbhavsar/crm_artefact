@@ -1085,6 +1085,11 @@ function get_material_data(){
 		$response =$this->notebooks_lib->getNoteBookList($searchdata);
 		return $response;
 	}
-	
+	function update_type(){
+	    $switch_val = $this->input->post('switch_val');
+	    $id = $this->input->post('id');
+	    $data['res'] = $this->Notebooks_Model->update_type($switch_val,$id);
+	    	echo json_encode($data);
+	}
 	
 }

@@ -354,7 +354,7 @@ class Staff extends CIUIS_Controller {
 				$enddate=  date("Y-m-t", strtotime(date($strt)));
 				//echo $startdate." ".$enddate,"<br>";
 				$res = array();
-				$res['label'] = date("F", strtotime($strt));
+				$res['label'] = date("M", strtotime($strt));
 				$strt = date("Y-m-d", strtotime("+1 month,".date($strt)));
 				$attend_details = $this->Attendance_Model->get_filter_attendance_log($startdate,$enddate,'',$id,'');
 				$data[]=$res;$absent=0;

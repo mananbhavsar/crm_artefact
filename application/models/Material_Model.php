@@ -18,6 +18,14 @@ class Material_Model extends CI_Model {
 		return $this->db->get_where( 'materials', array( 'material_id' => $id ) )->row_array();
 		
 	}
+	function get_material_by_name($item_name){
+	    $this->db->select('mat_cat_id');
+	    	return $this->db->get_where( 'material_categories', array( 'mat_cat_name' => $item_name) )->row_array();
+	}
+	function get_matunit_by_name($item_name){
+	    $this->db->select('unit_type_id');
+	    	return $this->db->get_where( 'material_unit_type', array( 'unit_name' => $item_name) )->row_array();
+	}
 	
 	function get_item_code($item_code){
 	    
@@ -936,5 +944,9 @@ if($row){
 		$this->db->select( '*,departments.name as department, staff.id as id' );
 		$this->db->join( 'departments', 'staff.department_id = departments.id', 'left' );
 		return $this->db->get_where( 'staff', array( 'department_id' => $department_id ) )->result_array();
+	}
+	function insert_material( $params ) {
+		$this->db->insert_batch( 'materials', $params );
+		return $staffmember;
 	}
 }

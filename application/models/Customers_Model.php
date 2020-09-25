@@ -197,6 +197,7 @@ class Customers_Model extends CI_Model {
 		$number = $appconfig['customer_series'] ? $appconfig['customer_series'] : $customer;
 		$customer_number = $appconfig['customer_prefix'].$number;
 		$this->db->where('id', $customer)->update( 'customers', array('customer_number' => $customer_number ) );
+		return true;
     }
 
 	function update_customers( $id, $params ) {

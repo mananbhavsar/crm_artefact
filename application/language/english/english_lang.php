@@ -16,7 +16,8 @@ $lang[ 'forgotpasswordsub' ] = 'Please enter your email address and we\'ll send 
 $lang[ 'resetyourpassword' ] = 'Reset your password';
 $lang[ 'resetyourpasswordsub' ] = 'Please enter your password 2x below to reset';
 $lang[ 'confirmpassword' ] = 'Confirm Password';
-
+$lang[ 'importmaterial' ] = 'Import Material';
+$lang['choosexlsfile']='Choose xls file.';
 // Firs Notifications
 
 $lang[ 'crmwelcome' ] = '';

@@ -371,7 +371,7 @@ body {
             <?php } ?>
             <md-button class="md-icon-button" aria-label="User Profile" ng-cloak  ng-click="EstNotifications();get_estnotifications();" > 
 
-                <img height="100%" src="<?php echo $notiicon ?>" class="md-avatar" style="max-height: 36px;height: 100%;max-width: 40px;" onerror="this.onerror=null; this.src='<?php echo $user_image_alternate ?>'"> 
+                <img height="100%" src="<?php echo $notiicon ?>" class="md-avatar" style="max-height: 36px;height: 100%;max-width: 40px;" onerror="this.onerror=null; this.src='<?php echo $notiicon ?>'"> 
                 <span class="notification-counter" style="margin-top: 10;">2</span>
             </md-button>
             <md-button ng-hide="ONLYADMIN != 'true'" class="md-icon-button" ng-href="{{appurl + 'settings'}}" aria-label="Settings" ng-cloak>
@@ -1345,7 +1345,7 @@ body {
                    <div style=" display: inline-block;">
 						<h3 class="text-bold overduetext" ng-bind='ntf.number'><b><span  ng-bind='ntf.number'></span></b></h3>
 						<p>
-							<span class='duration text-bold' ng-bind="ntf.customer_name.substring(0, 30)"></span>
+							<span class='duration text-bold' ng-bind="ntf.customer_name.substring(0, 25)"></span>
                             <span class='location text-bold'  style="color: #ee7a6b;display: inline-block;  font-weight: bold;">
                             <span ng-bind-html="ntf.value | currencyFormat:cur_code:null:true:cur_lct"  style="font-size:11px;"  ></span></span><br>
                             <span style="color: #ee7a6b;" class='text-bold'>

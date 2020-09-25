@@ -14,6 +14,11 @@ class Notebooks_Model extends CI_Model {
 	  	$this->db->where('id',$id);
 		$this->db->update('notebook_dec',$new_arr);
 	}
+		public function update_type($switch_val,$id){
+	  	$this->db->where('notebook_id',$id);
+	$res = 	$this->db->update('notebooks',array('note_type'=>$switch_val));
+	return $res;
+	}
 	
 	function get_all_notebooks()
 	{	

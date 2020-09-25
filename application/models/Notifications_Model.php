@@ -20,8 +20,8 @@ class Notifications_Model extends CI_Model {
 		$this->db->join( 'staff', 'estiimation_notifications.staff_id = staff.id', 'left' );
 		$this->db->from( 'estiimation_notifications' );
 		$this->db->order_by( "notifyid", "desc" );
-		$this->db->where( 'public = "1" OR staff_id = ' . $this->session->userdata( 'usr_id' ) . '' );
-		$this->db->limit(20);
+/* 		$this->db->where( 'public = "1" OR staff_id = ' . $this->session->userdata( 'usr_id' ) . '' );
+ */		$this->db->limit(20);
 		$query = $this->db->get();
 		$ybs = $query->result_array();
 		return $ybs;

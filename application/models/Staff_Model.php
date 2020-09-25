@@ -174,10 +174,13 @@ class Staff_Model extends CI_Model {
 	$sql = "SELECT * FROM workshift WHERE (FIND_IN_SET($params[department_id],workshift.department)) AND name='1'";
 	$res = $this->db->query($sql);
     $result = $res->row_array();
-    
+   $dep_resultname=0;
     $dep_sql = "SELECT * FROM departments WHERE id='$params[department_id]'";
     $dep_res = $this->db->query($dep_sql);
     $dep_result = $dep_res->row_array();
+	if($dep_result){
+		$dep_resultname=($dep_result['name'])?$dep_result['name']:'';
+	}
     if($result['employee_id'] != ''){
         
          $employee_id = $result['employee_id'].",".$staffmember;
@@ -187,7 +190,7 @@ class Staff_Model extends CI_Model {
         
     }
     else{
-        $sql1 = "INSERT INTO workshift(created,department,employee_id,start_time,late_in_count_time,end_time,late_out_count_time,name,shift_ref)VALUES($params[createdat],$params[department_id],$staffmember,'08:00','08.30','18.00','18.30','1',$dep_result[name])";
+        $sql1 = "INSERT INTO workshift(created,department,employee_id,start_time,late_in_count_time,end_time,late_out_count_time,name,shift_ref)VALUES('$params[createdat]',$params[department_id],$staffmember,'08:00','08.30','18.00','18.30','1',$dep_resultname)";
         $res = $this->db->query($sql1);
        $shift_id =  $this->db->insert_id();
        

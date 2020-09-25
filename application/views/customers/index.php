@@ -542,7 +542,7 @@
         <div class="well well-sm"><?php echo lang('importcustomersinfo'); ?></div>
       </div>
       <div class="modal-footer">
-        <a href="<?php echo base_url('uploads/samples/customerimport.csv') ?>" class="btn btn-success pull-left"><?php echo lang('downloadsample'); ?></a>
+        <a href="<?php echo base_url('uploads/samples/customerimport.xls') ?>" class="btn btn-success pull-left"><?php echo lang('downloadsample'); ?></a>
         <button type="button" ng-click="importCustomer()" class="btn btn-default"><?php echo lang('save'); ?></button>
       </div>
       <?php echo form_close(); ?>

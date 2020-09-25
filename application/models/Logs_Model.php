@@ -45,14 +45,14 @@ class Logs_Model extends CI_Model {
 		return $this->db->get_where( 'logs', array( 'staff_id' => $this->session->usr_id ) )->result_array();
 	}
 	////Document Log history///////
-	function doc_last_logs($doc_id,$loadMore='') {
+	function doc_last_logs($doc_id,$loadMore='',$type) {
 		$this->db->select( '*,,staff.staffname as staffmembername, staff.staffavatar as staffimage, history_logs.date as date ' );
 		$this->db->join( 'staff', 'history_logs.staff_id = staff.id', 'left' );
 		$this->db->order_by( "date", "desc" );
 		if($loadMore == '') {
 			$this->db->limit(10);
 		}
-		return $this->db->get_where( 'history_logs', array( 'vendor_id'=>$doc_id ) )->result_array();
+		return $this->db->get_where( 'history_logs', array( 'vendor_id'=>$doc_id,'type'=>$type ) )->result_array();
 	}
 	function get_logs_by_customer($id) {
 		$this->db->select( '*,,staff.staffname as staffmembername, staff.staffavatar as staffimage, logs.date as date ' );

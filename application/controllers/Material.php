@@ -171,8 +171,9 @@ echo '</div>';
 	    //echo "aDA";EXIT;
 		    $this->load->library('excel');
 		    	if ( $this->Privileges_Model->check_privilege( 'material', 'all' ) ) {
-			$this->db->select('materials.item_code, materials.itemname, materials.itemdescription,materials.remarks,material_unit_type.unit_name, materials.cost');
+			$this->db->select('materials.item_code, materials.itemname, materials.itemdescription,materials.remarks,material_unit_type.unit_name, materials.cost,materials.*,material_categories.mat_cat_name as mname');
 			$this->db->join( 'material_unit_type', 'material_unit_type.unit_type_id = materials.unittype', 'left' );
+			$this->db->join( 'material_categories', ' material_categories.mat_cat_id = materials.category', 'left' );
 			$q = $this->db->get_where( 'materials', array( '') );
 		} 
 		          // create file name
@@ -194,6 +195,9 @@ echo '</div>';
  $objPHPExcel->getActiveSheet()->getStyle('E1:F1')->getFill()
 ->setFillType(PHPExcel_Style_Fill::FILL_SOLID)
 ->getStartColor()->setARGB('ff9933');
+$objPHPExcel->getActiveSheet()->getStyle('G1:J1')->getFill()
+->setFillType(PHPExcel_Style_Fill::FILL_SOLID)
+->getStartColor()->setARGB('66ccff');
 $styleArray = array(
       'borders' => array(
           'allborders' => array(
@@ -206,10 +210,14 @@ $objPHPExcel->getActiveSheet()->SetCellValue('A1', 'Item Code');
         $objPHPExcel->getActiveSheet()->SetCellValue('B1', 'Item Name');
         $objPHPExcel->getActiveSheet()->SetCellValue('C1', 'Item Description');    
         $objPHPExcel->getActiveSheet()->SetCellValue('D1', 'Remarks');    
-          $objPHPExcel->getActiveSheet()->SetCellValue('E1', 'Unit Name');    
+          $objPHPExcel->getActiveSheet()->SetCellValue('E1', 'Unit Type');    
            $objPHPExcel->getActiveSheet()->SetCellValue('F1', 'Cost');  
+		    $objPHPExcel->getActiveSheet()->SetCellValue('G1', 'Category');
+	$objPHPExcel->getActiveSheet()->SetCellValue('H1', 'Margin Type');	
+		$objPHPExcel->getActiveSheet()->SetCellValue('H1', 'Value');	
+	$objPHPExcel->getActiveSheet()->SetCellValue('J1', 'Last Selling Price');	
            $from = "A1"; // or any value
-$to = "F1"; // or any value
+$to = "J1"; // or any value
 $objPHPExcel->getActiveSheet()->getStyle( "$from:$to" )->getFont()->setBold( true );
  $rowCount = 2;
         foreach ($listInfo as $list) {
@@ -219,6 +227,10 @@ $objPHPExcel->getActiveSheet()->getStyle( "$from:$to" )->getFont()->setBold( tru
             $objPHPExcel->getActiveSheet()->SetCellValue('D' . $rowCount, $list->remarks);
             $objPHPExcel->getActiveSheet()->SetCellValue('E' . $rowCount, $list->unit_name);
             $objPHPExcel->getActiveSheet()->SetCellValue('F' . $rowCount, $list->cost);
+			$objPHPExcel->getActiveSheet()->SetCellValue('G' . $rowCount, $list->mname);
+			$objPHPExcel->getActiveSheet()->SetCellValue('H' . $rowCount, $list->margin_type);
+			$objPHPExcel->getActiveSheet()->SetCellValue('I' . $rowCount, $list->margin_value);
+			$objPHPExcel->getActiveSheet()->SetCellValue('J' . $rowCount, $list->last_selling_price);
         $rowCount++;
         }
 // Redirect output to a client’s web browser (Excel2007)
@@ -467,7 +479,7 @@ function update(){
 }
 
 	function add_department() {
-		if ( $this->Privileges_Model->check_privilege( 'staff', 'create' ) ) {
+		if ( $this->Privileges_Model->check_privilege( 'material', 'create' ) ) {
 			if (isAdmin()) {
 				if ( isset( $_POST ) && count( $_POST ) > 0 ) {
 				    $mat_cat_name = $this->input->post('name');
@@ -497,7 +509,7 @@ function update(){
 	}
 	
 	function add_unit() {
-		if ( $this->Privileges_Model->check_privilege( 'staff', 'create' ) ) {
+		if ( $this->Privileges_Model->check_privilege( 'material', 'create' ) ) {
 			if (isAdmin()) {
 				if ( isset( $_POST ) && count( $_POST ) > 0 ) {
 				    $unit_name = $this->input->post( 'name' );
@@ -526,7 +538,7 @@ function update(){
 	}
 
 	function update_department( $id ) {
-		if ( $this->Privileges_Model->check_privilege( 'staff', 'edit' ) ) {
+		if ( $this->Privileges_Model->check_privilege( 'material', 'edit' ) ) {
 			if (isAdmin()) {
 				if($id!='40'){
 				$departments = $this->Settings_Model->get_material_categories( $id );
@@ -560,7 +572,7 @@ function update(){
 	}
 	
 	function update_unit( $id ) {
-		if ( $this->Privileges_Model->check_privilege( 'staff', 'edit' ) ) {
+		if ( $this->Privileges_Model->check_privilege( 'material', 'edit' ) ) {
 			if (isAdmin()) {
 				$departments = $this->Settings_Model->get_unit( $id );
 				if ( isset( $departments[ 'unit_type_id' ] ) ) {
@@ -889,7 +901,7 @@ echo '<div class="form-group col-md-6"><a href="javascript:void(0);" class="add_
 	    
 	}
 		function remove_department( $id ) {
-		if ( $this->Privileges_Model->check_privilege( 'staff', 'delete' ) ) {
+		if ( $this->Privileges_Model->check_privilege( 'material', 'delete' ) ) {
 			if (isAdmin()) {
 				if($id!='40'){
 				$departments = $this->Settings_Model->get_material_categories( $id );
@@ -924,7 +936,7 @@ echo '<div class="form-group col-md-6"><a href="javascript:void(0);" class="add_
 	}
 	
 	function remove_unit( $id ) {
-		if ( $this->Privileges_Model->check_privilege( 'staff', 'delete' ) ) {
+		if ( $this->Privileges_Model->check_privilege( 'material', 'delete' ) ) {
 			if (isAdmin()) {
 				$departments = $this->Settings_Model->get_material_unit( $id );
 				if ( isset( $departments[ 'unit_type_id' ] ) ) {
@@ -951,6 +963,101 @@ echo '<div class="form-group col-md-6"><a href="javascript:void(0);" class="add_
 			echo json_encode($data);
 		}
 	}
+	function materialimport () {
 
+		if ( $this->Privileges_Model->check_privilege( 'material', 'create' ) ) {
+			$path = './uploads/imports/';
+			require_once APPPATH . "/third_party/PHPExcel.php";
+			$config['upload_path'] = $path;
+			$config['allowed_types'] = 'xlsx|xls|csv';
+			$config['remove_spaces'] = TRUE;
+			$this->load->library('upload', $config);
+			$this->upload->initialize($config);            
+			if (!$this->upload->do_upload()) {
+				$error = array('error' => $this->upload->display_errors());
+			} else {
+				$data = array('upload_data' => $this->upload->data());
+			}
+			if(empty($error)){
+			  if (!empty($data['upload_data']['file_name'])) {
+				$import_xls_file = $data['upload_data']['file_name'];
+			} else {
+				$import_xls_file = 0;
+			}
+			 $inputFileName = $path . $import_xls_file;
+			try {
+				$inputFileType = PHPExcel_IOFactory::identify($inputFileName);
+				$objReader = PHPExcel_IOFactory::createReader($inputFileType);
+				$objPHPExcel = $objReader->load($inputFileName);
+				$allDataInSheet = $objPHPExcel->getActiveSheet()->toArray(null, true, true, true);
+				$flag = true;
+				$i=0;
+				foreach ($allDataInSheet as $row) {
+				  if($flag){
+					$flag =false;
+					continue;
+				  }
+				  $materialcattype = $this->Material_Model->get_material_by_name($row[ 'A' ]);
+				  if(sizeof($materialcattype) > 0){
+					$matcatid = $materialcattype['mat_cat_id']; 
+				  } else {
+						$param = array('mat_cat_name'=>$row[ 'A' ]);
+						$this->db->insert('material_categories',$param);
+						$matcatid = $this->db->insert_id();
+				  }
+				   $materialunittype = $this->Material_Model->get_matunit_by_name($row[ 'E' ]);
+				  if(sizeof($materialunittype) > 0){
+					$matunitid = $materialunittype['unit_type_id']; 
+				  } else {
+						$param = array('unit_name'=>$row[ 'E' ]);
+						$this->db->insert('material_unit_type',$param);
+						$matunitid = $this->db->insert_id();
+				  }
+				  $percentage=$row['G'];
+				  if($percentage!='' && $percentage!=0){
+					  $type='percentage';
+					  $value=$percentage;
+				  }
+				  $fixed=$row['H'];
+				  if($fixed!='' && $fixed!=0){
+					  $type='fixed';
+					  $value=$fixed;
+				  }
+				  $inserdata[$i]['category'] = $matcatid;
+				  $inserdata[$i]['item_code'] = $row['B'];
+				  $inserdata[$i]['itemname'] = $row['C'];
+				  $inserdata[$i]['itemdescription'] = $row['D'];
+				  $inserdata[$i]['unittype'] = $matunitid;
+				  $inserdata[$i]['cost'] = $row['F'];
+				  $inserdata[$i]['margin_value'] = $value;
+				   $inserdata[$i]['margin_type'] = $type;
+				  $inserdata[$i]['last_selling_price'] = $row['I'];
+				  $inserdata[$i]['remarks'] = $row['J'];
+				  $inserdata[$i]['created'] = date( 'Y-m-d' );
+				  $i++;
+				} 
+				$result = $this->Material_Model->insert_material($inserdata);
+				if($result){
+				  $this->session->set_flashdata( 'ntf1', lang('excelimportsuccess') );
+				 // $file_to_delete = 'items/item2.txt';
+				  unlink($inputFileName);
+				  redirect( 'material/index' );
+				}else{
+				  redirect( 'material/index' );
+				  $this->session->set_flashdata( 'ntf3', 'Error' );
+				}             
 
+		  } catch (Exception $e) {
+			   die('Error loading file "' . pathinfo($inputFileName, PATHINFO_BASENAME)
+						. '": ' .$e->getMessage());
+			}
+		  }else{
+			  $this->session->set_flashdata( 'ntf3',lang( 'There is some issue while upload. Please try again later.' ) );
+			redirect(base_url('material'));
+			}
+		} else {
+			$this->session->set_flashdata( 'ntf3',lang( 'you_dont_have_permission' ) );
+			redirect(base_url('material'));
+		}
+	}
 }

@@ -1257,7 +1257,7 @@ body {
                    <div style=" display: inline-block;">
 						<h3 class="text-bold overduetext" ng-bind='ntf.number'><b><span  ng-bind='ntf.number'></span></b></h3>
 						<p>
-							<span class='duration text-bold' ng-bind="ntf.customer_name.substring(0, 30)"></span>
+                        <span class='duration text-bold' ng-bind="ntf.customer_name.substring(0, 25)"></span>
                             <span class='location text-bold'  style="color: #ee7a6b;display: inline-block;  font-weight: bold;">
                             <span ng-bind-html="ntf.value | currencyFormat:cur_code:null:true:cur_lct" style="font-size:11px;" ></span></span><br>
                             <span style="color: #ee7a6b;" class='text-bold'>
