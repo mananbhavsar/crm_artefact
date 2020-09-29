@@ -90,7 +90,9 @@ class Salaryrequests_model extends CI_Model {
 				$this->db->order_by( 'salary_requests.salary_id', 'desc' );
 		return $this->db->get_where( 'salary_requests', array( 'salary_requests.user_id'=> $user_id ) )->result_array();
 	}
-	
+	function get_single_request($id){
+		return $getsalaryresult = $this->db->get_where('salary_requests', array('salary_requests.salary_id'=> $id))->row_array();
+	}
 	function update_status($id,$status){
 		$getsalaryresult = $this->db->get_where('salary_requests', array('salary_requests.salary_id'=> $id))->row_array();
 		$staffId=$getsalaryresult['user_id'];
