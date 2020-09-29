@@ -82,7 +82,7 @@ class Recruitment extends CIUIS_Controller {
 				$phone = $this->input->post( 'phone' );
 				$position_applied_for = $this->input->post( 'position_applied_for' );
 				$status = $this->input->post( 'status' );
-				$entered_date = $this->input->post('entered_date');
+				$entered_date = date('Y-m-d',strtotime($this->input->post('entered_date')));
 				$location = $this->input->post( 'location' );
 				$homeaddress = $this->input->post( 'homeaddress' );
 				$appconfig = get_appconfig();
@@ -134,18 +134,44 @@ class Recruitment extends CIUIS_Controller {
 			}
 		}
 	}
-	function download($userfile) {
+	function download($userfile,$files1='') {
         if (isset($userfile)) {
-            $fileData = $this->Recruitment_Model->get_file_new($userfile);
-            if (is_file('./uploads/files/candidates/' . $fileData['candidate_id'] . '/' . $fileData['document_name'])) {
+            //$fileData = $this->Document_Model->get_file_new($userfile);
+            if (is_file('./uploads/files/candidates/' . $userfile . '/' . $files1)) {
                 $this->load->helper('file');
                 $this->load->helper('download');
-                $data = file_get_contents('./uploads/files/candidates/' . $fileData['candidate_id'] . '/' . $fileData['document_name']);
-                force_download($fileData['document_name'], $data);
+                $data = file_get_contents('./uploads/files/candidates/' . $userfile . '/' . $files1);
+                force_download($files1, $data);
             } else {
                 $this->session->set_flashdata('ntf4', lang('filenotexist'));
                 redirect('recruitment/GetRecruitment/' . $userfile);
             }
+        }
+    }	
+	function delete_file() {
+		$id = $this->input->post('id');
+		$files1 = $this->input->post('files1');
+        if ($this->Privileges_Model->check_privilege('recruitment', 'delete')) {
+            if (isset($id)) {
+				 $response=$this->db->where('candidate_id ', $id)->update(' recruitment_candidates', array('file_name' =>''));
+                if (is_file('./uploads/files/candidates/' . $id . '/' .$files1)) {
+                    unlink('./uploads/files/candidates/' .  $id . '/' . $files1);
+                }
+				if ($response) {
+					$data['success'] = true;
+					$data['message'] = lang('file') . ' ' . lang('deletemessage');
+				} else {
+					$data['success'] = false;
+					$data['message'] = lang('errormessage');
+				}
+				echo json_encode($data);
+            } else {
+                redirect('recruitment/GetRecruitment/' . $id . '');
+            }
+        } else {
+            $data['success'] = false;
+            $data['message'] = lang('you_dont_have_permission');
+            echo json_encode($data);
         }
     }	
 	function GetRecruitment( $id ) {

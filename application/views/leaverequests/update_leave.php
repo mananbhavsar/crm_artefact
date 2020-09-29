@@ -5,14 +5,14 @@
         <label for="inputState">Leave Start Date</label>
 		<div class="input-group date">
 		
-        <input type="text" name="leave_start_date1" class="form-control newdatepicker" id="leave_start_date1" value="<?php print $oreq['leave_start_date'];?>" required=""  onchange="rejoin_date()" readonly><span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
+        <input type="text" name="leave_start_date1" class="form-control newdatepicker" id="leave_start_date1" value="<?php print date('d-m-Y',strtotime($oreq['leave_start_date']));?>" required=""  onchange="rejoin_date()" readonly><span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
         </div>
       
     </div>
 	 <div class="form-group col-md-6">
         <label for="inputState">Rejoin Date</label>
 		<div class="input-group date">
-        <input type="text" name="rejoin_date1" class="form-control newdatepicker" id="rejoin_date1" value="<?php print $oreq['rejoin_date'];?>" required="" onchange="rejoin_date()" readonly><span class="input-group-addon" ><i class="glyphicon glyphicon-th"></i></span>
+        <input type="text" name="rejoin_date1" class="form-control newdatepicker" id="rejoin_date1" value="<?php print date('d-m-Y',strtotime($oreq['rejoin_date']));?>" required="" onchange="rejoin_date()" readonly><span class="input-group-addon" ><i class="glyphicon glyphicon-th"></i></span>
         </div>
       
     </div>
@@ -23,7 +23,7 @@
 		 </div> 
 		 	 <div class="form-group col-md-6">
       <label for="employee_signature">Payment Type</label>
-	<select class="form-control" name="payment_type" id="payment_type">
+	<select class="form-control" name="payment_type1" id="payment_type1">
 		 <option selected="" value="">Select</option>
 		<option value="Paid" <?php if($oreq['payment_type'] == 'Paid'){ echo "selected='selected'"; } ?>>Paid</option>
 		<option value="Unpaid" <?php if($oreq['payment_type'] == 'Unpaid'){ echo "selected='selected'"; } ?>>Unpaid</option>
@@ -31,7 +31,7 @@
 	</div>
            <div class="form-group col-md-8">
       <label for="employee_signature">Method Of Leave</label>
-     <select class="form-control" name="method_of_leave" id="method_of_leave">
+     <select class="form-control" name="method_of_leave1" id="method_of_leave1">
         <option selected="" value="">Select </option>
         <option value="Leave without Approvsl-Deduction Of 16 Hours" <?php if($oreq['method_of_leave']=='Leave without Approvsl-Deduction Of 16 Hours'){ echo "selected='selected'"; }  ?>>Leave without Approvsl-Deduction Of 16 Hours</option>
         <option value="Medical Certificated Provided" <?php if($oreq['method_of_leave']=='Medical Certificated Provided'){ echo "selected='selected'"; }  ?>>Medical Certificated Provided</option>
@@ -42,6 +42,7 @@
       
       </select>
     </div>
+	<?php /*
 	   <div class="form-group col-md-4">
 	   <label for="employee_signature">Status</label>
 	   
@@ -71,10 +72,10 @@
 					<strong></br><span class="<?php echo $showCol; ?> form-control" style="font-weight:800;font-size: 14px !important;width:100%;padding:5px 21px;text-align:left;"><?php echo $showStatus; ?></span></strong>
 				<?php }?>
     </div>
-
+<?php */?>
 	</div>
 	<table class="table table-bordered">
-	<tr><th>Month</th><th>Days</th></tr>
+	<tr><td class="bg-success"><span class=" text-white">Month</span></td><td class="bg-success">Days</td></tr>
 	<?php for($i=1;$i<=12;$i++){
 											
 											
@@ -111,6 +112,7 @@ $date_end = date('Y-m-d', strtotime(date($year.'-'.$month).'last day of this mon
 		alert("Rejoin Date Should not be less than start date.");
 		$('#rejoin_date1').val('');
 	}else{
+		/*
     var second=1000, minute=second*60, hour=minute*60, day=hour*24, week=day*7;
     date1 = new Date(start_date1);
     date2 = new Date(rejoin_date1);
@@ -118,7 +120,12 @@ $date_end = date('Y-m-d', strtotime(date($year.'-'.$month).'last day of this mon
     
     var days = Math.floor(timediff / day); 
        
-    $('#no_of_days1').val(days);
+    $('#no_of_days1').val(days);*/
+	 var start= $("#leave_start_date1").datepicker("getDate");
+    	var end= $("#rejoin_date1").datepicker("getDate");
+   		days = (end- start) / (1000 * 60 * 60 * 24);
+       var finaldiff=Math.round(days);
+	   $('#no_of_days1').val(finaldiff);
 	}
 }
   //$.noConflict();

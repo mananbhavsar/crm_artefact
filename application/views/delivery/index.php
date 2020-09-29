@@ -88,6 +88,7 @@
                 <th ng-show="table_columns.customer" md-column md-order-by="customer"><span><?php echo lang('customer'); ?></span></th>
                 <th ng-show="table_columns.value" md-column><span><?php echo lang('value'); ?></span></th>
                 <th ng-show="table_columns.members" md-column><span><?php echo lang('members'); ?></span></th>
+                <th ng-show="table_columns.latest_status" md-column><span>Last Status</span></th>
                 <th ng-show="table_columns.status" md-column md-order-by="progress"><span><?php echo lang('status'); ?></span></th>
 
               </tr>
@@ -110,6 +111,7 @@
                 <td md-cell ng-show="table_columns.value">
                   <span ng-bind-html="project.value | currencyFormat:cur_code:null:true:cur_lct"></span>
                 </td>
+            
 
                 <td md-cell ng-show="table_columns.members">
                   <div class="bottom-right text-right">
@@ -121,6 +123,9 @@
                       <div class="assigned-more-pro hidden"><i class="ion-plus-round"></i>2</div>
                     </ul>
                   </div>
+                </td>
+                <td md-cell ng-show="table_columns.latest_status">
+                  <span ng-bind-html="project.latest_status"></span>
                 </td>
                 <td md-cell ng-show="table_columns.status">
                   <div class="progress-widget">

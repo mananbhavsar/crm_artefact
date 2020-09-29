@@ -25,20 +25,33 @@ function Calendar_Controller($scope, $http, $mdDialog, $filter, $mdSidenav) {
         
 		//getEventTypes();
 		$scope.event_title = '';
-		$scope.eventType= '';
-		$scope.event_start= '';
+		$scope.eventType= 1;
+		$scope.dateType= '';
+		$scope.event_start1= '';
 		$scope.event_end='';
 		$scope.normal_holidays= '';
 		$scope.event_detail= '';
 		$scope.event_id=0;
 		$mdSidenav('HolidayForm').toggle();
 	}
+	$scope.changed = function(val) {
+     if(val && val.length > 2) {
+       $scope.normal_holidays = $scope.prevModel;
+     } else {
+       $scope.prevModel = val;
+     }
+  }
+  $scope.getstartdate=function(date){
+	  $scope.startdate_new=date;
+  }
 	///Set Holiday Details//////
-	$scope.EditHoliday = function (id, event_title,eventType,event_start,event_end,normal_holidays,event_detail, event) {
+	$scope.EditHoliday = function (id, event_title,eventType,dateType,event_start,event_end,normal_holidays,event_detail, event) {
 		$scope.event_title = event_title;
 		$scope.eventType= eventType;
-		$scope.event_start= event_start;
-		$scope.event_end= event_end;
+		$scope.dateType= dateType;
+		$scope.event_start1=event_start;
+		 $scope.startdate_new=moment(event_start).format("DD/MM/YYYY")
+		$scope.event_end= moment(event_end).format("MM/DD/YYYY");
 		$scope.normal_holidays= normal_holidays;
 		$scope.event_detail= event_detail;
 		$scope.event_id=id;
@@ -110,23 +123,26 @@ function Calendar_Controller($scope, $http, $mdDialog, $filter, $mdSidenav) {
 	$scope.AddHoliday = function () {
 		$scope.addingHoliday = true;
 		var start = '', end = '';
-		if( $scope.eventType==1){
-			if ($scope.event_start) {
-			start = moment($scope.event_start).format("YYYY-MM-DD")
+		if( $scope.dateType==1){
+			if ($scope.event_start1) {
+				start = moment($scope.event_start1).format("YYYY-MM-DD")
+			}
+			end = '';
+		}
+		if($scope.dateType==2){
+			if ($scope.event_start1) {
+				start = moment($scope.event_start1).format("YYYY-MM-DD")
 			}
 			if ($scope.event_end) {
 				end = moment($scope.event_end).format("YYYY-MM-DD")
 			}
-			$scope.normal_holidays="";
-		}
-		if($scope.eventType==2){
-			var start = '', end = '';
 		}
 		var dataObj = $.param({
 			title: $scope.event_title,
 			detail: $scope.event_detail,
 			eventstart: start,
 			eventType: $scope.eventType,
+			dateType: $scope.dateType,
 			eventend: end,
 			normal_holidays: $scope.normal_holidays,
 			//staff_id: $scope.event_staff,
@@ -141,12 +157,15 @@ function Calendar_Controller($scope, $http, $mdDialog, $filter, $mdSidenav) {
 		$http.post(posturl, dataObj, config)
 			.then(
 				function (response) {
-					console.log(response.data.success);
+					
 					$scope.addingHoliday = false;
 					if (response.data.success == true) {
+						console.log(response.data.success);
 						showToast(NTFTITLE, response.data.message, ' success');
-						$mdSidenav('EventForm').close();
-						window.location.href = window.location.href;
+						$mdSidenav('HolidayForm').close();
+						$http.get(BASE_URL + 'api/holidays').then(function (Events) {
+							$scope.all_holidays = Events.data;
+						});
 					} else {
 						globals.mdToast('error', response.data.message);
 					}
@@ -287,6 +306,45 @@ function Calendar_Controller($scope, $http, $mdDialog, $filter, $mdSidenav) {
 
 	$http.get(BASE_URL + 'api/holidays').then(function (Events) {
 		$scope.all_holidays = Events.data;
+		$scope.itemsPerPage = 5;
+		$scope.currentPage = 0;
+		$scope.range = function () {
+			var rangeSize = 5;
+			var ps = [];
+			var start;
+			start = $scope.currentPage;
+			if (start > $scope.pageCount() - rangeSize) {
+				start = $scope.pageCount() - rangeSize + 1;
+			}
+			for (var i = start; i < start + rangeSize; i++) {
+				if (i >= 0) {
+					ps.push(i);
+				}
+			}
+			return ps;
+		};
+		$scope.prevPage = function () {
+			if ($scope.currentPage > 0) {
+				$scope.currentPage--;
+			}
+		};
+		$scope.DisablePrevPage = function () {
+			return $scope.currentPage === 0 ? "disabled" : "";
+		};
+		$scope.nextPage = function () {
+			if ($scope.currentPage < $scope.pageCount()) {
+				$scope.currentPage++;
+			}
+		};
+		$scope.DisableNextPage = function () {
+			return $scope.currentPage === $scope.pageCount() ? "disabled" : "";
+		};
+		$scope.setPage = function (n) {
+			$scope.currentPage = n;
+		};
+		$scope.pageCount = function () {
+			return Math.ceil($scope.all_holidays.length / $scope.itemsPerPage) - 1;
+		};
 		/* $scope.today_holidays = $filter('filter')($scope.all_holidays, {
 			date: $scope.curDate,
 		}); */
@@ -370,6 +428,7 @@ function Calendar_Controller($scope, $http, $mdDialog, $filter, $mdSidenav) {
 			appointment_color: $scope.appointment_color,
 			project_color: $scope.project_color,
 			task_color: $scope.task_color,
+			holiday_color: $scope.holiday_color,
 		});
 		var posturl = BASE_URL + 'calendar/save_colors/';
 		$http.post(posturl, dataObj, config)

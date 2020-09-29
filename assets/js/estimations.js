@@ -177,17 +177,29 @@ $scope.ReminderForm = buildToggler('ReminderForm');
 		});
 	};
 
+	var formdata = new FormData();
+	$scope.getTheFiles = function ($files) {              
+		angular.forEach($files, function (value, key) {
+			formdata.append(key, value);
+		});
+	};
 	$scope.uploading = false; 
 	$scope.uploadProjectFile = function() {
 		//alert("1`2`1");
-		$scope.uploading = true;
-        var file = $scope.project_file;
         var uploadUrl = BASE_URL+'estimations/add_file/'+PROPOSALID;
-        fileUpload.uploadFileToUrl(file, uploadUrl, function(response) {
-        	if (response.success == true) {
-        		globals.mdToast('success', response.message);
+		var request = {
+			   method: 'POST',
+			   url: uploadUrl,
+			   data: formdata,
+			   headers: {
+				   'Content-Type': undefined
+			   }
+		};
+	   $http(request).then(function(response){
+			if (response.data.success == true){
+        		globals.mdToast('success', response.data.message);
         	} else {
-        		globals.mdToast('error', response.message);
+        		globals.mdToast('error', response.data.message);
         	}
         	$scope.projectFiles = true;
         	$http.get(BASE_URL + 'estimations/projectfiles/' + PROPOSALID).then(function (Files) {
@@ -656,6 +668,14 @@ $scope.Update = function () {
 			}
 		};
 	});
+	$http.get(BASE_URL + 'estimations/get_history/'+ PROPOSALID).then(function (EstimationHistory) {
+		$scope.estimationhistory = EstimationHistory.data;
+	});
+	$scope.loadMoreOrders = function() {
+		$http.get(BASE_URL + 'estimations/get_history/'+PROPOSALID+'/loadMore').then(function (EstimationHistory) {
+			$scope.estimationhistory = EstimationHistory.data;
+		});
+	}
 }
 
 function Estimation_Controller($scope, $http, $mdSidenav, $mdDialog, $q, $timeout) {
@@ -1059,7 +1079,78 @@ function Estimation_Controller($scope, $http, $mdSidenav, $mdDialog, $q, $timeou
 				);
 		};
 	});
+	$http.get(BASE_URL + 'api/doclogs/'+NotbookId+'/" "/Notbook').then(function (Logs) {
+		$scope.logs = Logs.data;
+	});
+	$scope.loadMoreLogs = function() {
+		$scope.getLogs = true;
+		$http.get(BASE_URL + 'api/doclogs/'+NotbookId+'/loadMore/Notbook').then(function (Logs) {
+			$scope.logs = Logs.data;
+			$scope.getLogs = false;
+		});
+	}
 }
-
+function Notbook_Controller($scope, $http, $mdSidenav, $mdDialog, $q, $timeout) {
+	"use strict";
+		$http.get(BASE_URL + 'api/doclogs/'+NotbookId+'/" "/Notbook').then(function (Logs) {
+		$scope.logs = Logs.data;
+	});
+	$scope.loadMoreLogs = function() {
+		$scope.getLogs = true;
+		$http.get(BASE_URL + 'api/doclogs/'+NotbookId+'/loadMore/Notbook').then(function (Logs) {
+			$scope.logs = Logs.data;
+			$scope.getLogs = false;
+		});
+	}
+	$scope.UploadFileDoc = function (ev) {
+		console.log(ev);
+		$scope.note_id=ev;
+		$mdDialog.show({
+			templateUrl: 'addfile-template.html',
+			scope: $scope,
+			preserveScope: true,
+			targetEvent: ev
+		});
+	};
+	$scope.ViewFiledoc = function(index, image) {
+				$scope.file = $scope.files1[index];
+				$mdDialog.show({
+					templateUrl: 'view_image.html',
+					scope: $scope,
+					preserveScope: true,
+					targetEvent: $scope.file.id
+				});
+			}
+}
 CiuisCRM.controller('Estimations_Controller', Estimations_Controller);
 CiuisCRM.controller('Estimation_Controller', Estimation_Controller);
+CiuisCRM.controller('Notbook_Controller', Notbook_Controller);
+CiuisCRM.directive('loadOrderMore', function () {
+	"use strict";
+	return {
+		template: "<a ng-click='loadMoreOrd();loadMoreOrders()' id='loadButton' class='activity_tumu cursor'>"
+					+ "<md-progress-circular class='white' ng-show='getOrders == true' md-mode='indeterminate' md-diameter='20'></md-progress-circular>"
+					+ "<i style='font-size:22px;' ng-hide='getOrders == true' class='icon ion-android-arrow-down'></i>"
+					+	 "</a>",
+		link: function (scope) {
+			scope.OrderLimit = 5;
+			scope.loadMoreOrd = function () {
+				scope.OrderLimit += 5;
+				if (scope.estimationhistory.length < scope.OrderLimit) {
+					CiuisCRM.element(loadButton).fadeOut();
+				}
+			};
+		}
+	};
+});
+CiuisCRM.directive('ngFiles', ['$parse', function ($parse) {
+	function fn_link(scope, element, attrs) {
+		var onChange = $parse(attrs.ngFiles);
+		element.on('change', function (event) {
+			onChange(scope, { $files: event.target.files });
+		});
+	};
+	return {
+		link: fn_link
+	}
+} ]);

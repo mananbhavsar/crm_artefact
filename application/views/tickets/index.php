@@ -326,7 +326,7 @@
       </md-input-container>
       <md-input-container class="md-block" flex-gt-xs>
 			<label><?php echo 'Project'; ?></label>
-			<md-select placeholder="<?php echo 'Select Project' ?>" ng-model="ticket.customer" name="customer">
+			<md-select placeholder="<?php echo 'Select Project' ?>" ng-model="ticket.project_id" name="project_id">
 			  <md-option ng-value="project.id" ng-repeat="project in projects">{{project.name}}</md-option>
 			</md-select><br>
       </md-input-container>

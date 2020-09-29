@@ -76,8 +76,8 @@ class Salaryrequests extends CIUIS_Controller {
 		}
 		$employee_id  = $this->input->post( 'employee_id' );
 		$type_of_salary = $this->input->post( 'type_of_salary' );
-		$from_date = $this->input->post( 'from_date' );
-		$to_date = $this->input->post( 'to_date' );
+		$from_date = date('Y-m-d',strtotime($this->input->post( 'from_date' )));
+		$to_date = date('Y-m-d',strtotime($this->input->post( 'to_date' )));
 		$amount = $this->input->post( 'amount' );
 		$remarks = $this->input->post( 'remarks' );
 		$pagename = $this->input->post('pagename');
@@ -141,7 +141,30 @@ class Salaryrequests extends CIUIS_Controller {
 				
 		}
 	}
+	function update_salary(){
+		$employee_id  = $this->input->post( 'employee_id' );
+		$type_of_salary = $this->input->post( 'type_of_salary' );
+		$from_date = date('Y-m-d',strtotime($this->input->post( 'from_date' )));
+		$to_date = date('Y-m-d',strtotime($this->input->post( 'to_date' )));
+		$amount = $this->input->post( 'amount' );
+		$remarks = $this->input->post( 'remarks' );
+		$pagename = $this->input->post('pagename');
+	$salaryid = $this->input->post( 'salaryid' );
 	
+ 		$params = array(
+						'employee_id' => $employee_id,
+						'type_of_salary' => $type_of_salary,
+						'from_date' => $from_date,
+						'to_date' => $to_date,
+						'amount' => $amount,
+						'remarks' => $remarks,
+						'user_id' => $this->session->userdata( 'usr_id' )
+					);
+					$this->db->where( 'salary_id', $salaryid );
+				$response = $this->db->update( 'salary_requests', $params );
+				//echo $this->db->last_query();exit;
+					redirect('salaryrequests');
+	}
 	
 		
 	function update(){
@@ -158,5 +181,19 @@ class Salaryrequests extends CIUIS_Controller {
        // echo json_encode($data);
     }
 	
+	function showsalaryform($id){
+		$data['id']=$id;
+		$data['result']=$result=$this->Salaryrequests_Model->get_single_request($id);
+		//echo "<pre>";
+		//print_r($result);
+		$data['employees'] = $this->Staff_Model->get_all_staff();
+		$this->load->view( 'salaryrequests/update_salary',$data);
+	}
 	
+	function delete_request()
+	{
+		$id = $this->input->post('id');
+		$response = $this->db->delete( 'salary_requests', array( 'salary_id' => $id ) );
+		echo json_encode(array('success'=>'true'));
+	}
 }

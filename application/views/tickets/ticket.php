@@ -76,7 +76,7 @@
 				</div> -->
 				<div class="ciuis-ticket-fieldgroup">
 					<div class="ticket-label"><?php echo lang('project_name')?></div>
-					<div class="ticket-data" ng-bind="ticket.department"></div>
+					<div class="ticket-data" ng-bind="ticket.project"></div>
 				</div>
 			</div>
 			<!--<div class="ciuis-ticket-row">

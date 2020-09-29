@@ -32,6 +32,7 @@ function payroll_view($from_date,$to_date) {
 		$data[ 'settings' ] = $this->Settings_Model->get_settings_ciuis();
 		 $from_date = $from_date;
 		 $to_date = $to_date;
+		 $data['from_date'] = $from_date;
 		 $data['to_date'] = $to_date;
 		$getpayslip = $this->Payroll_Model->getrecords($from_date,$to_date);
 		$data['getpayslip'] = $getpayslip;
@@ -61,6 +62,7 @@ function payroll_view($from_date,$to_date) {
 			$present_days = $this->input->post('present_days');
 			$lop_days = $this->input->post('lop_days');
 			$total_days = $this->input->post('total_days');
+			$deduc = $this->input->post('deductions');
 			$params = array(
 				'from_date' => $from_date,
 				'to_date' => $to_date,
@@ -76,7 +78,8 @@ function payroll_view($from_date,$to_date) {
 				'total_earnings' => $total_earnings,
 				'present_days' => $present_days,
 				'lop_days' => $lop_days,
-				'total_days' => $total_days
+				'total_days' => $total_days,
+				'deductions' => $deduc
 			);
 			$this->db->insert('payslip',$params);
 			

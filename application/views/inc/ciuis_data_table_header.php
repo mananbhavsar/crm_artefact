@@ -340,8 +340,21 @@ body {
                 foreach ($menus as $menu) { 
 				?>
                     <?php if ($menu['url'] != '#' || sizeof($menu['sub_menu']) > 0) { ?>
-                        <li><a href="<?php echo $menu['url'] ?>"><?php echo $menu['name'] ?></a>
-                            <?php if (sizeof($menu['sub_menu']) > 0) { ?>
+                        <li><?php if($menu['id']=='27'){
+							if ( $this->Privileges_Model->has_privilege( 'mrequests' ) ) {
+									$url='mrequests';
+								}else if ( $this->Privileges_Model->has_privilege( 'leaverequests' ) ) {
+									$url='leaverequests';
+								}else if ( $this->Privileges_Model->has_privilege( 'billrequests' ) ) {
+									$url='billrequests';
+								}else if ( $this->Privileges_Model->has_privilege( 'salaryrequests' ) ) {
+									$url='salaryrequests';
+								}
+							?>
+							<a href="<?php echo $url;?>"><?php echo $menu['name'] ?></a>
+					<?php }else{?><a href="<?php echo $menu['url'] ?>"><?php echo $menu['name'] ?></a>
+					<?php }?>
+                            <?php if (sizeof($menu['sub_menu']) > 0 && $menu['id']!='27') { ?>
                                 <ul>
                                     <?php foreach ($menu['sub_menu'] as $submenu) { ?>
                                         <li><a href="<?php echo $submenu['url'] ?>"> <i class="icon <?php echo $submenu['icon'] ?>"></i> <span class="title"><?php echo $submenu['name'] ?></span> <span class="descr"><?php echo $submenu['description'] ?></span> </a>

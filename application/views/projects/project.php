@@ -731,17 +731,47 @@
             </article>
           </md-content>
           <md-content ng-show="!expenses.length" class="md-padding bg-white no-item-data"><?php echo lang('notdata') ?></md-content>
-        </md-tab>
-        <md-tab label="<?php echo lang('projectactivities') ?>">
-          <md-content class="md-padding bg-white">
-            <ul class="user-timeline">
-              <li ng-repeat="log_project in project.project_logs">
-                <div class="user-timeline-title" ng-bind="log_project.date"></div>
-                <div class="user-timeline-description" ng-bind-html="log_project.detail|trustAsHtml"></div>
-              </li>
-            </ul>
-          </md-content>
         </md-tab>-->
+        <md-tab label="<?php echo lang('project tracking') ?>">
+          <md-content class="md-padding bg-white">
+            <md-list-item ng-repeat="item in delivery.items">
+				<div layout-gt-sm="row">
+				<input type="hidden" class="min_input_width" ng-model="item.id">
+				<md-input-container class="md-block">
+					<label><?php echo lang('name'); ?></label>
+					<input class="min_input_width" ng-model="item.name">
+				</md-input-container>
+				<md-input-container class="md-block">
+					<label><?php echo lang('quantity'); ?></label>
+					<input class="min_input_width" ng-model="item.quantity">
+				</md-input-container>
+				<md-input-container class="md-block">
+					<label><?php echo lang('description'); ?></label>
+					<input class="min_input_width" ng-model="item.description" >
+				</md-input-container>
+				<md-input-container class="md-block">
+					<label><?php echo lang('reference'); ?></label>
+					<input class="min_input_width" ng-model="item.reference">
+				</md-input-container>
+				<md-input-container>
+				  <label><?php echo lang('date') ?></label>
+				  <md-datepicker  ng-model="item.tracking_date" md-open-on-focus></md-datepicker>
+				</md-input-container>
+				</div>
+				<md-icon aria-label="Remove Line" ng-click="delivery_remove($index,item.id)" class="md-secondary ion-trash-b text-muted"></md-icon>
+			</md-list-item>
+			<md-content class="bg-white" layout-padding>
+				<div class="col-md-6">
+				<md-button ng-click="add_delivery()" class="md-fab pull-left" ng-disabled="false" aria-label="Add Line">
+					<md-icon class="ion-plus-round text-muted"></md-icon>
+				</md-button>
+				<md-button ng-click="save_delivery()" class="md-fab pull-left" ng-disabled="false" aria-label="Add Line">
+					<md-icon class="ion-checkmark text-muted"></md-icon>
+				</md-button>
+				</div>
+			</md-content>
+          </md-content>
+        </md-tab>
       </md-tabs>
     </md-content>
   </div>
@@ -753,7 +783,7 @@
         </md-button>
         <h2 flex md-truncate><?php echo lang('peopleonthisprojects') ?></h2>
         <?php if (check_privilege('projects', 'edit')) { ?> 
-          <md-button ng-click="InsertMember()" ng-show="project.authorization === 'true'" class="md-icon-button md-primary" aria-label="Add Member" ng-cloak>
+          <md-button ng-click="InsertMember()" class="md-icon-button md-primary" aria-label="Add Member" ng-cloak>
             <md-tooltip md-direction="bottom"><?php echo lang('add').' '.lang('staff') ?></md-tooltip>
             <md-icon class="ion-person-add"></md-icon>
           </md-button>
@@ -762,18 +792,18 @@
     </md-toolbar>
     <div class="project-assignee" ng-cloak>
       <div id="ciuis-customer-contact-detail">
-        <div ng-if="project.authorization === 'false'" role="alert" class="alert alert-warning alert-icon alert-dismissible">
+        <!--<div role="alert" class="alert alert-warning alert-icon alert-dismissible">
           <div class="icon"><span class="mdi mdi-block-alt"></span></div>
           <div class="message">
             <button type="button" data-dismiss="alert" aria-label="Close" class="close"><span aria-hidden="true" class="mdi mdi-close"></span></button>
             <?php echo lang('notauthorized') ?> </div>
-        </div>
+        </div>-->
         <div data-linkid="{{member.id}}" ng-repeat="member in project.members" class="ciuis-customer-contacts">
           <div data-toggle="modal" data-target="#contactmodal1"> <img width="40" height="40" src="{{UPIMGURL}}{{member.staffavatar}}" alt="">
             <div style="padding: 16px;position: initial;"> <strong ng-bind="member.staffname"></strong> <br>
               <span ng-bind="member.email"></span> </div>
               <?php if (check_privilege('projects', 'delete')) { ?> 
-                <div ng-show="project.authorization === 'true'" ng-click='UnlinkMember($index)' class="unlink"> <i class="ion-ios-close-outline"></i> </div>
+                <div ng-click='UnlinkMember($index)' class="unlink"> <i class="ion-ios-close-outline"></i> </div>
               <?php } ?>
           </div>
         </div>
@@ -786,7 +816,7 @@
         </md-button>
         <h2 flex md-truncate><?php echo lang('files') ?></h2>
         <?php if (check_privilege('projects', 'edit')) { ?> 
-          <md-button ng-click="UploadFile()" ng-show="project.authorization === 'true'" class="md-icon-button md-primary" aria-label="Add File" ng-cloak>
+          <md-button ng-click="UploadFile()" class="md-icon-button md-primary" aria-label="Add File" ng-cloak>
             <md-tooltip md-direction="bottom"><?php echo lang('upload').' '.lang('file') ?></md-tooltip>
             <md-icon class="ion-android-add-circle text-success"></md-icon>
           </md-button>
@@ -1516,7 +1546,7 @@
   <?php echo form_open_multipart('projects/add_file/'.$projects['id'].'',array("class"=>"form-horizontal")); ?>
   <md-dialog-content layout-padding>
     <h2 class="md-title"><?php echo lang('choosefile'); ?></h2>
-    <input type="file" required name="file_name" file-model="project_file">
+    <input type="file" id="file1" name="file" multiple ng-files="getTheFiles($files)" required />
   </md-dialog-content>
   <md-dialog-actions>
     <span flex></span>

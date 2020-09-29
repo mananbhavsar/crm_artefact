@@ -8,16 +8,27 @@ class Notebooks_Model extends CI_Model {
 	public function updatenotebook($noteid,$arr){
 	  	$this->db->where('notebook_id',$noteid);
 		$this->db->update('notebooks',$arr);	
+		$loggedinuserid = $this->session->usr_id;
+		$this->db->insert( 'history_logs', array(
+			'date' => date( 'Y-m-d H:i:s' ),
+			'detail' => ( '<a href="staff/staffmember/' . $this->session->usr_id . '"> ' . $this->session->staffname . '</a> ' . lang( 'Update' ) . ' <a href="notebooks/view/' .$noteid . '">' . $arr['notebook_list'] . '</a>.' ),
+			'staff_id' => $loggedinuserid,
+			'type'=>'Notbook',
+			'vendor_id'=>$noteid
+		) );
 	}
 	
 	public function updatenotebookdesc($id,$new_arr){
 	  	$this->db->where('id',$id);
 		$this->db->update('notebook_dec',$new_arr);
-	}
-		public function update_type($switch_val,$id){
-	  	$this->db->where('notebook_id',$id);
-	$res = 	$this->db->update('notebooks',array('note_type'=>$switch_val));
-	return $res;
+		$loggedinuserid = $this->session->usr_id;
+		$this->db->insert( 'history_logs', array(
+			'date' => date( 'Y-m-d H:i:s' ),
+			'detail' => ( '<a href="staff/staffmember/' . $this->session->usr_id . '"> ' . $this->session->staffname . '</a> ' . lang( 'Update Description' ) . ' <a href="notebooks/view/' .$id . '">' . $new_arr['notes_title'] . '</a>.' ),
+			'staff_id' => $loggedinuserid,
+			'type'=>'Notbook',
+			'vendor_id'=>$id
+		) );
 	}
 	
 	function get_all_notebooks()
@@ -92,6 +103,7 @@ FROM
 
 	function delete_notebooks_id($id)
 	{	
+		$this->db->delete('history_logs', array( 'vendor_id' => $id,'type'=>'Notbook'));
 		$this->db->where('notebook_id',$id);
 		return $this->db->delete( 'notebooks');
 	}

@@ -211,7 +211,7 @@
                       <th class="total text-right"><?php echo lang('quantity') ?></th>
                       <th class=" unit  text-right">Unit <?php echo lang('price') ?></th>
                      
-                      <th class=" text-right"><?php echo $appconfig['tax_label'] ?></th>
+                      <th class=" text-right"><?php echo $appconfig['tax_label']; echo ' (%)'; ?></th>
                       <?php if($disshowhead>0){?>
                        <th class=" text-right unit">Discount</th>
                        <?php }?>
@@ -411,7 +411,7 @@
 					  <div class="col-md-12">
 				  <div class="col-md-10">
                     <div  class="text-right text-uppercase text-muted">
-                      Total VAT ON SALES - 5%:</div>
+                      Total VAT ON SALES (5%):</div>
 					  </div><div class="col-md-2 text-right">
                     <div  class="text-right text-uppercase text-muted">
                       <?php echo number_format($estimation_record['estimation_tax_amount'],2, '.', ','); ?></div>
@@ -603,6 +603,24 @@
       </div>
 	  -->
     </div>
+	<?php if(sizeof($revisions)> 0){ ?>
+	<div class="col-md-12 col-xs-12 md-pr-0 md-pl-0 md-pb-10" style="background: white">
+      <div class="col-xs-12 task-sidebar-item" ng-cloak>
+			<h4><strong>Estimations Revision:</strong></h4>
+			<table class="table">
+			<?php foreach($revisions as $key=>$eachrev) { $key = $key > 9 ? $key : '0'.$key; ?>
+				<tr style="text-align:left;">
+					<td style="width:25%;"><?php echo 'Rev'.$key;?></td>
+					<td style="width:30%;padding:2px;"><strong>By: </strong><?php echo $eachrev['staffmembername'];?>
+					<br/>
+					<?php echo date('d M Y H:i:s',strtotime($eachrev['createddate']));?>
+					</td>
+				</tr>
+			<?php } ?>
+			</table>
+	  </div>
+	</div>
+	<?php } ?>
     <md-toolbar class="toolbar-white">
       <div class="md-toolbar-tools">
         <md-button class="md-icon-button" aria-label="Invoice" ng-disabled="true">
@@ -668,58 +686,20 @@
         </ul>
       </div>
     </md-content>
-	<!--
-	   <md-content class="bg-white">
-      <md-list flex ng-cloak>
-	  <?php if(!empty($estimation_documents)){
-		  foreach($estimation_documents as $eachdoc){
-		  ?>
-        <md-list-item class="md-2-line" >
-          <div class="md-list-item-text image-preview">
-         <a  class="cursor" >
-              <md-tooltip md-direction="left"><?php echo lang('download') ?></md-tooltip>
-              <img src="<?php echo base_url('assets/img/file_icon.png');?>">
-            </a>
+	<div class="ciuis-activity-line col-md-12">
+		<ul class="ciuis-activity-timeline">
+			<li ng-repeat="eachhistory in estimationhistory | limitTo: LogLimit" class="ciuis-activity-detail">
+				<div class="ciuis-activity-title" ng-bind="eachhistory.date"></div>
+				<div class="ciuis-activity-detail-body">
+					<div ng-bind-html="eachhistory.detail|trustAsHtml"></div>
+					<div style="margin-right: 15px; border-radius: 3px; background: transparent; color: #2f3239; font-weight: 400;" class="pull-right label label-default">
+						<small class="log-date"><i class="ion-android-time"></i> <span ng-bind="eachhistory.logdate | date : 'MMM d, y h:mm:ss a'"></span></small>
           </div>
-          <div class="md-list-item-text">
-            <a class="cursor" ng-href="<?php echo base_url('estimations/download_file/'. $eachdoc['est_doc_id'].'');?>">
-              <h3 class="link" ><?php print $eachdoc['document_name']; ?></a></h3>
-            </a>
           </div>
-          <?php if (check_privilege('estimations', 'delete')) { ?>
-            <md-icon  ng-click='DeleteFile(file.id)' class="ion-trash-b cursor"></md-icon>
-          <?php } ?>
-          <md-divider></md-divider>
-        </md-list-item>
-		  <?php }}else{?>
-        <div ng-show="!files.length" class="text-center"><img width="70%" src="<?php echo base_url('assets/img/nofiles.jpg') ?>" alt=""></div>
-	  <?php }?>
-      </md-list>
-      <div ng-show="files.length>6" class="pagination-div" ng-cloak>
-        <ul class="pagination">
-          <li ng-class="DisablePrevPage()"> <a href ng-click="prevPage()"><i class="ion-ios-arrow-back"></i></a> </li>
-          <li ng-repeat="n in range()" ng-class="{active: n == currentPage}" ng-click="setPage(n)"> <a href="#" ng-bind="n+1"></a> </li>
-          <li ng-class="DisableNextPage()"> <a href ng-click="nextPage()"><i class="ion-ios-arrow-right"></i></a> </li>
+			</li>
+			<load-order-more></load-order-more>
         </ul>
       </div>
-    </md-content>
-	-->
-	<?php if(sizeof($revisions)> 0){ ?>
-	<md-content class="bg-white">
-		<md-list flex ng-cloak>
-			<strong><h4>Estimations Revision:</h4></strong>
-			<table class="table">
-			<?php foreach($revisions as $key=>$eachrev) { $key = $key > 9 ? $key : '0'.$key; ?>
-				<tr style="text-align:left;">
-					<td style="width:25%;"><?php echo 'Rev'.$key;?></td>
-					<td style="width:45%;"><strong>DateTime: </strong><?php echo date('d M Y',strtotime($eachrev['createddate']));?></td>
-					<td style="width:30%;"><strong>By: </strong><?php echo $eachrev['staffmembername'];?></td>
-				</tr>
-			<?php } ?>
-			</table>
-	  </md-list>
-	</md-content>
-	<?php } ?>
  </div>
   <md-sidenav class="md-sidenav-right md-whiteframe-4dp" md-component-id="ReminderForm" ng-cloak style="width: 450px;">
     <md-toolbar class="md-theme-light" style="background:#262626">
@@ -807,7 +787,7 @@
   <?php echo form_open_multipart('projects/add_file/'.$projects['id'].'',array("class"=>"form-horizontal")); ?>
   <md-dialog-content layout-padding>
     <h2 class="md-title"><?php echo lang('choosefile'); ?></h2>
-    <input type="file" required name="file_name" file-model="project_file">
+	<input type="file" id="file1" name="file" multiple ng-files="getTheFiles($files)" required />
   </md-dialog-content>
   <md-dialog-actions>
     <span flex></span>

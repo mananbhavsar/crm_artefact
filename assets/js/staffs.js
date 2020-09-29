@@ -305,6 +305,7 @@ function Staffs_Controller($scope, $http, $mdSidenav, $mdDialog, $filter) {
 
 	$scope.showList = true;
 	$scope.open_students = function (type) {
+		$scope.setBold = type;
 		$scope.staff_list = {
 		order: '',
 		limit: 20,
@@ -360,6 +361,8 @@ function Staffs_Controller($scope, $http, $mdSidenav, $mdDialog, $filter) {
 
 
 		$scope.AddStaff = function(){
+		    var date_of_birth=$("#date_of_birth").datepicker("getDate");
+			var joining_date=$("#joining_date").datepicker("getDate");
 			$scope.saving = true;
 			$scope.tempArr = [];
 			angular.forEach($scope.custom_fields, function (value) {
@@ -401,8 +404,8 @@ function Staffs_Controller($scope, $http, $mdSidenav, $mdDialog, $filter) {
 				address: $scope.staff.address,
 				timezone: $scope.staff_timezone,
 				custom_fields: $scope.tempArr,
-				joining_date:moment($scope.joining_date).format("DD-MM-YYYY"),
-				date_of_birth:moment($scope.date_of_birth).format("DD-MM-YYYY"),
+				joining_date:moment(joining_date).format("YYYY-MM-DD"),
+				date_of_birth:moment(date_of_birth).format("YYYY-MM-DD"),
 				profession: $scope.staff.profession,
 				nominee: $scope.staff.nominee,
 				nationality: $scope.staff.country_id,
@@ -472,10 +475,71 @@ function Staffs_Controller($scope, $http, $mdSidenav, $mdDialog, $filter) {
 	$scope.open_students(0);
 }
 
-function Staff_Controller($scope, $http, $mdSidenav, $mdDialog, $filter, fileUpload) {
+function Staff_Controller($scope, $http, $mdSidenav, $mdDialog, $filter,$timeout, fileUpload) {
 	"use strict";
 	$scope.Update = buildToggler('Update');
-
+	$scope.filterValue = function($event){
+        if(isNaN(String.fromCharCode($event.keyCode))){
+            $event.preventDefault();
+        }
+	};
+	$scope.edit_appraisal=function(appraisal_id){
+		$http.get(BASE_URL + 'staff/GetAppraisal/' + appraisal_id).then(function (appraisaldata) {
+		$scope.appraisaldata = appraisaldata.data;
+		$scope.appraisal_id=appraisaldata.data[0]['id'];
+		$scope.increment_date=appraisaldata.data[0]['increment_date'];
+		$scope.type_of_amount=appraisaldata.data[0]['type_of_amount'];
+		$scope.increment_amount=appraisaldata.data[0]['increment_amount'];
+		$scope.increment_type=appraisaldata.data[0]['increment_type'];
+		$scope.increment_reason=appraisaldata.data[0]['increment_reason'];
+		$scope.remarks=appraisaldata.data[0]['remarks'];
+			console.log($scope.appraisaldata);
+			$('#appraisal_modal').modal('show');
+			$timeout(function(){
+					console.log("sadsd");
+				var date_input=$('.newdatepicker2'); //our date input has the name "date"
+				var container=$('.bootstrap-iso form').length>0 ? $('.bootstrap-iso form').parent() : "body";
+				date_input.datepicker({format:'dd-mm-yy',
+				container: container,
+				todayHighlight: true,
+				autoclose: true,changeYear: true,changeMonth: true,zIndex: 3000});
+			},1000);
+		});
+	};
+	$scope.edit_warning=function(warning_id){
+		$http.get(BASE_URL + 'staff/GetWarning/' + warning_id).then(function (warningdata) {
+		$scope.warningdata = warningdata.data;
+		$scope.warning_id=warningdata.data[0]['id'];
+		$scope.warning_date=warningdata.data[0]['warning_date'];
+		$scope.date_of_incident=warningdata.data[0]['date_of_incident'];
+		$scope.warning_type=warningdata.data[0]['warning_type'];
+		$scope.type_of_violation=warningdata.data[0]['type_of_violation'];
+		$scope.action=warningdata.data[0]['action'];
+		$scope.employee_signature=warningdata.data[0]['employee_signature'];
+		$('#warnings_modal').modal('show');
+			$timeout(function(){
+				var date_input=$('.newdatepicker1'); //our date input has the name "date"
+				var container=$('.bootstrap-iso form').length>0 ? $('.bootstrap-iso form').parent() : "body";
+				date_input.datepicker({format:'dd-mm-yy',
+				container: container,
+				todayHighlight: true,
+				autoclose: true,changeYear: true,changeMonth: true,zIndex: 3000});
+			},1000);
+		});
+	};
+	$scope.edit_tools=function(tools_id){
+		$http.get(BASE_URL + 'staff/GetTools/' + tools_id).then(function (toolsdata) {
+		$scope.toolsdata = toolsdata.data;
+		$scope.tools_id=toolsdata.data[0]['id'];
+		$scope.date=toolsdata.data[0]['date'];
+		$scope.item_discription=toolsdata.data[0]['item_discription'];
+		$scope.quantity=toolsdata.data[0]['quantity'];
+		$scope.approved_by=toolsdata.data[0]['approved_by'];
+		$scope.status=toolsdata.data[0]['status'];
+		$scope.remarks=toolsdata.data[0]['remarks'];
+			$('#tools_modal').modal('show'); 
+		});
+	};
 	function buildToggler(navID) {
 		return function () {
 			$mdSidenav(navID).toggle();
@@ -937,9 +1001,244 @@ if(hash!=""){
 		};
 		window.chart = new Chart(canvas, configs);
 	});
-
-   
 }
 
+function Recruitment_Controller($scope, $http, $mdSidenav, $filter,$mdDialog,fileUpload,$timeout) {
+	"use strict";
+	$scope.Update = buildToggler('Update');
+	$scope.Create = buildToggler('Create');
+	$scope.ReminderForm = buildToggler('ReminderForm');
+	$scope.statuss = [
+	    { id: 1, name: 'Awaiting Review' },
+	    { id: 2, name: 'Reviewed' },
+	    { id: 3, name: 'Screened' },
+	    { id: 4, name: 'Interviewed'},
+	    { id: 5, name: 'Hired'},
+	    { id: 6, name: 'Rejected'}
+	  ];
+	$scope.statusnew=statusold; 
+	$scope.recruitment_status=recruitment_status; 
+	$scope.documentFiles = false;
+	$scope.files1 = files1;
+	$scope.filetype = filetype;
+	$scope.CandidateID = CandidateID;
+	$scope.path =  BASE_URL+ 'uploads/files/candidates/'+$scope.CandidateID+'/'+$scope.files1;
+	$http.get(BASE_URL + 'api/staff').then(function (Staff) {
+		$scope.staff = Staff.data;
+	});
+	$http.get(BASE_URL + 'api/doclogs/'+CandidateID+'/" "/Recruitment').then(function (Logs) {
+		$scope.logs = Logs.data;
+	});
+	$scope.loadMoreLogs = function() {
+		$scope.getLogs = true;
+		$http.get(BASE_URL + 'api/doclogs/'+CandidateID+'/loadMore/Recruitment').then(function (Logs) {
+			$scope.logs = Logs.data;
+			$scope.getLogs = false;
+		});
+	}
+	$scope.gender = [
+	    { id: 1,  name: 'Male' },
+	    { id: 2,  name: 'Female' },
+	  ];
+	function buildToggler(navID) {
+		return function () {
+			$mdSidenav(navID).toggle();
+		};
+	}
+	$scope.close = function () {
+		$mdSidenav('Create').close();
+	};
+	$scope.recruitment_list = {
+		order: '',
+		limit: 10,
+		page: 1
+	};
+	$scope.open_contact_type = function () {
+		$http.get(BASE_URL + 'recruitment/recruitmenttype').then(function (Payroll) {
+			$scope.recruitmenttype = Payroll.data;
+		});
+	}
+    $scope.open_contact_type();
+	$scope.taskLoader = true;
+	$scope.open_recruitment = function (type) {
+		$scope.setBold = type;
+		$http.get(BASE_URL + 'recruitment/get_Recruitment/'+ type).then(function (Recruitment) {
+			$scope.recruitments = Recruitment.data;
+			$scope.limitOptions = [10, 15, 20];
+			if ($scope.recruitments.length > 20) {
+				$scope.limitOptions = [10, 15, 20, $scope.recruitments.length];
+			}
+			$scope.taskLoader = false;
+		});
+	}
+	$scope.open_recruitment(0);
+	$scope.MarkAs = function (id, name) {
+		var dataObj = $.param({
+			status_id: id,
+			candidate_id: CandidateID,
+			name: name,
+		});
+		var posturl = BASE_URL + 'recruitment/update_status/';
+		$http.post(posturl, dataObj, config)
+			.then(
+				function (response) {
+					if(response.data.success == true){
+						globals.mdToast('success', response.data.message);
+						window.location.reload();
+					} else {
+						globals.mdToast('error', response.data.message);
+					}
+				},
+				function (response) {
+					console.log(response);
+				}
+			);
+	};
+	$http.get(BASE_URL + 'api/reminders_by_type/recruitment/' + CandidateID).then(function (Reminders) {
+		$scope.in_reminders = Reminders.data;
+		$scope.AddReminder = function () {
+			var dataObj = $.param({
+				description: $scope.reminder_description,
+				date: moment($scope.reminder_date).format("YYYY-MM-DD HH:mm:ss"),
+				staff: $scope.reminder_staff,
+				relation_type: 'recruitment',
+				relation: CandidateID,
+			});
+			var posturl = BASE_URL + 'trivia/addreminder';
+			$http.post(posturl, dataObj, config)
+				.then(
+					function (response) {
+						$http.get(BASE_URL + 'api/reminders_by_type/recruitment/' + CandidateID).then(function (Reminders) {
+							$scope.in_reminders = Reminders.data;
+						});
+						$mdSidenav('ReminderForm').close();
+					},
+					function (response) {
+						console.log(response);
+					}
+				);
+		};
+		$scope.DeleteReminder = function (index) {
+			var reminder = $scope.in_reminders[index];
+			var dataObj = $.param({
+				reminder: reminder.id
+			});
+			var posturl = BASE_URL + 'trivia/removereminder';
+			$http.post(posturl, dataObj, config)
+				.then(
+					function (response) {
+						$scope.in_reminders.splice($scope.in_reminders.indexOf(reminder), 1);
+						console.log(response);
+					},
+					function (response) {
+						console.log(response);
+					}
+				);
+		};
+	});
+   
+	$http.get(BASE_URL + 'api/notes/recruitment/' + CandidateID).then(function (Notes) {
+		$scope.notes = Notes.data;
+		$scope.AddNote = function () {
+			var dataObj = $.param({
+				description: $scope.note,
+				relation_type: 'recruitment',
+				relation: CandidateID,
+			});
+			var posturl = BASE_URL + 'trivia/addnote';
+			$http.post(posturl, dataObj, config)
+				.then(
+					function (response) {
+						if (response.data.success == true) {
+							$.gritter.add({
+								title: '<b>' + NTFTITLE + '</b>',
+								text: response.data.message,
+								class_name: 'color success'
+							});
+							$('.note-description').val('');
+							$scope.note = '';
+							$http.get(BASE_URL + 'api/notes/recruitment/' + CandidateID).then(function (Notes) {
+								$scope.notes = Notes.data;
+							});
+						} else {
+							$.gritter.add({
+								title: '<b>' + NTFTITLE + '</b>',
+								text: response.data.message,
+								class_name: 'color danger'
+							});
+}
+					},
+					function (response) {
+						console.log(response);
+					}
+				);
+		};
+		$scope.DeleteNote = function (index) {
+			var note = $scope.notes[index];
+			var dataObj = $.param({
+				notes: note.id
+			});
+			var posturl = BASE_URL + 'trivia/removenote';
+			$http.post(posturl, dataObj, config)
+				.then(
+					function (response) {
+						$scope.notes.splice($scope.notes.indexOf(note), 1);
+					},
+					function (response) {
+					}
+				);
+		};
+	});
+	$scope.Convert = function (index) {
+		globals.deleteDialog(lang.convert_title, lang.convert_text, CandidateID, lang.convert, lang.cancel, 'recruitment/convert/' + CandidateID, function(response) {
+			if (response.success == true) {
+				window.location.href = BASE_URL + 'recruitment/GetRecruitment/' + CandidateID;
+				$('.lostBtn').css('display','none');
+			} else {							
+				globals.mdToast('error',response.message);
+			}
+		});
+	};
+		$scope.DeleteDocFile = function(id,files1) {
+			var confirm = $mdDialog.confirm()
+				.title($scope.lang.delete_file_title)
+				.textContent($scope.lang.delete_file_message)
+				.ariaLabel($scope.lang.delete_file_title)
+				.targetEvent(CandidateID)
+				.ok($scope.lang.delete)
+				.cancel($scope.lang.cancel);
+
+			$mdDialog.show(confirm).then(function () {
+				var config = {
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8;'
+					}
+				};
+				var dataObj = $.param({
+					id: id,
+					files1: files1
+				});
+				var posturl = BASE_URL + 'recruitment/update_status/';
+				$http.post(posturl, dataObj, config)
+					.then(
+						function (response) {
+							if(response.data.success == true) {
+								showToast(NTFTITLE, response.data.message, ' success');
+								$http.get(BASE_URL + 'recruitment/GetRecruitment/' + CandidateID).then(function (Files) {
+									$scope.files1 = '';
+								});
+							} else {
+								showToast(NTFTITLE, response.data.message, ' danger');
+							}
+						},
+						function (response) {
+							console.log(response);
+						}
+					);
+			}, function() {
+			});
+		};
+}
 CiuisCRM.controller('Staffs_Controller', Staffs_Controller);
 CiuisCRM.controller('Staff_Controller', Staff_Controller);
+CiuisCRM.controller('Recruitment_Controller', Recruitment_Controller);

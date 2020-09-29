@@ -276,6 +276,23 @@ td.dataTables_empty {
 				
 </form>
 </div>		  
+<div id="leaveModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+   <form method="post" action="<?php print base_url();?>salaryrequests/update_salary">
+      <div class="modal-body">
+	  <div id="leavehtml"></div>
+      </div>
+      <div class="modal-footer">
+	   <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	    <button type="submit" class="btn btn-primary" >Update</button>
+        <button type="button" class="btn btn-danger" onclick="delete_salary_request();">Delete</button>
+      </div>
+	  </form>
+    </div>
+  </div>
+</div>
 
 	   
 
@@ -289,11 +306,11 @@ td.dataTables_empty {
       var date_input=$('.newdatepicker'); //our date input has the name "date"
       var container=$('.bootstrap-iso form').length>0 ? $('.bootstrap-iso form').parent() : "body";
    
-      date_input.datepicker({format:'yyyy-mm-dd',
+      date_input.datepicker({format:'dd-mm-yyyy',
 			startDate: new Date(),
 			todayHighlight: true,
 			autoHide: true,changeYear: true,changeMonth: true});
-			$('.newdatepicker1').datepicker({format:'yyyy-mm-dd',
+			$('.newdatepicker1').datepicker({format:'dd-mm-yyyy',
 			
 			todayHighlight: true,
 			autoHide: true,changeYear: true,changeMonth: true});
@@ -306,12 +323,12 @@ td.dataTables_empty {
       var $endDate = $('.end-date');
 
       $startDate.datepicker({
-		  
+		  format:'dd-mm-yyyy',
         todayHighlight: true,
 			autoHide: true,changeYear: true,changeMonth: true
       });
       $endDate.datepicker({
-       
+       format:'dd-mm-yyyy',
 			autoHide: true,changeYear: true,changeMonth: true,
         startDate: $startDate.datepicker('getDate'),
       });
@@ -384,6 +401,38 @@ function myFunction() {
     }
   }
 }
+function show_post(str){
+	$.ajax({
+	  url : "<?php echo base_url(); ?>salaryrequests/showsalaryform/"+str,
 
+	  method:'POST',
+	  success:function(response) {	
+		$('#leavehtml').html(response);
+      $('.newdatepicker').datepicker({
+		  format:'dd-mm-yyyy',			
+			clearBtn: true,
+			autoHide: true,
+			changeYear: true,
+			changeMonth: true,
+			zIndex: 2048,
+			clearBtn:true});
+		$('#leaveModal').modal('show');
+	}
+  });
+}
+function delete_salary_request()
+{
+	var id = $('#salaryid').val();
+	 $.ajax({
+              url : "<?php echo base_url(); ?>salaryrequests/delete_request",
+              data:{id : id},
+              method:'POST',
+              dataType:'json',
+			  cache:true,
+              success:function(response) {
+               location.reload();
+            }
+          });
+}
 
 </script>		

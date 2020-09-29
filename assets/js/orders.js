@@ -418,15 +418,27 @@ function Order_Controller($scope, $http, $mdSidenav, $mdDialog, $q, $timeout,$el
 	}
 	
 	$scope.uploading = false; 
+	var formdata = new FormData();
+	$scope.getTheFiles = function ($files) {              
+		angular.forEach($files, function (value, key) {
+			formdata.append(key, value);
+		});
+	};
 	$scope.uploadProjectFile = function() {
-		$scope.uploading = true;
-        var file = $scope.order_file;
         var uploadUrl = BASE_URL+'orders/add_file/'+ORDERID;
-        fileUpload.uploadFileToUrl(file, uploadUrl, function(response) {
-        	if (response.success == true) {
-        		globals.mdToast('success', response.message);
+		var request = {
+			   method: 'POST',
+			   url: uploadUrl,
+			   data: formdata,
+			   headers: {
+				   'Content-Type': undefined
+			   }
+		};
+	   $http(request).then(function(response){
+			if (response.data.success == true){
+        		globals.mdToast('success', response.data.message);
         	} else {
-        		globals.mdToast('error', response.message);
+        		globals.mdToast('error', response.data.message);
         	}
         	$scope.orderFiles = true;
         	$http.get(BASE_URL + 'orders/orderfiles/' + ORDERID).then(function (Files) {
@@ -436,7 +448,7 @@ function Order_Controller($scope, $http, $mdSidenav, $mdDialog, $q, $timeout,$el
         	$scope.uploading = false;
         	$mdDialog.hide();
         });
-    };
+	}
 	
 	$scope.ViewFile = function(index, image) {
 			$scope.file = $scope.files[index];
@@ -1036,3 +1048,14 @@ CiuisCRM.directive('loadOrderMore', function () {
 		}
 	};
 });
+CiuisCRM.directive('ngFiles', ['$parse', function ($parse) {
+	function fn_link(scope, element, attrs) {
+		var onChange = $parse(attrs.ngFiles);
+		element.on('change', function (event) {
+			onChange(scope, { $files: event.target.files });
+		});
+	};
+	return {
+		link: fn_link
+	}
+} ]);

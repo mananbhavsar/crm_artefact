@@ -250,7 +250,27 @@ $('input.amt').each(function() {
 	$('#totale').val(tot_sal);
 	$('#ttotale').html(tot_sal);
 	}
+		function enter_deducs(val){
 	
+	        tot_sal = 0;
+					$('input.amt').each(function() { 
+						var value = parseFloat($(this).val());
+					if (!isNaN(value)){ 
+					tot_sal += value;
+					}
+					});
+			tot_ded = 0;	
+					$('input.amt_d').each(function() { 
+						var value1 = parseFloat($(this).val());
+					if (!isNaN(value1)){ 
+					tot_ded += value1;
+					}
+					});
+	$('#total').val(tot_sal-tot_ded);
+	$('#ttotal').html(tot_sal-tot_ded);
+	$('#totale').val(tot_sal);
+	$('#ttotale').html(tot_sal);
+	}
 </script>
 
 

@@ -750,7 +750,7 @@
             </md-icon>
           <?php } ?>
         </md-list-item>-->
-		<md-list-item ng-repeat="status in leadstatuses" class="noright" aria-label="Edit Status" style="padding-left:10px;"> <strong ng-bind="status.name"></strong>
+		<md-list-item ng-repeat="status in leadstatuses" ng-click="EditStatus(status.id,status.name, $event)" class="noright" aria-label="Edit Status" style="padding-left:10px;"> <strong ng-bind="status.name"></strong>
           <?php if (check_privilege('leads', 'delete')) { ?> 
             <!--<md-icon ng-click='DeleteLeadStatus($index)' aria-label="Remove Status" class="md-secondary md-hue-3 ion-trash-b">
               <md-tooltip md-direction="top"><?php echo lang('delete') ?></md-tooltip>
@@ -775,7 +775,7 @@
             </md-icon>
           <?php } ?>
         </md-list-item>-->
-		<md-list-item ng-repeat="source in leadssources" class="noright" style="padding-left:10px;" aria-label="Edit Source"> <strong ng-bind="source.name"></strong>
+		<md-list-item ng-repeat="source in leadssources" ng-click="EditSource(source.id,source.name, $event)" class="noright" style="padding-left:10px;" aria-label="Edit Source"> <strong ng-bind="source.name"></strong>
           <?php if (check_privilege('leads', 'delete')) { ?> 
             <!--<md-icon ng-click='DeleteLeadSource($index)' aria-label="Remove Source" class="md-secondary md-hue-3 ion-trash-b">
               <md-tooltip md-direction="top"><?php echo lang('delete') ?></md-tooltip>

@@ -2,7 +2,7 @@
 @import url('https://fonts.googleapis.com/css?family=Montserrat:400,600&display=swap');
 
 
-html {font-family: sans-serif;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;}
+html {font-family: Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;}
 ::-webkit-scrollbar-track {
 background: #dadada;
 border: 7px solid transparent;
@@ -6927,7 +6927,8 @@ body {
 padding: 0;
 background-color: hsl(0, 0%, 95%);
 height: 100%;
-font-family: 'Montserrat', sans-serif;
+/* font-family: 'Montserrat', sans-serif; */
+font-family: Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;
 font-weight: 300;
 -webkit-font-smoothing: antialiased;
 }

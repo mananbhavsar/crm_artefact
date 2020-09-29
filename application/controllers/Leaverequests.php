@@ -190,8 +190,8 @@ class Leaverequests extends CIUIS_Controller {
 		if ( isset( $_POST ) && count( $_POST ) > 0 ) {	
 		$employee_id  = $this->input->post( 'employee_id' );
 		$type_of_leave = $this->input->post( 'type_of_leave' );
-		$leave_start_date = $this->input->post( 'leave_start_date' );
-		$rejoin_date = $this->input->post( 'rejoin_date' );
+		$leave_start_date = date('Y-m-d',strtotime($this->input->post( 'leave_start_date' )));
+		$rejoin_date =  date('Y-m-d',strtotime($this->input->post( 'rejoin_date' )));
 		$no_of_days = $this->input->post( 'no_of_days' );
  		$params = array(
 						'employee_id' => $employee_id,
@@ -237,8 +237,8 @@ class Leaverequests extends CIUIS_Controller {
 		$status = $this->input->post('status');
 		$method_of_leave = $this->input->post('method_of_leave');
 		$payment_type = $this->input->post('payment_type');
-		$leave_start_date = $this->input->post('leave_start_date');
-		$rejoin_date = $this->input->post('rejoin_date');
+		$leave_start_date = date('Y-m-d',strtotime($this->input->post('leave_start_date')));
+		$rejoin_date = date('Y-m-d',strtotime($this->input->post('rejoin_date')));
 		$no_of_days = $this->input->post('no_of_days');
 		if($this->input->post('status')=='2'){
 			$getdata=$this->db->get_where( 'leave_requests', array( 'leave_requests.leave_id' => $id ) )->row_array();

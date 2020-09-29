@@ -17,9 +17,15 @@ class Mrequests extends CIUIS_Controller {
 		$this->load->helper('url'); 
 		$this->load->model('Otherrequests_Model');
 		$this->load->model('Notifications_Model');
+		if ( !$this->Privileges_Model->has_privilege( $path ) ) {
+			$this->session->set_flashdata( 'ntf3', '' . lang( 'you_dont_have_permission' ) );
+			redirect( 'panel/' );
+			die;
+		} 
 	}
 
 	function index() {
+		$data[ 'unittypes' ] = $unittypes=$this->Settings_Model->get_mat_unittype();
 		$data[ 'title' ] = lang( 'requests' );
 		$path = $this->uri->segment(3);
 		
@@ -328,7 +334,7 @@ class Mrequests extends CIUIS_Controller {
 	}
 	
 	function create(){
-		$vendorIdMin = null;
+		$vendorIdMin = '';
 		if ( isset( $_POST ) && count( $_POST ) > 0 ) {
 		$appconfig = get_appconfig();
 		$employeeids=array();
@@ -441,7 +447,7 @@ class Mrequests extends CIUIS_Controller {
 				'detail' => ( '' . $staffname .' req '.$seriesid) ,
 				'staff_id' => $loggedinuserid,
 				'perres' => $staffavatar,
-				'customer_id' => $vendorIdMin['vendorMaterialId'],
+				'customer_id' => $vendorIdMin ? ($vendorIdMin['vendorMaterialId']) : 0,
 				'number' => ($seriesid),
 				'value' =>  $vendorIdMin ? $vendorIdMin['price'] : 0,
 				'customer_name' => $material_name,

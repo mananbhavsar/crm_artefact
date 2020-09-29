@@ -8,6 +8,10 @@ function Tickets_Controller($scope, $http, $mdSidenav, fileUpload, $filter, $mdT
 		});
 	});
 	
+	$scope.ActiveChangeColor = function (data) {
+		$('.side-tickets-menu-item').removeClass('activeTicket');
+		$('#ticket_'+data).addClass('activeTicket');
+	}
   $scope.groupSetup = {
     multiple: true,
     formatSearching: 'Searching the group...',
@@ -34,6 +38,19 @@ function Tickets_Controller($scope, $http, $mdSidenav, fileUpload, $filter, $mdT
 		$mdSidenav('Create').close();
 	};
 
+	$scope.Getdatepicker=function($val){
+		if($val==4){
+			console.log($val);
+		$(document).ready(function() {
+        $('#due_date').datepicker({
+			autoclose: true,
+			format: 'dd-mm-yyyy',
+			 orientation: "bottom right",
+			 autoclose: true,
+	    });
+    });
+		}
+	}	
 	globals.get_departments();
 	$scope.get_staff();
 	$scope.createTicket = function() {
@@ -42,6 +59,7 @@ function Tickets_Controller($scope, $http, $mdSidenav, fileUpload, $filter, $mdT
 			var dataObj = {
 				subject: '',
 				customer: '',
+				project_id: '',
 				contact: '',
 				department: '',
 				employee: '',
@@ -54,6 +72,7 @@ function Tickets_Controller($scope, $http, $mdSidenav, fileUpload, $filter, $mdT
 			var dataObj = {
 				subject: $scope.ticket.subject,
 				customer: $scope.ticket.customer,
+				project_id: $scope.ticket.project_id,
 				contact: $scope.ticket.contact,
 				department: $scope.ticket.department,
 				employee: $scope.ticket.employee,
@@ -337,6 +356,18 @@ function Ticket_Controller($scope, $http, $mdDialog, fileUpload, $mdSidenav) {
 				}
 			);
 	};
+	$scope.files1 = files1;
+	$scope.filetype = file_type[1];
+	console.log($scope.filetype);
+	$scope.ViewPdfFiledoc = function(id, image) {	
+			var filepath=BASE_URL+"uploads/attachments/"+image;
+			console.log(filepath);
+			var fileid=id;
+			var buton='  <a href="'+BASE_URL+'tickets/attachments/'+image+'" aria-label="add" class="btn btn-primary btn-lg">Download!</a>';
+			$('#buttons').html(buton);
+			$('#imagepdf').attr('src',filepath);
+			$('#myModal').modal('show');
+		}
 }
 
 CiuisCRM.controller('Tickets_Controller', Tickets_Controller);

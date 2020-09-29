@@ -85,6 +85,8 @@ class Staff extends CIUIS_Controller {
 					echo json_encode($data);
 				}
 				if (!$hasError) {
+				    $joining_date = $this->input->post('joining_date');
+			        $date_of_birth = $this->input->post('date_of_birth');
 					$appconfig = get_appconfig();
 					$params = array(
 						'language' => $this->input->post( 'language' ),
@@ -106,9 +108,9 @@ class Staff extends CIUIS_Controller {
 						'admin' => null,
 						'timezone' => $timezone,
 						'address' => $this->input->post( 'address' ),
-						'joining_date' => $this->input->post( 'joining_date' ),
+						'joining_date' =>  $joining_date,
 						'profession' => $this->input->post( 'profession' ),
-						'birthday' => $this->input->post( 'date_of_birth' ),
+						'birthday' =>  $date_of_birth,
 						'nominee' => $this->input->post( 'nominee' ),
 						'nationality' => $this->input->post( 'nationality' ),
 						'other' => null,
@@ -470,6 +472,7 @@ class Staff extends CIUIS_Controller {
 				$accessTab['employeehistory']=$this->Privileges_Model->has_privilege('employeehistory');
 				$data['accessTab']=$accessTab;
 					//print_r($data['appraisal'] );die;
+					$data['docmenu'] = $docmenu=$this->Staff_Model->get_documents_lable($id);
 				$this->load->view( 'inc/header', $data );
 				$this->load->view( 'staff/detail', $data );
 			} else {

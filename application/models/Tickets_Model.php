@@ -265,8 +265,10 @@ class Tickets_Model extends CI_Model {
 	        `customers`.`company` as `company`, `customers`.`namesurname` as `namesurname`, `departments`.`name` as `department`,
 	        `staff`.`staffname` as `staffmembername`, `staff`.`email` as `staffemail`, `contacts`.`name` as `contactname`,
 	        `contacts`.`surname` as `contactsurname`, `tickets`.`staff_id` as `stid`, `tickets`.`status_id` as `status_id`, 
-	        `tickets`.`id` as `id` FROM tickets LEFT JOIN `contacts` ON `tickets`.`contact_id` = `contacts`.`id` 
-	        LEFT JOIN `customers` ON `contacts`.`customer_id` = `customers`.`id` LEFT JOIN `departments` ON `tickets`.`department_id` = `departments`.`id` 
+	        `tickets`.`id` as `id`, `projects`.name as `projectname` FROM tickets LEFT JOIN `contacts` ON `tickets`.`contact_id` = `contacts`.`id` 
+	        LEFT JOIN `customers` ON `contacts`.`customer_id` = `customers`.`id`
+			LEFT JOIN `projects` ON `tickets`.`project_id` = `projects`.`id`
+			LEFT JOIN `departments` ON `tickets`.`department_id` = `departments`.`id` 
 	        LEFT JOIN `staff` ON `tickets`.`staff_id` = `staff`.`id` WHERE (FIND_IN_SET($staff_id,tickets.employee_id) or `tickets`.`staff_id` = '$staff_id')  AND tickets.id = '$id'";  
 	        
 	        $res = $this->db->query($sql);
@@ -275,9 +277,10 @@ class Tickets_Model extends CI_Model {
 	        
 	    }
 	    else{
-		$this->db->select( '*,staff.role_id as srole_id,customers.type as type, customers.email as customeremail, customers.company as company,customers.namesurname as namesurname,departments.name as department,staff.staffname as staffmembername,staff.email as staffemail,contacts.name as contactname,contacts.surname as contactsurname,tickets.staff_id as stid,tickets.status_id as status_id, tickets.id as id' );
+		$this->db->select( '*,staff.role_id as srole_id,customers.type as type, customers.email as customeremail, customers.company as company,customers.namesurname as namesurname,departments.name as department,staff.staffname as staffmembername,staff.email as staffemail,contacts.name as contactname,contacts.surname as contactsurname,tickets.staff_id as stid,tickets.status_id as status_id, tickets.id as id, projects.name as projectname' );
 		$this->db->join( 'contacts', 'tickets.contact_id = contacts.id', 'left' );
 		$this->db->join( 'customers', 'contacts.customer_id = customers.id', 'left' );
+		$this->db->join( 'projects', 'projects.id = tickets.project_id', 'left' );
 		$this->db->join( 'departments', 'tickets.department_id = departments.id', 'left' );
 		$this->db->join( 'staff', 'tickets.staff_id = staff.id', 'left' );
 	

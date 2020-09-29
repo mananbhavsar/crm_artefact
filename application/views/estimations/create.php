@@ -1033,8 +1033,11 @@ $("#formsubmit").click(function(){
         $("#updateForm").submit(); // Submit the form
     });
 <?php }?>
+	var myEditor;
   ClassicEditor
     .create( document.querySelector( '#special_notes' ) )
+	.then( special_notes => { myEditor = special_notes;
+    })
     .catch( error => {
     console.error( error );
   }
@@ -2096,10 +2099,22 @@ $('.sub_diff_new').each(function()
 		$('#salesteamid').val(data.salesteamid);
 		$('.my-select').selectpicker();
       }
-    }
-          );
+    });
+  });
+  $('body').on('change','#client_id',function() {
+    var client_id = $('#client_id').val();
+    $.ajax({
+      url : "<?php echo base_url(); ?>estimations/get_customer_termsconditions",
+      data:{
+        client_id : client_id
+	},
+      method:'POST',
+       dataType:'json',
+      success:function(data) {
+		myEditor.setData(data.terms_and_conditions);
   }
-              );
+    });
+  });
   function select_subcost(val,workgroup_count,activity_count){
     var unit_cost = val;
 	

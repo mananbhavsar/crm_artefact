@@ -332,14 +332,14 @@ label {
 				    	 <md-input-container class="md-block">
 				<input type="text" class="form-control" name="product_name" id="product_name1" placeholder="MATERIAL / SERVICE NAME" autocomplete="off" >
 				
-		  <input type="hidden" name="service_name" id="service_name" autocomplete="off"  class="service"    />
+		 
 		   </md-input-container>
 				</div>
 					<div class="form-group" id="mat_name">
 				 <md-input-container class="md-block">
 				<input type="text" class="form-control typeahead" data-provide="typeahead" data-hidden-field-id="product_name" name="product_name" id="product_name" placeholder="MATERIAL / SERVICE NAME" autocomplete="off" >
 				
-		  <input type="hidden" name="service_name" id="service_name" autocomplete="off"  class="service"   ng-model="vendor.product_name" />
+		  <input type="hidden" name="service_name" id="service_name" autocomplete="off"  class="service"   />
 		   </md-input-container>
 		   
 	</div>

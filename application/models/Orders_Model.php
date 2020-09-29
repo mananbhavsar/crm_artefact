@@ -309,7 +309,7 @@ class Orders_Model extends CI_Model {
 	}
 
 	function get_all_orders_by_privileges($staff_id='') {
-		$this->db->select( '*,orders.status_id as status_id,staff.staffname as staffmembername,staff.staffavatar as staffavatar,orders.id as id, projects.id as projectid' );
+		$this->db->select( '*,orders.status_id as status_id,orders.invoice_id as invoice_id, staff.staffname as staffmembername,staff.staffavatar as staffavatar,orders.id as id, projects.id as projectid' );
 		$this->db->join( 'staff', 'orders.assigned = staff.id', 'left' );
 		$this->db->join('customers', 'orders.relation = customers.id AND orders.relation_type = "customer"');
 		$this->db->join( 'projects', 'orders.id = projects.order_id', 'left' );
@@ -320,7 +320,7 @@ class Orders_Model extends CI_Model {
 	}
 	
 	function get_all_orders_by_privileges_permissions($staff_id = '') {
-		$this->db->select( '*,orders.status_id as status_id,staff.staffname as staffmembername,staff.staffavatar as staffavatar,orders.id as id, projects.id as projectid' );
+		$this->db->select( '*,orders.status_id as status_id,orders.invoice_id as invoice_id, staff.staffname as staffmembername,staff.staffavatar as staffavatar,orders.id as id, projects.id as projectid' );
 		$this->db->join( 'staff', 'orders.assigned = staff.id', 'left' );
 		$this->db->join( 'projects', 'orders.id = projects.order_id', 'left' );
 		$this->db->order_by( 'orders.id', 'desc' );

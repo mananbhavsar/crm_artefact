@@ -1281,32 +1281,41 @@ class Projects extends CIUIS_Controller {
 
 	function add_file( $id ) { 
 		if ( $this->Privileges_Model->check_privilege( 'projects', 'edit' ) ) {
-			if ( isset( $id ) ) {
 				if ( isset( $_POST ) ) {
 					if (!is_dir('uploads/files/projects/'.$id)) { 
 						mkdir('./uploads/files/projects/'.$id, 0777, true);
 					}
-					$config[ 'upload_path' ] = './uploads/files/projects/'.$id.'';
+				$count = count($_FILES);
+				if($count > 0){
+					for($i=0;$i<$count;$i++){
+						if(!empty($_FILES[$i]['name'])){
+						  $_FILES['file']['name'] = $_FILES[$i]['name'];
+						  $_FILES['file']['type'] = $_FILES[$i]['type'];
+						  $_FILES['file']['tmp_name'] = $_FILES[$i]['tmp_name'];
+						  $_FILES['file']['error'] = $_FILES[$i]['error'];
+						  $_FILES['file']['size'] = $_FILES[$i]['size'];
+						  $config[ 'upload_path' ] = './uploads/files/projects/'.$id;
 					$config[ 'allowed_types' ] = 'zip|rar|tar|gif|jpg|png|jpeg|gif|pdf|doc|docx|xls|xlsx|txt|csv|ppt|opt';
 					$config['max_size'] = '9000';
-					$new_name = preg_replace("/[^a-z0-9\_\-\.]/i", '', basename($_FILES["file"]['name']));
-					$config['file'] = $new_name;
+						  $new_name =rand(100,1000).'_'.preg_replace("/[^a-z0-9\_\-\.]/i", '', basename($_FILES[$i]['name']));
+						  $config['file_name'] = $new_name; 
 					$this->load->library( 'upload', $config );
-					if (!$this->upload->do_upload('file')) {
-						$data['success'] = false;
-						$data['message'] = $this->upload->display_errors();
-						echo json_encode($data);
-					} else {
-						$image_data = $this->upload->data();
-						if (is_file('./uploads/files/projects/'.$id.'/'.$image_data[ 'file_name' ])) {
+						  $this->upload->initialize($config);
+						  if($this->upload->do_upload('file')){  
+							$uploadData = $this->upload->data();
+							$filename = $uploadData['file_name'];
+							$filetype = $uploadData['file_type'];
 							$params = array(
 								'relation_type' => 'project',
 								'relation' => $id,
-								'file_name' => $image_data[ 'file_name' ],
+								'file_name' => $filename,
 								'created' => date( " Y.m.d H:i:s " ),
 								'is_old' => '0'
 							);
 							$this->db->insert( 'files', $params );
+						  }
+						}
+					}
 							$template = $this->Emails_Model->get_template('project', 'new_file_uploaded_to_customer');
 							if ($template['status'] == 1) {
 								$project = $this->Projects_Model->get_projects( $id );
@@ -1364,12 +1373,6 @@ class Projects extends CIUIS_Controller {
 							$data['success'] = true;
 							$data['message'] = lang('file').' '.lang('uploadmessage');
 							echo json_encode($data);
-						} else {
-							$data['success'] = false;
-							$data['message'] = lang('errormessage');
-							echo json_encode($data);
-						} 
-					}
 				}
 			}
 		} else {

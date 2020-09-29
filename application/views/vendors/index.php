@@ -7,6 +7,7 @@
 		}
 	</style>
 	<div class="main-content container-fluid col-xs-12 col-md-12 col-lg-9">
+	<?php if($this->session->flashdata('success')){echo $this->session->flashdata('success');}?>
 		<md-toolbar class="toolbar-white">
 			<div class="md-toolbar-tools">
 				<md-button class="md-icon-button" aria-label="File">
@@ -28,6 +29,33 @@
 					<md-tooltip md-direction="bottom"><?php echo lang('create') ?></md-tooltip>
 					<md-icon><i class="ion-android-add-circle text-success"></i></md-icon>
 				</md-button>
+				<?php } ?>
+				<?php 	if ( $this->Privileges_Model->check_privilege( 'vendors', 'all' ) ) {?>
+       <md-menu md-position-mode="target-right target" ng-cloak>
+            <md-button aria-label="Open demo menu" class="md-icon-button" ng-click="$mdMenu.open($event)">
+              <md-icon aria-label="Add Source"><i class="ion-android-more-vertical text-muted"></i></md-icon>
+            </md-button>
+            <md-menu-content width="4">
+                <md-menu-item>
+                  <md-button ng-click="ImportCustomersNav()" aria-label="Add">
+                    <div layout="row" flex>
+                      <p flex><?php echo 'Import Vendor'; ?></p>
+                      <md-icon aria-label="Add Source" md-menu-align-target class="ion-upload" style="margin: auto 3px auto 0;"></md-icon>
+                    </div>
+                  </md-button>
+                </md-menu-item>
+              <?php echo form_open_multipart('vendors/exportdata',array("class"=>"form-horizontal")); ?>
+              <md-menu-item>
+                <md-button type="submit" aria-label="Add">
+                  <div layout="row" flex>
+                    <p flex>Export Vendor</p>
+                    <md-icon aria-label="Add Source" md-menu-align-target class="ion-android-download text-muted" style="margin: auto 3px auto 0;"></md-icon>
+                  </div>
+                </md-button>
+              </md-menu-item>
+              <?php echo form_close(); ?>
+            </md-menu-content>
+          </md-menu>
 				<?php } ?>
 			</div>
 		</md-toolbar>
@@ -120,6 +148,49 @@
 			</div>
 		</div>
 	</div>
+	 <md-sidenav class="md-sidenav-right md-whiteframe-4dp" md-component-id="ImportCustomersNav" ng-cloak style="width: 450px;">
+    <md-toolbar class="md-theme-light" style="background:#262626">
+      <div class="md-toolbar-tools">
+        <md-button ng-click="close()" class="md-icon-button" aria-label="Close"><i class="ion-android-arrow-forward"></i></md-button>
+        <md-truncate><?php echo 'Import Vendor'; ?></md-truncate>
+      </div>
+    </md-toolbar>
+    <md-content>
+      <?php echo form_open_multipart('vendors/importdata'); ?>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="name">
+            <?php echo lang('choosexlsfile'); ?>
+          </label>
+          <div class="file-upload">
+            <div class="file-select">
+              <div class="file-select-button" id="fileName"><span class="mdi mdi-accounts-list-alt"></span>
+                <?php echo lang('attachment') ?>
+              </div>
+              <div class="file-select-name" id="noFile">
+                <?php echo lang('notchoise') ?>
+              </div>
+              <input type="file" name="userfile" id="chooseFile" required="" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" file-model="customer_file">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <a href="<?php echo base_url('uploads/samples/vendorimport.xls') ?>" class="btn btn-success pull-left"><?php echo lang('downloadsample'); ?></a>
+        <button type="submit" ng-click="importVendor()" class="btn btn-default"><?php echo lang('save'); ?></button>
+      </div>
+      <?php echo form_close(); ?>
+      <div ng-show="importerror">
+        <md-content>
+          <ul>
+            <li ng-repeat="error in errors">
+              <p><?php echo lang('row') . ' ' ?>{{error.line}}<?php echo ' ' . lang('importSkipError') ?></p>
+            </li>
+          </ul>
+        </md-content>
+      </div>
+    </md-content>
+  </md-sidenav>
 	<md-sidenav class="md-sidenav-right md-whiteframe-4dp" md-component-id="Create" ng-cloak style="width: 450px;">
 		<md-toolbar class="toolbar-white">
 			<div class="md-toolbar-tools">

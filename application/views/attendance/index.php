@@ -7,6 +7,9 @@
 .selectpicker > .dropdown .dropdown-menu {
 	padding:5px;
 }
+.cursor{
+	cursor:pointer;
+}
 .pen body {
 	padding-top:50px;
 }
@@ -107,10 +110,7 @@
   .ciuis-invoice-summaries-b1{
 	  width:20% !important;
   }
-  .ciuis-invoice-summaries-b1 .box-content .percentage
-  {
-	  left:40%!important;
-  }
+  
   .select2-default {
 	  color: rgba(0,0,0,0.12) !important;
 	  border-color:rgba(0,0,0,0.12) !important;
@@ -153,6 +153,7 @@
 						  <a onclick="select_filter('4')" class="side-tickets-menu-item" id="4">This Month</a>
 						
 						</div>
+						<!--
 						
 						<div class="tickets-vertical-menu">
 						 <h5 href="#" class="menu-icon active text-uppercase text-muted"><i class="fa fa-file-text fa-lg" aria-hidden="true"></i><strong class="ng-binding">Edit Attendance</strong></h5>
@@ -186,7 +187,7 @@ if(isset($allstaff)){
 </div>
 </form>
 						
-						</div>
+						</div>-->
 					  </div>
 					</div>
 				</div>
@@ -206,7 +207,7 @@ if(isset($allstaff)){
                     <div style="border-top-left-radius: 10px;" class="ciuis-right-border-b1 ciuis-invoice-summaries-b1">
                        <div class="box-header text-uppercase text-bold">PRESENT</div>
                        <div class="box-content" style="width: 130px; height: 130px;">
-                          <div class="percentage circleCnt" ng-bind="openLeads" id="present" onclick="select_sts('Present');">
+                          <div class="percentage cursor " ng-bind="openLeads" id="present" onclick="select_sts('Present');">
                           </div>
                           <canvas id="0" width="130" height="130" style="border: 1px solid;border-radius: 50%;"></canvas>
                        </div>
@@ -214,28 +215,28 @@ if(isset($allstaff)){
                     <div class="ciuis-right-border-b1 ciuis-invoice-summaries-b1">
                        <div class="box-header text-uppercase text-bold">ABSENT</div>
                        <div class="box-content invoice-percent" style="width: 130px; height: 130px;">
-                          <div class="percentage circleCnt" ng-bind="efollowupLeads" id="absent" onclick="select_sts('Absent');"></div>
+                          <div class="percentage cursor" ng-bind="efollowupLeads" id="absent" onclick="select_sts('Absent');"></div>
                           <canvas id="0" width="130" height="130" style="border: 1px solid;border-radius: 50%;"></canvas>
                        </div>
                     </div>
                     <div class="ciuis-right-border-b1 ciuis-invoice-summaries-b1">
                        <div class="box-header text-uppercase text-bold">ON TIME</div>
                        <div class="box-content invoice-percent" style="width: 130px; height: 130px;">
-                          <div class="percentage" ng-bind="cfollowupLeads" id="ontime" onclick="select_sts('Ok');"></div>
+                          <div class="percentage cursor" ng-bind="cfollowupLeads" id="ontime" onclick="select_sts('Ok');"></div>
                           <canvas id="0" width="130" height="130" style="border: 1px solid;border-radius: 50%;"></canvas>
                        </div>
                     </div>
                     <div class="ciuis-right-border-b1 ciuis-invoice-summaries-b1">
                        <div class="box-header text-uppercase text-bold">LATE IN </div>
                        <div class="box-content invoice-percent-2" style="width: 130px; height: 130px;">
-                          <div class="percentage" ng-bind="chaseLeads" id="latein" onclick="select_sts('LateIn');"></div>
+                          <div class="percentage cursor" ng-bind="chaseLeads" id="latein" onclick="select_sts('LateIn');"></div>
                           <canvas id="1" width="130" height="130" style="border: 1px solid;border-radius: 50%;"></canvas>
                        </div>
                     </div>
                     <div style="border-top-right-radius: 10px;" class="ciuis-invoice-summaries-b1">
                        <div class="box-header text-uppercase text-bold">VACATION</div>
                        <div class="box-content invoice-percent-3" style="width: 130px; height: 130px;">
-                          <div class="percentage" ng-bind="convertedLeads" id="vacation"></div>
+                          <div class="percentage cursor" ng-bind="convertedLeads" id="vacation"></div>
                           <canvas id="2" width="130" height="130" style="border: 1px solid;border-radius: 50%;"></canvas>
                        </div>
                     </div>

@@ -38,8 +38,9 @@ class Newcontacts_Model extends CI_Model {
 
 	}
 
-	function get_all_contacts($type="") {
+	function get_all_contacts($type="",$user_id="") {
 		if($type) $this->db->where("contact_persons.type",$type);
+		if($user_id) $this->db->where("contact_persons.user_id",$user_id);
 		$this->db->select('*');
 		return $this->db->get_where( 'contact_persons', array( '' ) )->result_array();
 	}

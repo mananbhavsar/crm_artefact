@@ -475,7 +475,9 @@ function get_mat_cat_data($id) {
 						$this->db->where('id', $orderData['id'])->update('orders',array('status_id'=>'3','enable_edit'=>'1','order_number'=>$order_number.$orderData['id']));
 					}
 					$response = $this->db->where( 'estimation_id', $_POST[ 'proposal_id' ] )->update( 'estimations', array( 'estimate_status' => $_POST[ 'status_id' ],'approved_by'=> $this->session->usr_id, 'approved_date'=>date('Y-m-d H:i:s')));
+					if(sizeof($orderData) == 0){
 					$this->approvalQuotesCreation($_POST[ 'proposal_id']);
+					}
 				}else{
 					$currentLevel=$getdata['approve_level']+1;
 					$response = $this->db->where( 'estimation_id', $_POST[ 'proposal_id' ] )->update( 'estimations', array( 'approve_level' => $currentLevel) );
@@ -486,7 +488,9 @@ function get_mat_cat_data($id) {
 					$this->db->where('id', $orderData['id'])->update('orders',array('status_id'=>'3','enable_edit'=>'1','order_number'=>$order_number.$orderData['id']));
 				}
 				$response = $this->db->where( 'estimation_id', $_POST[ 'proposal_id' ] )->update( 'estimations', array( 'estimate_status' => $_POST[ 'status_id' ],'approved_by'=> $this->session->usr_id, 'approved_date'=>date('Y-m-d H:i:s')));
+				if(sizeof($orderData) == 0){
 				$response = $this->approvalQuotesCreation($_POST[ 'proposal_id' ]);
+				}
 			}
 		}else if($_POST[ 'status_id' ]=='Under Approval'){
 			$orderData = $this->Orders_Model->getOrderByEstID($_POST[ 'proposal_id' ]);

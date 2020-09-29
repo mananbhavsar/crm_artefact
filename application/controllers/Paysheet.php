@@ -15,14 +15,16 @@ class Paysheet extends CIUIS_Controller {
 		// }
 	}
 
-	function index() {
+	function index($from_date,$to_date) {
 		$data[ 'title' ] = lang( 'Payroll' );
 		$data[ 'settings' ] = $this->Settings_Model->get_settings_ciuis();
 		 
 		//$getpayslip = $this->Payroll_Model->getrecords();
 		//$data['getpayslip'] = $getpayslip;
 	    $data['staff'] = $this->Staff_Model->get_all_staff();
-		 $day = date('d'); 
+	    $data['from_date'] = $from_date;
+	    $data['to_date'] = $to_date;
+	/*	 $day = date('d'); 
 	   $month = date('m');
 	   $year = date('Y');
 	   $previous = $month-1;
@@ -35,7 +37,7 @@ class Paysheet extends CIUIS_Controller {
 	   }else{
 	       $data['from_date'] = $year.'-0'.$last.'-25';
 	       $data['to_date'] = $year.'-0'.$previous.'-25';
-	   }
+	   } */
 		$this->load->view( 'paysheet/index', $data );
 	}
 
@@ -64,6 +66,8 @@ if($emp != ''){
 			$total_earnings = $this->input->post('tot_earn'.$val['id']);
 			$present_days = $this->input->post('present_days'.$val['id']);
 			$lop_days = $this->input->post('lop_days'.$val['id']);
+			$deduc = $this->input->post('deduc'.$val['id']);
+			$comments = $this->input->post('comments'.$val['id']);
 			$total_days = $this->input->post('total_days');
 			$params = array(
 				'from_date' => $from_date,
@@ -80,9 +84,17 @@ if($emp != ''){
 				'total_earnings' => $total_earnings,
 				'present_days' => $present_days,
 				'lop_days' => $lop_days,
-				'total_days' => $total_days
+				'total_days' => $total_days,
+				'deductions' => $deduc,
+				'comments' => $comments
 			);
+			$pay_record = $this->Payroll_Model->get_payslip_record($val['id'],$from_date,$to_date);
+			if($pay_record['staff_id'] == ''){
 			$this->db->insert('payslip',$params);
+			}else{
+			    $this->db->update('payslip',$params, array('staff_id' => $val['id'], 'from_date' => $from_date, 'to_date' => $to_date));
+			    //	$this->Payroll_Model->update_payslip($id,$from_date,$to_date,$params);
+			}
 			 
 }
 		}

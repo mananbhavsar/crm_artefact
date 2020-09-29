@@ -1477,7 +1477,7 @@ class Leads extends CIUIS_Controller {
 		echo json_encode($data);
 	}
 	
-	function get_filter_count() {
+	function get_filter_count_old() {
 		$status = $this->input->post( 'stat' );
 		$assigned_id = $this->input->post( 'assigned' );
 		$source = $this->input->post( 'source' );
@@ -1570,5 +1570,100 @@ class Leads extends CIUIS_Controller {
 		//$data[ 'cfollowupLeads' ] =$cfollowupLeads['total'];
 		$data[ 'lostfollowupLeads' ] =$lostfollowupLeads['total'];
 		echo json_encode( $data );
+	}
+	function get_filter_count() {
+		$status = $this->input->post( 'stat' );
+		$source = $this->input->post( 'source' );
+		$dates = $this->input->post( 'dates' );
+		$category = $this->input->post( 'category' );
+		$daytype = $this->input->post( 'daytype' );
+		$assignedperson = $this->input->post( 'assignedperson' );
+		$categoryID = '';
+		foreach($status as $eachStat) {
+			$statId[] = $this->Leads_Model->get_statusid_by_name($eachStat);
+		}
+		foreach($source as $eachsource) {
+			$sourceID[] = $this->Leads_Model->get_sourceid_by_name($eachsource);
+		}
+		if($category != '') {
+			$categoryID = $this->Leads_Model->get_businesstype_by_name($category[0]);	
+		}
+		if($dates != "") {
+			$fromDt = $dates[0];
+			$toDt = $dates[1];
+		}
+		$sources = implode(',',array_column($sourceID,'id'));
+		$assignees = implode(',',array_column($assignedID,'id'));
+		$businesstype = $categoryID != '' ? $categoryID['id'] : '';
+		$wherestatus=$wheresources=$whereassigned=$whereBusinessTypes='';
+		if($sources != '') {
+			$wheresources=" and source in (".$sources.")";
+		}
+		if($assignedperson != '' && $assignedperson != '0') {
+			$whereassigned=" and assigned_id in (".$assignedperson.")";
+		}
+		if($dates != '') {
+			$fromDtarr = explode('/',$fromDt);
+			$toDtarr = explode('/',$toDt);
+			//$fromDt = str_replace("/","-",$fromDt);
+			//$toDt = str_replace("/","-",$toDt);
+			$fromDt = $fromDtarr[1].'-'.$fromDtarr[0].'-'.$fromDtarr[2];
+			$toDt = $toDtarr[1].'-'.$toDtarr[0].'-'.$toDtarr[2];
+			$whereDates = " and DATE(dateassigned) between '" .date('Y-m-d',strtotime($fromDt))."' and '".date('Y-m-d',strtotime($toDt))."'";
+		}
+		if($businesstype != '') {
+			$whereBusinessTypes = " and groupid in (".$businesstype.")";
+		}
+		if($daytype != '' && $daytype != '0') {
+			$todayDt = $date=date('Y-m-d');
+			$yesterdayDt=date("Y-m-d",strtotime($date." -1 day "));
+			$end_week = strtotime("last monday midnight");
+			$end_week = date("Y-m-d",$end_week);
+			$start_week=date("Y-m-d",strtotime($end_week." -7 day "));
+			$start_month = date('Y-m-d', strtotime('first day of this month'));
+			$end_month = date('Y-m-d');
+			if($daytype=='today') {
+				$wheredaySelection = " and DATE(dateassigned) between '".$todayDt."' and '".$todayDt."'";
+			}
+			else if($daytype=='yesterday') {
+				$wheredaySelection = " and DATE(dateassigned) between '".$yesterdayDt."' and '".$yesterdayDt."'";
+			}
+			else if($daytype=='lastweek') {
+				$wheredaySelection = " and DATE(dateassigned) between '".$start_week."' and '".$end_week."'";
+			}
+			else if($daytype=='lastmonth') {
+				$wheredaySelection = " and DATE(dateassigned) between '".$start_month."' and '".$end_month."'";
+			}
+			else {
+				$wheredaySelection = '';
+			}
+		}
+		$where = $wherestatus.$wheresources.$whereassigned.$whereDates.$whereBusinessTypes.$wheredaySelection;
+		$openLeads= $this->Leads_Model->get_leads_count("status='1' ".$where);
+		$chaseLeads= $this->Leads_Model->get_leads_count("status='6' ".$where);
+		$convertedLeads= $this->Leads_Model->get_leads_count("status='7' ".$where);
+		$ecfollowupLeads= $this->Leads_Model->get_leads_count("(status='2' OR status='3') ".$where);
+		$lostfollowupLeads= $this->Leads_Model->get_leads_count("status='8' ".$where);
+		$data[ 'openLeads' ] =$openLeads['total'];
+		$data[ 'chaseLeads' ] =$chaseLeads['total'];
+		$data[ 'convertedLeads' ] =$convertedLeads['total'];
+		$data[ 'ecfollowupLeads' ] =$ecfollowupLeads['total'];
+		$data[ 'lostfollowupLeads' ] =$lostfollowupLeads['total'];
+		if($status == 'Open') {
+			$data['totalCount'] = $openLeads['total'];
+		}
+		else if($status == 'Chase') {
+			$data['totalCount'] = $chaseLeads['total'];
+		}
+		else if($status == 'Converted') {
+			$data['totalCount'] = $convertedLeads['total'];
+		}
+		else if($status == 'Lost') {
+			$data['totalCount'] = $ecfollowupLeads['total'];
+		}
+		else if($status == 'ECall') {
+			$data['totalCount'] = $lostfollowupLeads['total'];
+		}
+		echo json_encode($data);
 	}
 }

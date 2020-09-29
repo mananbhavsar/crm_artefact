@@ -267,6 +267,7 @@ class Orders extends CIUIS_Controller {
 
 	function order( $id ) {
 		$ordersdata=array();
+		$data['est_revisions'] = array();
 		$pro = $this->Orders_Model->get_pro_rel_type( $id );
 		$rel_type = $pro[ 'relation_type' ];
 		$ordersdata  = $this->Orders_Model->get_order_by_priviliges_by_salesteam( $id);
@@ -292,6 +293,9 @@ class Orders extends CIUIS_Controller {
 			$data[ 'title' ] = lang( 'quotes' );
 			$data[ 'settings' ] = $this->Settings_Model->get_settings_ciuis();
 			$data['revisions'] =$this->Privileges_Model->get_revision_by_id($id,'orders');
+			if($estimationId !='0'){
+				$data['est_revisions'] = $this->Privileges_Model->get_revision_by_id($estimationId,'estimations');
+			}
 			$this->load->view( 'orders/order', $data );
 		} else {
 			$this->session->set_flashdata( 'ntf3',lang( 'you_dont_have_permission' ) );
@@ -681,7 +685,7 @@ class Orders extends CIUIS_Controller {
 					'perres' => $staffavatar,
 					'target' => '' . base_url( 'area/invoice/' . $invoice . '' ) . ''
 				) );
-				
+				//--------------------------------------------------------------------------------------
 				/*$this->db->insert( $this->db->dbprefix . 'sales', array(
 					'invoice_id' => '' . $invoice . '',
 					'status_id' => 3,
@@ -1109,6 +1113,8 @@ class Orders extends CIUIS_Controller {
 				'' . lang( 'filterbyassigned' ) . '' => $order[ 'staffmembername' ],
 				'enable_edit'=>$order['enable_edit'],
 				'is_converted'=>$order[ 'is_converted' ],
+				'is_invoiced'=>$order[ 'is_invoiced' ],
+				'invoice_id'=>$order[ 'invoice_id' ],
 				'projectid'=>$order['projectid']
 			);
 		};
@@ -1173,58 +1179,56 @@ class Orders extends CIUIS_Controller {
 	
 	function add_file($id){
 		if ( $this->Privileges_Model->check_privilege( 'orders','edit') ) {
-			if ( isset( $id ) ) {
 				if ( isset( $_POST ) ) {
 					if (!is_dir('uploads/order_documents')) { 
 						mkdir('./uploads/order_documents', 0777, true);
 					}
+				if (!is_dir('uploads/estimate_documents')) { 
+					mkdir('./uploads/estimate_documents', 0777, true);
+				}
+				$count = count($_FILES);
+				if($count > 0){
+					$orderData=$this->db->get_where('orders', array('id' => $id))->row_array();
+					for($i=0;$i<$count;$i++){
+						if(!empty($_FILES[$i]['name'])){
+						  $_FILES['file']['name'] = $_FILES[$i]['name'];
+						  $_FILES['file']['type'] = $_FILES[$i]['type'];
+						  $_FILES['file']['tmp_name'] = $_FILES[$i]['tmp_name'];
+						  $_FILES['file']['error'] = $_FILES[$i]['error'];
+						  $_FILES['file']['size'] = $_FILES[$i]['size'];
 					$config[ 'upload_path' ] = './uploads/order_documents';
 					$config[ 'allowed_types' ] = 'zip|rar|tar|gif|jpg|png|jpeg|gif|pdf|doc|docx|xls|xlsx|txt|csv|ppt|opt';
 					$config['max_size'] = '9000';
-					$new_name =rand(100,1000).'_'.preg_replace("/[^a-z0-9\_\-\.]/i", '', basename($_FILES["file"]['name']));
+						  $new_name =rand(100,1000).'_'.preg_replace("/[^a-z0-9\_\-\.]/i", '', basename($_FILES[$i]['name']));
 					$config['file_name'] = $new_name;
 					$this->load->library( 'upload', $config );
-					if (!$this->upload->do_upload('file')) {
-						$data['success'] = false;
-						$data['message'] = $this->upload->display_errors();
-						echo json_encode($data);
-					} else {
-						$image_data = $this->upload->data();
-						if (is_file('./uploads/order_documents/'.$image_data[ 'file_name' ])) {
-							 $params1 = array(
-							'document_name' =>$image_data[ 'file_name' ],
-							'filepath' =>'uploads/order_documents',
-							'orderid'=>$id);
-							$this->db->insert( 'order_documents', $params1 );
-							$orderData=$this->db->get_where('orders', array('id' => $id))->row_array();
-							if($orderData['estimation_id'] !='0'){
-								$allow_delete=$this->Estimations_Model->get_item_by_estimation($id);
-								if( $allow_delete == '1'){
-									if (!is_dir('uploads/estimate_documents')) { 
-										mkdir('./uploads/estimate_documents', 0777, true);
-									}
+						  $this->upload->initialize($config);
+						  if($this->upload->do_upload('file')){  
+							$uploadData = $this->upload->data();
+							$filename = $uploadData['file_name'];
+							$filetype = $uploadData['file_type'];
+							$params=array();
+							$params = array('document_name'=>$filename,'orderid'=>$id,'filepath'=>'uploads/order_documents');
+							$this->db->insert( 'order_documents', $params );
+							if($orderData['estimation_id'] !='0' && ($orderData['status_id'] == '1' || $orderData['status_id'] == '3' || $orderData['status_id'] == '7')){
 									$estparams=array();
 									$estparams = array(
 										'estimation_id' => $orderData['estimation_id'],
-										'document_name' =>$image_data[ 'file_name' ],
+										'document_name' =>$filename,
 									);
 									$this->db->insert('estimations_documents', $estparams );
-									$orderDir ='uploads/order_documents/'. $image_data['file_name'];
-									$estDir='uploads/estimate_documents/'. $image_data['file_name'];
+									$orderDir ='uploads/order_documents/'. $filename;
+									$estDir='uploads/estimate_documents/'. $filename;
 									copy($orderDir, $estDir);
+							}
 								}
-								
+						}
 							}
 							$data['success'] = true;
 							$data['message'] = lang('file').' '.lang('uploadmessage');
 							echo json_encode($data);
-						} else {
-							$data['success'] = false;
-							$data['message'] = lang('errormessage');
-							echo json_encode($data);
 						} 
-					}
-				}
+			
 			}
 		} else {
 			$data['success'] = false;
@@ -1331,6 +1335,7 @@ class Orders extends CIUIS_Controller {
 	function convert_project($id ){
 		if ( $this->Privileges_Model->check_privilege( 'orders', 'create' ) ) {
 			$orderData = $this->Orders_Model->get_order( $id );
+			$orderdocuments = $this->db->select( '*' )->get_where('order_documents', array('orderid' => $id))->result_array();
 			$start_date = date( 'Y-m-d' );
 			$deadline = date('Y-m-d', strtotime($start_date. ' +30 days'));
 			if ( $orderData[ 'is_converted' ] != '0' ) {
@@ -1354,6 +1359,24 @@ class Orders extends CIUIS_Controller {
 				);
 				$this->db->insert( 'projects', $params );
 				$project_id = $this->db->insert_id();
+				if (!is_dir('./uploads/files/projects/'.$project_id)) { 
+					mkdir('./uploads/files/projects/'.$project_id, 0777, true);
+				}
+				if(sizeof($orderdocuments) > 0) {
+					foreach($orderdocuments as $eachdoc) {
+						$params = array(
+							'relation_type' => 'project',
+							'relation' => $project_id,
+							'file_name' => $eachdoc['document_name'],
+							'created' => date("Y.m.d H:i:s"),
+							'is_old' => '0'
+						);
+						$this->db->insert( 'files', $params );
+						$quotesDir ='uploads/order_documents/'. $eachdoc['document_name'];
+						$projDir='./uploads/files/projects/'.$project_id.'/'.$eachdoc['document_name'];
+						copy($quotesDir, $projDir);
+					}
+				}
 				
 				$allProjectStages = $this->db->get_where( 'project_stages', array( '' ))->result_array();
 				

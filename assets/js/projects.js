@@ -531,6 +531,70 @@ function Projects_Controller($scope, $http, $mdSidenav, $mdDialog, $filter, $q) 
 function Project_Controller($scope, $http, $mdSidenav, $q, $timeout, $mdDialog, $filter, $sce, fileUpload) {
 	"use strict";
 	
+	$http.get(BASE_URL + 'projects/deliveryitem/' + PROJECTID).then(function (deliveryitem){
+		$scope.delivery = deliveryitem.data;
+	});
+	$scope.add_delivery = function () {
+		$scope.delivery.items.push({
+			id:'0',
+			name: 'New',
+			description: '',
+			quantity: 1,
+			tracking_date:'',
+			reference:''
+		});
+	};
+	$scope.delivery_remove = function (index,itemId) {
+		$scope.delivery.items.splice(index, 1);
+		if(itemId !='0'){
+			var dataObj = $.param({
+				deleteItemId: itemId,
+				projectId:PROJECTID
+			});
+			var config = {
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8;'
+				}
+			};
+			var posturl = BASE_URL + 'projects/delect_project_tracking/';
+			$http.post(posturl, dataObj, config)
+			.then(
+				function(response) {
+					console.log(response.data);
+					if (response.data.success == true) {
+						globals.mdToast('success', response.data.message);
+					} else {
+						globals.mdToast('error', response.data.message);
+					}
+				}
+			);
+		}
+	};
+	$scope.save_delivery = function (){
+		$scope.saving = true;
+		var dataObj = $.param({
+			trackingItem: $scope.delivery.items,
+			totalItems: $scope.delivery.items.length,
+			projectId:PROJECTID
+		});
+		var config = {
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8;'
+			}
+		};
+		var posturl = BASE_URL + 'projects/create_project_tracking/';
+		$http.post(posturl, dataObj, config)
+		.then(
+			function(response) {
+				console.log(response.data);
+				if (response.data.success == true) {
+					globals.mdToast('success', response.data.message);
+				} else {
+					globals.mdToast('error', response.data.message);
+				}
+			}
+		);
+	};
 	$scope.viewChilds = 1;
 	
 	$scope.sectionToShow = function(id) {
@@ -573,18 +637,29 @@ function Project_Controller($scope, $http, $mdSidenav, $q, $timeout, $mdDialog, 
 			targetEvent: ev
 		});
 	};
-
+    var formdata = new FormData();
+	$scope.getTheFiles = function ($files) {              
+		angular.forEach($files, function (value, key) {
+			formdata.append(key, value);
+		});
+	};
 	$scope.uploading = false; 
 	$scope.uploadProjectFile = function() {
 		//alert("1`2`1");
-		$scope.uploading = true;
-        var file = $scope.project_file;
         var uploadUrl = BASE_URL+'projects/add_file/'+PROJECTID;
-        fileUpload.uploadFileToUrl(file, uploadUrl, function(response) {
-        	if (response.success == true) {
-        		globals.mdToast('success', response.message);
+		var request = {
+			   method: 'POST',
+			   url: uploadUrl,
+			   data: formdata,
+			   headers: {
+				   'Content-Type': undefined
+			   }
+		};
+	   $http(request).then(function(response){
+			if (response.data.success == true){
+        		globals.mdToast('success', response.data.message);
         	} else {
-        		globals.mdToast('error', response.message);
+        		globals.mdToast('error', response.data.message);
         	}
         	$scope.projectFiles = true;
         	$http.get(BASE_URL + 'projects/projectfiles/' + PROJECTID).then(function (Files) {
@@ -594,7 +669,7 @@ function Project_Controller($scope, $http, $mdSidenav, $q, $timeout, $mdDialog, 
         	$scope.uploading = false;
         	$mdDialog.hide();
         });
-    };
+	}
 
 	$scope.NewProposal = function (ev) {
 		customer_proposals();
@@ -2275,3 +2350,14 @@ $http.get(BASE_URL + 'projects/subprojectscomplete/' + PROJECTID).then(function 
 }
 CiuisCRM.controller('Projects_Controller', Projects_Controller);
 CiuisCRM.controller('Project_Controller', Project_Controller);
+CiuisCRM.directive('ngFiles', ['$parse', function ($parse) {
+	function fn_link(scope, element, attrs) {
+		var onChange = $parse(attrs.ngFiles);
+		element.on('change', function (event) {
+			onChange(scope, { $files: event.target.files });
+		});
+	};
+	return {
+		link: fn_link
+	}
+} ]);

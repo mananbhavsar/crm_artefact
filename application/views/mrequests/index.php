@@ -250,7 +250,7 @@ td.dataTables_empty {
 								<select class="form-control matNameChange" name="material_name" id="material_name" autocomplete="on">
 				                	<option value="">Select Item</option>
 				                    <?php foreach($materials as $row):?>
-					                    <option unittype="<?php echo $row['unit_name']?>" value="<?php echo $row['material_id'];?>"><?php echo $row['itemdescription'];?></option>
+					                    <option unittype="<?php echo $row['unit_type_id']?>" value="<?php echo $row['material_id'];?>"><?php echo $row['itemdescription'];?></option>
 					                <?php endforeach;?>
 				                </select>
 								<input type="hidden" name="material_name_text" id="materialNameTxt" value="" />
@@ -263,7 +263,15 @@ td.dataTables_empty {
 							</div>
 							<div class="col-md-3" align="center">
 								<label><strong><?php echo "Unit Type" ?></strong></label>
-								<input required type="text" class="form-control unitType" id="unit_type" name="unit_type" />
+								<select class="form-control unitType matNameChange" name="unit_type" id="unit_type" required>
+								<option value="">Select Unit Type</option>
+									<?php foreach($unittypes as $eachunittype) { 
+										echo "<option value=".$eachunittype['unit_type_id'].">".$eachunittype['unit_name']."</option>";
+									}
+									?>
+								</select>
+								<!--
+								<input required type="text" class="form-control unitType" id="unit_type" name="unit_type" />-->
 							</div>
 							<div class="col-md-2" align="center">
 								<label><strong><?php echo "Qty" ?></strong></label>
@@ -349,6 +357,7 @@ td.dataTables_empty {
 													</strong>
 													<br/>
 													<?php if($mreq['project_name'] != ''){ echo $mreq['project_name']; } else { echo $mreq['name']; }?>
+													<?php echo '<br>'.$mreq['project'];?>
 												</td>
 												<td md-cell>
 													<strong><?php echo $mreq['qty']; ?></strong>
@@ -710,7 +719,18 @@ $(".proj").select2({
 
 $(".matNameChange").select2({
 	theme: "bootstrap",
-	tags: true
+	tags: true,
+	createTag: function (params) {
+    var term = $.trim(params.term);
+    if (term === '') {
+      return null;
+    }
+    return {
+      id: term,
+      text: term,
+      newTag: true // add additional parameters
+    }
+  }
 });
 
 $('#myTable').DataTable({
@@ -788,7 +808,11 @@ $('.matNameChange').on('change', function() {
 	$('#materialNameTxt').val($('.matNameChange option:selected').text());
 	if($( ".matNameChange option:selected" ).val() != '') {
 		var unitTypeval = $( ".matNameChange option:selected" ).attr('unittype');
-		$('.unitType').val(unitTypeval);
+		//$('.unitType').val(unitTypeval);
+		//alert(unitTypeval);
+		$('#unit_type').val(unitTypeval);
+    //$('#unit_type').select2().trigger('change');
+		//$('.unitType option[value=unitTypeval]').attr('selected','selected');
 	}
 });
 

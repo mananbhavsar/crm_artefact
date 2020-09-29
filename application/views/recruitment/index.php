@@ -188,6 +188,19 @@
           <label><?php echo 'Applicant Name'?></label>
           <input required type="text" name="applicant_name" class="form-control" id="applicant_name">
         </md-input-container>
+		<md-input-container class="md-block" flex-gt-xs>
+			<label><?php echo lang('gender'); ?></label>
+			<md-select  name="gender" ng-model="gender" style="min-width: 200px;" required="" >
+				<md-option ng-value="gender.name" ng-repeat="gender in gender">{{gender.name}}</md-option>
+			</md-select><br>
+		</md-input-container>
+		<div class="input-group">
+			<input type="text" name="entered_date" class="form-control" id="entered_date" required="" aria-invalid="true" style=""><span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
+		</div>
+		<md-input-container class="md-block">
+			<label><?php echo lang('mobile_number') ?></label>
+			<input type="text" name="phone" class="form-control" id="title" required>
+		</md-input-container>
         <md-input-container class="md-block">
           <label><?php echo 'Positon Applied For' ?></label>
           <input required type="text" name="position_applied_for" class="form-control" id="position_applied_for" >
@@ -199,12 +212,12 @@
 			</md-select><br>
 		</md-input-container>
         <md-input-container class="md-block">
-          <label><?php echo 'Date' ;?></label>
-           <input type="date" required name="entered_date"  ngstyle="width: 200px !important;" >
-        </md-input-container >
-         <md-input-container class="md-block">
           <label><?php echo 'Location' ?></label>
           <input type="text" name="location" class="form-control" id="location">
+        </md-input-container >
+         <md-input-container class="md-block">
+		  <label><?php echo lang('homeaddress') ?></label>
+		  <textarea rows="2" name="homeaddress" class="form-control" required></textarea>
         </md-input-container>
 		<div class="col-sm-12">
 		<label><?php echo 'Upload Resume (Please upload only docx files)' ?></label>
@@ -228,12 +241,27 @@
   </form>
 </div>
 <?php include_once( APPPATH . 'views/inc/other_footer.php' ); ?>
+<link rel="stylesheet" href="<?php echo base_url('assets/datepicker/css/bootstrap-datepicker.min.css'); ?>">
+<!-- datepicker -->
+<script src="<?php echo base_url('assets/datepicker/js/bootstrap-datepicker.min.js'); ?>"></script>
 <script src="<?php echo base_url('assets/js/ciuis_data_table.js'); ?>"></script>
 <script src="<?php echo base_url('assets/js/staffs.js'); ?>"></script>
 <script src="~/scripts/jquery-1.10.2.js"></script>
 
 <script  type = "text/javascript">
+$(document).ready(function() {
+		$('#entered_date').datepicker({
+			autoclose: true,
+			format: 'dd-mm-yyyy',
+			 orientation: "bottom right",
+			 autoclose: true,
+	    });
+	});
 var CandidateID=0;
+var statusold=0;
+var recruitment_status=0;
+var files1='';
+var filetype='';
 function select_status(val,id){
 	var status = val;
 	if(val == 6){

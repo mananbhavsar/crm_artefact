@@ -12,6 +12,23 @@ class Inventories_Model extends CI_Model {
 		$this->db->select( '*,inventories.inv_warehouse as id ' );
 		return $this->db->get_where( 'inventories', array( 'inventories.inv_warehouse' => $id ) )->row_array();
 	}
+   function get_duplicate_inventory_record($product_name,$unit_type,$supplier_id,$price,$warehouse){
+       $this->db->select('*');
+       return $this->db->get_where('inventories',array('inventories.product_name' => $product_name,'inventories.inv_unit_type'=>  $unit_type,'inventories.supplier_id'=>$supplier_id,'inventories.cost'=>$price,'inventories.inv_warehouse'=>$warehouse))->row_array();
+   }
+	function get_tot_qty($inventory_id){
+	    $sql = "SELECT sum(qty) as tot_qty FROM inventory_items WHERE inventory_items.inventory_id = '$inventory_id'";
+	    $res = $this->db->query($sql);
+	    $result = $res->row_array();
+	    return $result;
+	}
+	function get_inventory_items($id){
+	    $this->db->select('*,warehouses.warehouse_name,projects.name,staff.staffname');
+	    	$this->db->join('warehouses','warehouses.warehouse_id = inventory_items.to_warehouse','left');
+	    		$this->db->join('projects','projects.id = inventory_items.project_id','left');
+	    		$this->db->join('staff','staff.id = inventory_items.staff_id','left');
+	    return $this->db->get_where('inventory_items',array('inventory_items.inventory_id' => $id))->result_array();
+	}
 	function get_all_Status() {
 		$this->db->order_by( 'warehouse_id', 'desc' );
 		return $this->db->get_where( 'warehouses', array( '' ) )->result_array();
@@ -223,8 +240,11 @@ class Inventories_Model extends CI_Model {
 	}
 function get_inventory_record($id)
 	{
-		$sql = "SELECT inv.*,inv_prd.name as cat_name,wh.warehouse_name,mv.name as move_name,vnd.company,cust.company as customer_name FROM inventories as inv LEFT JOIN inventory_product_categories as inv_prd ON inv_prd.id = inv.inv_product_category LEFT JOIN warehouses as wh ON wh.warehouse_id = inv.inv_warehouse LEFT JOIN inventory_move_type as mv ON mv.id = inv.inv_move_type LEFT JOIN vendors as vnd ON vnd.id=inv.supplier_id
-		LEFT JOIN customers as cust ON cust.id = inv.customer_id WHERE inv_id = '$id'";
+		$sql = "SELECT inv.*,inv_prd.name as cat_name,wh.warehouse_name,mv.name as move_name,vnd.company,cust.company as customer_name,twh.warehouse_name as to_whname,p.name as pname FROM inventories as inv LEFT JOIN inventory_product_categories as inv_prd ON inv_prd.id = inv.inv_product_category LEFT JOIN warehouses as wh ON wh.warehouse_id = inv.inv_warehouse LEFT JOIN inventory_move_type as mv ON mv.id = inv.inv_move_type LEFT JOIN vendors as vnd ON vnd.id=inv.supplier_id
+		LEFT JOIN customers as cust ON cust.id = inv.customer_id
+		LEFT JOIN warehouses as twh ON twh.warehouse_id = inv.to_warehouse
+		LEFT JOIN projects as p ON p.id = inv.project_id
+		WHERE inv_id = '$id'";
 		$res = $this->db->query($sql);
 		$result = $res->row_array();
 		return $result;

@@ -3,6 +3,7 @@ function Vendors_Controller($scope, $http, $mdSidenav) {
 	"use strict";
 	$scope.toggleFilter = buildToggler('ContentFilter');
 	$scope.Create = buildToggler('Create');
+	$scope.ImportCustomersNav = buildToggler('ImportCustomersNav');
 	$scope.CreateGroup = buildToggler('CreateGroup');
 
 	globals.get_countries();
@@ -27,6 +28,7 @@ function Vendors_Controller($scope, $http, $mdSidenav) {
 	$scope.close = function () {
 		$mdSidenav('ContentFilter').close();
 		$mdSidenav('Create').close();
+		$mdSidenav('ImportCustomersNav').close();
 		$mdSidenav('CreateGroup').close();
 	};
 	var gdata;

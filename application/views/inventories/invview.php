@@ -102,8 +102,8 @@
 .switchToggle label {cursor: pointer; text-indent: -9999px; width: 70px; max-width: 70px; height: 24px; background: #d1d1d1; display: block; border-radius: 100px; position: relative; }
 .switchToggle label:after {content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: #fff; border-radius: 90px; transition: 0.3s; }
 .switchToggle input:checked + label, .switchToggle input:checked + input + label  {background: #3e98d3; }
-.switchToggle input + label:before, .switchToggle input + input + label:before {content: 'Off'; position: absolute; top: 3px; left: 35px; width: 26px; height: 26px; border-radius: 90px; transition: 0.3s; text-indent: 0; color: #fff; }
-.switchToggle input:checked + label:before, .switchToggle input:checked + input + label:before {content: 'On'; position: absolute; top: 2px; left: 10px; width: 26px; height: 26px; border-radius: 90px; transition: 0.3s; text-indent: 0; color: #fff; }
+.switchToggle input + label:before, .switchToggle input + input + label:before {content: 'Project'; position: absolute; top: 3px; left: 35px; width: 26px; height: 26px; border-radius: 90px; transition: 0.3s; text-indent: 0; color: #fff; }
+.switchToggle input:checked + label:before, .switchToggle input:checked + input + label:before {content: 'Warehouse'; position: absolute; top: 2px; left: 10px; width: 26px; height: 26px; border-radius: 90px; transition: 0.3s; text-indent: 0; color: #fff; }
 .switchToggle input:checked + label:after, .switchToggle input:checked + input + label:after {left: calc(100% - 2px); transform: translateX(-100%); }
 .switchToggle label:active:after {width: 60px; } 
 .toggle-switchArea { margin: 10px 0 10px 0; }
@@ -126,6 +126,9 @@
 					<span style="font-size: 19px;" ><b><?php echo $result['inventory_number'] ?>&nbsp;&nbsp;<?php echo $result['product_name'];?></b></span>
 				
 				</div>
+				 <md-button aria-label="Convert" class="md-icon-button" onclick="select_project(<?php echo $result['inv_id'];?>)" ng-cloak>
+            <md-icon><i class="ion-loop text-success"></i></md-icon>
+          </md-button>
 					<?php	if(check_privilege('inventories', 'delete')){
 					?>
 				<md-button ng-click="Update()" class="md-icon-button" aria-label="Update" ng-cloak >
@@ -162,7 +165,7 @@
 					<md-list-item>
 									<md-icon class="mdi mdi-book material-icons"></md-icon>
 									<p><?php echo 'In Stock'; ?>
-									&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?php echo $result['stock']; ?></p>
+									&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?php echo ($result['stock']-$tot_qty); ?></p>
 					</md-list-item>
 					<md-divider></md-divider>
 					<md-list-item>
@@ -171,7 +174,6 @@
 									&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?php echo $result['move_name']; ?></p>
 					</md-list-item>
 					<md-divider></md-divider>
-								
 								</md-list>
 			
 			
@@ -179,6 +181,42 @@
 			
 			<?php// } ?> 
 		</md-content>
+      <md-table-container >
+        <table md-table md-progress="promise">
+          <thead md-head md-order="contactsList.order">
+            <tr md-row>
+              <th md-column><span><?php echo 'S.No'; ?></span></th>
+              <th md-column><span><?php echo 'Type'; ?></span></th>
+              <th md-column><span><?php echo 'Name'; ?></span></th>
+              <th md-column><span><?php echo 'Qty'; ?></span></th>
+              <th md-column><span><?php echo 'Staff Name'; ?></span></th>
+            </tr>
+          </thead>
+             <tbody md-body>
+      <?php if(!empty($itemresult)) {
+      $k = 1;
+      foreach($itemresult as $res) { ?>
+ <tr class="select_row" md-row  class="cursor" >
+			 <td md-cell  style="width:40px;">
+			     <?php echo $k;?>
+			 </td>
+			 <td md-cell style="width:90px;">
+			     <?php echo $res['project_type'];?>
+			 </td>
+			  <td md-cell  style="width:190px;">
+			     <?php if($res['project_type'] == 'warehouse'){  echo $res['warehouse_name']; } else {  echo $res['name']; } ?>
+			 </td>
+			  <td md-cell  style="width:90px;">
+			     <?php echo $res['qty'];?>
+			 </td>
+			  <td md-cell  style="width:90px;">
+			     <?php echo $res['staffname'];?>
+			 </td>
+</tr>
+      <?php $k++; }  } ?>
+   </tbody>
+        </table>
+      </md-table-container>
 		<div class="modal fade right" id="sidebar-right" tabindex="-1" role="dialog">
 			<div class="modal-dialog modal-sm" role="document" style="width: 400px;">
 				<div class="modal-content">
@@ -350,6 +388,22 @@
    </div> 
 </div>
 
+<div class="modal fade" id="exampleModal1" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel"><h5>
+</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" >
+	  <div id="material_details"></div>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="container">
   <!-- Trigger the modal with a button -->
   <!-- Modal -->
@@ -633,6 +687,21 @@ input.addEventListener('keyup', reset);
 	     }
         
     }
+   function select_project(id)
+   {
+	  $.ajax({
+            url: '<?php print base_url();?>inventories/view_details/'+id,
+			 type        : 'post',
+            cache       : false,
+        contentType : true,
+        processData : true,
+            success: function(response){
+				$('#material_details').html(response);
+				$('#exampleModal1').modal('show');
+				 $("#exampleModal1").appendTo("body");
+			}
+	  })
+   }
    
     function update(id){
         //alert(id);

@@ -82,7 +82,7 @@ class Leaverequests_model extends CI_Model {
 				$this->db->order_by( 'leave_requests.leave_id', 'desc' );
 		return $this->db->get_where( 'leave_requests', array( 'leave_requests.user_id' => $user_id ) )->result_array();
 	}
-	function update_status($id,$status,$payment_type,$leave_start_date,$rejoin_date,$no_of_days){
+	function update_status($id,$status,$method_of_leave,$payment_type,$leave_start_date,$rejoin_date,$no_of_days){
 	
 	
         $this->db->set('status', $status);
@@ -94,6 +94,7 @@ class Leaverequests_model extends CI_Model {
 		
         $this->db->where('leave_id', $id);
         $result=$this->db->update('leave_requests');
+		//echo $this->db->last_query();exit;
 		return $result;
 	} 
 	function get_leave_data($id){

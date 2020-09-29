@@ -119,14 +119,14 @@ td.dataTables_empty {
         <label for="inputState">Leave Start Date</label>
 		<div class="input-group date">
 		
-        <input type="text" name="leave_start_date" class="form-control start-date" id="leave_start_date" value=""required="" ><span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
+        <input type="text" name="leave_start_date" class="form-control start-date" id="leave_start_date" value=""required="" autocomplete="off" readonly><span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
         </div>
       
     </div>
 	 <div class="form-group col-md-2">
         <label for="inputState">Rejoin Date</label>
 		<div class="input-group date">
-        <input type="text" name="rejoin_date" class="form-control end-date" id="rejoin_date" value="" required="" ><span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
+        <input type="text" name="rejoin_date" class="form-control end-date" id="rejoin_date" value="" required="" autocomplete="off" readonly><span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
         </div>
       
     </div>
@@ -174,10 +174,15 @@ td.dataTables_empty {
 											<tr md-row>
 												
 												<td md-cell>
+												<?php if($this->Privileges_Model->check_privilege('leaverequests', 'edit') )  {   ?>
 													<strong>
 														<a  onclick="view_leave('<?php print $oreq['leave_id'];?>')" class="link"><?php echo $oreq['staffname']; ?></a>
 													</strong>
-													
+												<?php }else{?>
+												<strong>
+														<?php echo $oreq['staffname']; ?>
+													</strong>
+												<?php }?>
 												</td>
 												<td md-cell>
 													<strong ><?php if($oreq['leave_start_date'] != '0000-00-00') { echo date('d-m-Y',strtotime($oreq['leave_start_date'])); } ?></strong>
@@ -195,7 +200,7 @@ td.dataTables_empty {
 												</td>
 												<?php if(check_privilege('leaverequests', 'edit') && $oreq['showAccess']=='1')  {   ?>
 		<td md-cell>
-		<select class="form-control" name="payment_type" id="payment_type<?php echo $oreq['leave_id'];?>" style="width: 132px;">
+		<select class="form-control" name="payment_type" id="payment_type<?php echo $oreq['leave_id'];?>" style="width: 132px;" onchange="update_payment(this.value,<?php echo $oreq['leave_id']; ?>)">
 		 <option selected="" value="">Select</option>
 		<option value="Paid" <?php if($oreq['payment_type'] == 'Paid'){ echo "selected='selected'"; } ?>>Paid</option>
 		<option value="Unpaid" <?php if($oreq['payment_type'] == 'Unpaid'){ echo "selected='selected'"; } ?>>Unpaid</option>
@@ -303,7 +308,7 @@ td.dataTables_empty {
 	  "paging": true,
 	  "lengthChange": false,
 	  "searching": false,
-	  "ordering": true,
+	  "ordering": false,
 	  "info": true,
 	  "autoWidth": false,
 });	
@@ -313,12 +318,12 @@ td.dataTables_empty {
       var $endDate = $('.end-date');
 
       $startDate.datepicker({
-		   format:'yyyy-mm-dd',		
+		   format:'dd-mm-yyyy',		
         todayHighlight: true,
 			autoHide: true,changeYear: true,changeMonth: true
       });
       $endDate.datepicker({
-        format:'yyyy-mm-dd',		
+        format:'dd-mm-yyyy',		
 			autoHide: true,changeYear: true,changeMonth: true,
         startDate: $startDate.datepicker('getDate'),
       });
@@ -408,9 +413,9 @@ function update_payment(val,id){
 function select_status(){
 	//var status = val;
 	var id = $('#leaveid').val();
-	var method_of_leave = $('#method_of_leave').val();
+	var method_of_leave = $('#method_of_leave1').val();
 	var status = $('#status').val();
-	var payment_type=$('#payment_type').val();
+	var payment_type=$('#payment_type1').val();
 	var leave_start_date=$('#leave_start_date1').val();
 	var rejoin_date=$('#rejoin_date1').val();
 	var no_of_days=$('#no_of_days1').val();
@@ -441,14 +446,19 @@ $('#rejoin_date').change(function(){
 		alert("Rejoin Date Should not be less than start date.");
 		$('#rejoin_date').val('');
 	}else{
-    var second=1000, minute=second*60, hour=minute*60, day=hour*24, week=day*7;
+    /*var second=1000, minute=second*60, hour=minute*60, day=hour*24, week=day*7;
     date1 = new Date(start_date);
     date2 = new Date(rejoin_date);
     var timediff = date2 - date1;
     
     var days = Math.floor(timediff / day); 
        
-    $('#no_of_days').val(days);
+    $('#no_of_days').val(days);*/
+	var start= $("#leave_start_date").datepicker("getDate");
+    	var end= $("#rejoin_date").datepicker("getDate");
+   		days = (end- start) / (1000 * 60 * 60 * 24);
+       var finaldiff=Math.round(days);
+	   $('#no_of_days').val(finaldiff);
 	}
 });
 function show_leave_form()
@@ -548,7 +558,7 @@ function view_leave(str){
 		$('#leavehtml').html(response);
 		 
       $('.newdatepicker').datepicker({
-		  format:'yyyy-mm-dd',			
+		  format:'dd-mm-yyyy',			
 			clearBtn: true,
 			autoHide: true,
 			changeYear: true,

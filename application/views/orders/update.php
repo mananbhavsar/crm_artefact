@@ -197,12 +197,12 @@
             <bind-expression ng-init="selectedProduct.price = item.price" expression="selectedProduct.price" ng-model="item.price" />
           </md-input-container>
           <md-input-container class="md-block" flex-gt-sm>
-            <label><?php echo $appconfig['tax_label']; ?></label>
+            <label><?php echo $appconfig['tax_label']; echo ' (%)';?></label>
             <input class="min_input_width" ng-model="item.tax">
             <bind-expression ng-init="selectedProduct.tax = item.tax" expression="selectedProduct.tax" ng-model="item.tax" />
           </md-input-container>
           <md-input-container class="md-block" flex-gt-xs>
-            <label><?php echo lang('discount'); ?></label>
+            <label><?php echo lang('discount'); echo ' (%)';?></label>
             <input class="min_input_width"  ng-change="all_discount_items(item.discount)" ng-model="item.discount">
           </md-input-container>
           <md-input-container class="md-block">

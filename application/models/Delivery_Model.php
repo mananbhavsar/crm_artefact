@@ -432,8 +432,25 @@ class Delivery_Model extends CI_Model {
 		$this->db->join( 'installation', 'subdelivery.delivery_stage_id = installation.id');
 		return $this->db->get_where( 'subdelivery', array( 'subdelivery.deliveryid' => $id, 'subdelivery.complete' => 1 ) )->result_array();
 	}
-	
 
+	function get_project_files( $id ) { 
+		$this->db->order_by( 'id', 'desc' );
+		$this->db->select( '*' );
+		return $this->db->get_where( 'files', array( 'files.relation_type' => 'delivery', 'files.relation' => $id ) )->result_array();
+	}
+	
+	function get_members( $id ) {
+		$this->db->select( '*,staff.staffname as member,staff.staffavatar as memberavatar,staff.email as memberemail,deliverymembers.id as id' );
+		$this->db->join( 'staff', 'deliverymembers.staff_id = staff.id', 'left' );
+		return $this->db->get_where( 'deliverymembers', array( 'deliverymembers.project_id' => $id ) )->result_array();
+	}
+
+	function get_last_status( $id ) {
+		$this->db->select('subdelivery.id, subdelivery.deliveryid, subdelivery.delivery_stage_id, subdelivery.finished, subdelivery.created, subdelivery.staff_id, subdelivery.complete, installation.name as stagename');
+		$this->db->order_by( 'subdelivery.update', 'desc' );
+		$this->db->join( 'installation', 'subdelivery.delivery_stage_id = installation.id');
+		return $this->db->get_where( 'subdelivery', array( 'subdelivery.deliveryid' => $id, 'subdelivery.complete' => 1 ) )->result();
+	}
 
 
 }

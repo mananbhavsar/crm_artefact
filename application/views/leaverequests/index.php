@@ -58,14 +58,14 @@
 	 <div class="form-group col-md-3">
         <label for="inputState">Leave Start Date</label>
 		<div class="input-group date">
-        <input type="text" name="leave_start_date" class="form-control newdatepicker" id="leave_start_date" value=""required="" ><span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
+        <input type="text" name="leave_start_date" class="form-control newdatepicker" id="leave_start_date" value=""required="" autocomplete="off" readonly><span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
         </div>
       
     </div>
 	 <div class="form-group col-md-3">
         <label for="inputState">Rejoin Date</label>
 		<div class="input-group date">
-        <input type="text" name="rejoin_date" class="form-control newdatepicker" id="rejoin_date" value="" required="" ><span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
+        <input type="text" name="rejoin_date" class="form-control newdatepicker" id="rejoin_date" value="" required="" autocomplete="off" readonly><span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
         </div>
       
     </div>
@@ -272,7 +272,7 @@
       var date_input=$('.newdatepicker'); //our date input has the name "date"
       var container=$('.bootstrap-iso form').length>0 ? $('.bootstrap-iso form').parent() : "body";
    
-      date_input.datepicker({dateFormat:'yy-mm-dd',
+      date_input.datepicker({dateFormat:'dd-mm-yy',
 			container: container,
 			todayHighlight: true,
 			autoclose: true,changeYear: true,changeMonth: true});

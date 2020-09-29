@@ -62,7 +62,7 @@
             <md-tooltip md-direction="bottom"><?php echo lang('print') ?></md-tooltip>
             <md-icon><i class="mdi mdi-print text-muted"></i></md-icon>
           </md-button>
-        <?php /*if (check_privilege('invoices', 'create')) { ?>    
+        <?php if (check_privilege('invoices', 'create')) { ?>    
           <md-menu ng-if="!order.invoice_id" md-position-mode="target-right target" ng-cloak>
             <md-button aria-label="Convert" class="md-icon-button" ng-click="$mdMenu.open($event)" ng-cloak>
               <md-icon><i class="ion-loop text-success"></i></md-icon>
@@ -71,12 +71,14 @@
               <md-contet class="text-center" layout-padding> <img height="80%" src="https://cdn4.iconfinder.com/data/icons/business-399/512/invoice-128.png" alt="">
                 <p style="max-width: 250px"> <strong ng-show="order.relation_type == true" ><?php echo lang('leadproposalconvertalert') ?></strong> <strong ng-show="order.relation_type != true" ><?php echo lang('convert_order_to_invoice'); ?></strong> </p>
                 <section layout="row" layout-sm="column" layout-align="center center" layout-wrap>
-                  <md-button ng-click="Convert()" class="ion-filemd-primary pull-right" aria-label="Convert" ng-cloak><span ng-bind="lang.convert"></span></md-button>
+                  <!--<md-button ng-click="Convert()" class="ion-filemd-primary pull-right" aria-label="Convert" ng-cloak><span ng-bind="lang.convert"></span></md-button>-->
+				  <md-button ng-click="Convert()" aria-label="Convert" ng-cloak></md-button>
+				  <img src="../img/invoice-convert.png" alt="">
                 </section>
               </md-contet>
             </md-menu-content>
           </md-menu>
-        <?php }*/ ?>
+        <?php } ?>
         <!--<md-button ng-if="order.invoice_id" ng-href="<?php echo base_url('invoices/invoice/{{order.invoice_id}}')?>" class="md-icon-button" ng-cloak>
           <md-tooltip md-direction="bottom"><?php echo lang('invoice') ?></md-tooltip>
           <md-icon><i class="ion-document-text text-success"></i></md-icon>
@@ -151,7 +153,7 @@
                   </md-button>
                 </md-menu-item>
                 <md-divider></md-divider>
-              <?php } if ($orders['is_converted'] != '1' && $orders['status_id'] != '10' && $allow_delete=='1') { ?>
+              <?php } if ($orders['is_converted'] != '1' && $orders['status_id'] != '10') { ?>
                 <md-menu-item>
                   <md-button ng-click="Delete()" aria-label="Delete">
                     <div layout="row" flex>
@@ -227,8 +229,8 @@
                       <th class="desc"><?php echo lang('description') ?></th>
                       <th class="qty text-right"><?php echo lang('quantity') ?></th>
                       <th class="unit text-right"><?php echo lang('price') ?></th>
-                      <th class="discount text-right"><?php echo lang('discount') ?></th>
-                      <th class="tax text-right"><?php echo $appconfig['tax_label'] ?></th>
+                      <th class="discount text-right"><?php echo lang('discount'); echo ' (%)'; ?></th>
+                      <th class="tax text-right"><?php echo $appconfig['tax_label']; echo ' (%)'; ?></th>
                       <th class="total text-right"><?php echo lang('total') ?></th>
                     </tr>
                   </thead>
@@ -239,8 +241,8 @@
                         <pre class="pre_view" ng-cloak>{{item.description}}</pre></td>
                       <td class="qty" ng-bind="item.quantity"></td>
                       <td class="unit"><span ng-bind-html="item.price | currencyFormat:cur_code:null:true:cur_lct"></span></td>
-                      <td class="discount" ng-bind="item.discount+'%'"></td>
-                      <td class="tax" ng-bind="item.tax+'%'"></td>
+                      <td class="discount" ng-bind="item.discount"></td>
+                      <td class="tax" ng-bind="item.tax"></td>
                       <!--<td class="total"><span ng-bind-html="item.total | currencyFormat:cur_code:null:true:cur_lct"></span></td>-->
                       <td class="total"><span ng-bind-html="item.price | currencyFormat:cur_code:null:true:cur_lct"></span></td>
 					</tr>
@@ -274,16 +276,6 @@
 						</td>
 					</tr>
 					<?php } ?>
-					<!--<tr style="display:none" ng-show="item.child.length > 0">
-						<td colspan="6" style="background: #fff;padding: 0px;">
-							<div class="col-md-11 col-md-offset-1" style="margin-bottom: 10px;    padding-bottom: 10px;"> 
-								<div class="col-md-8">
-								<b>Total Item Cost:</b> <?php print number_format($main_items['sub_tot_cost'],2, '.', ',');?></div> <div class="col-md-3">
-								<?php $profit=$main_items['sub_tot_sp'] - $main_items['sub_tot_cost'];?>
-								<b>Total profit:</b> <?php print number_format($profit,2, '.', ',');?></div>
-							</div>
-						</td>					
-					</tr>-->
 					<tr ng-repeat-end ></tr>
                   </tbody>
                 </table>
@@ -476,6 +468,42 @@
         </ul>
       </div>
     </div>
+	<?php if(sizeof($est_revisions)> 0){ ?>
+	<div class="col-md-12 col-xs-12 md-pr-0 md-pl-0 md-pb-10" style="background: white">
+      <div class="col-xs-12 task-sidebar-item" ng-cloak>
+			<h4><strong>Estimations Revision:</strong></h4>
+			<table class="table">
+			<?php foreach($est_revisions as $key=>$eachrev) { $key = $key > 9 ? $key : '0'.$key; ?>
+				<tr style="text-align:left;">
+					<td style="width:25%;"><?php echo 'Rev'.$key;?></td>
+					<td style="width:30%;padding:2px;"><strong>By: </strong><?php echo $eachrev['staffmembername'];?>
+					<br/>
+					<?php echo date('d M Y H:i:s',strtotime($eachrev['createddate']));?>
+					</td>
+				</tr>
+			<?php } ?>
+			</table>
+	  </div>
+	</div>
+	<?php } ?>
+	<?php if(sizeof($revisions)> 0){ ?>
+	<div class="col-md-12 col-xs-12 md-pr-0 md-pl-0 md-pb-10" style="background: white">
+      <div class="col-xs-12 task-sidebar-item" ng-cloak>
+			<h4><strong>Quotes Revision:</strong></h4>
+			<table class="table">
+			<?php foreach($revisions as $key=>$eachrev) { $key = $key > 9 ? $key : '0'.$key; ?>
+				<tr style="text-align:left;">
+					<td style="width:25%;"><?php echo 'Rev'.$key;?></td>
+					<td style="width:30%;padding:2px;"><strong>By: </strong><?php echo $eachrev['staffmembername'];?>
+					<br/>
+					<?php echo date('d M Y H:i:s',strtotime($eachrev['createddate']));?>
+					</td>
+				</tr>
+			<?php } ?>
+			</table>
+	  </div>
+	</div>
+	<?php } ?>
     <md-toolbar class="toolbar-white">
       <div class="md-toolbar-tools">
         <md-button class="md-icon-button" aria-label="Invoice" ng-disabled="true">
@@ -538,22 +566,6 @@
         </ul>
       </div>
     </md-content>
-	<?php if(sizeof($revisions)> 0){ ?>
-	<md-content class="bg-white">
-		<md-list flex ng-cloak>
-			<strong><h4>Quotes Revision:</h4></strong>
-			<table class="table">
-			<?php foreach($revisions as $key=>$eachrev) { $key = $key > 9 ? $key : '0'.$key; ?>
-				<tr style="text-align:left;">
-					<td style="width:25%;"><?php echo 'Rev'.$key;?></td>
-					<td style="width:45%;"><strong>DateTime: </strong><?php echo date('d M Y',strtotime($eachrev['createddate']));?></td>
-					<td style="width:30%;"><strong>By: </strong><?php echo $eachrev['staffmembername'];?></td>
-				</tr>
-			<?php } ?>
-			</table>
-	  </md-list>
-	</md-content>
-	<?php } ?>
 	<div class="ciuis-activity-line col-md-12">
 		<ul class="ciuis-activity-timeline">
 			<li ng-repeat="eachhistory in orderhistory | limitTo: LogLimit" class="ciuis-activity-detail">
@@ -608,7 +620,7 @@
   <?php echo form_open_multipart('orders/add_file/'.$orders['id'].'',array("class"=>"form-horizontal")); ?>
   <md-dialog-content layout-padding>
     <h2 class="md-title"><?php echo lang('choosefile');?></h2>
-    <input type="file" required name="file_name" file-model="order_file">
+	<input type="file" id="file1" name="file" multiple ng-files="getTheFiles($files)" required />
   </md-dialog-content>
   <md-dialog-actions>
     <span flex></span>

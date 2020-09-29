@@ -193,6 +193,10 @@ if($time1 != '' && $time2 != ''){
 		  <input type="hidden" name="advance" id="advance" class="amt_d" value="<?php echo $advance['amount']; ?>"></td>
 		  </tr>
 		  <tr md-row>
+		  <td md-cell><?php echo 'Late Deductions'; ?></td>
+		  <td md-cell><input type="number" name="deductions" id="deductions" class="amt_d" value="" onchange="enter_deducs(this.value);"></td>
+		  </tr>
+		  <tr md-row>
 		  <td md-cell><b><?php echo 'Total Salary in AED'; ?></b></td>
 		  <td md-cell><b><input type="hidden" name="total" id="total" /><span id="ttotal"></span></b></td>
 		  </tr>

@@ -78,7 +78,8 @@ if (isAdmin()) {
 						<md-list-item>
 							<div class="col-xs-12" style="border-left: 1px solid darkgray;">
 								<strong  class="fontBold">Joining Date </strong><br>
-								<?php echo $staffres['joining_date'];?><?php //echo $staffres['joining_date'];?>
+								<?php echo date('d-m-Y',strtotime($staffres['joining_date']));?>
+								<?php //echo $staffres['joining_date'];?>
 							</div>
 						</md-list-item>
 						<md-divider></md-divider>
@@ -120,7 +121,7 @@ if (isAdmin()) {
 						<md-list-item>
 							<div class="col-xs-12" style="border-left: 1px solid darkgray;">
 								<strong  class="fontBold">DOB </strong><br>
-								<?php echo $staffres['birthday'];?>
+								<?php echo date('d-m-Y',strtotime($staffres['birthday']));?>
 							</div>
 						</md-list-item>
 						<md-divider></md-divider>
@@ -183,9 +184,9 @@ if (isAdmin()) {
 			<md-toolbar class="toolbar-white">
 				<div class="md-toolbar-tools">
 					<h2 class="md-pl-10" flex md-truncate><?php echo lang('staffdetail') ?></h2>
-					<?php if($role_id ==  '1') { ?>
+					<?php //if($role_id ==  '1') { ?>
 						<p class="btn btn-primary" type="button"> <a href="<?php echo base_url() ;?>staff/view/<?php echo $id ;?>"class="">View</a></p>
-					<?php } ?>
+					<?php // } ?>
 					<?php if (check_privilege('staff', 'edit')) { ?>
 						<md-button ng-click="Update()" class="md-icon-button" aria-label="Update" ng-cloak>
 							<md-tooltip md-direction="bottom"><?php echo lang('update') ?></md-tooltip>
@@ -230,50 +231,20 @@ if (isAdmin()) {
 				</div>
 			</md-toolbar>
 			<div id="chart"></div>
-			<md-content class="bg-white">
+			<br>
+			<div class="col-sm-6"></div>
 			    
-				<?php /* <div class="col-md-12"  style="align-self: flex-end;">
-				<div class="widget-chart-container">
-				  <div class="widget-counter-group widget-counter-group-right md-p-20">
-					<div class="pull-left text-left">
-					  <h4><b><?php echo lang('staffsalesgraphtitle')?></b></h4>
-					  <small><?php echo lang('staffsalesgraphdescription')?></small> </div>
-					<div class="counter counter-big md-p-10">
-					  <div class="text-warning value" ng-bind-html="staff.properties.sales_total | currencyFormat:cur_code:null:true:cur_lct"></div>
-					  <div class="desc"><?php echo lang('inthisyear')?></div>
+				<div class="col-sm-1 label label-danger"  style="width: 12%;padding-top: 7px;padding-bottom:0px;">
+				<span><?= $totalabsent; ?></span>
+				<label style="color:white">&nbsp;&nbsp; Absent</label>
 					</div>
-				  </div>
-				  <div class="ciuis-chart" style="align-self: flex-end;" ng-cloak>
-					<div class="card">
-					  <canvas width="900px" height="260px" id="staff_sales_chart"></canvas>
-					  <div class="axis">
-						<div ng-repeat="inline in staff.properties.chart_data.inline_graph" class="tick"> {{inline.month}} <span class="value value--this" ng-bind-html="inline.total | currencyFormat:cur_code:null:true:cur_lct"></span> <span class="value value--prev" ng-bind-html="inline.total | currencyFormat:cur_code:null:true:cur_lct"></span> </div>
-					  </div>
-					</div>
-				  </div>
-				</div>
-				</div> */ ?>
-				<!---<div style="width:90%;hieght:90%;text-align:center">
-					<?php $currentmonth= date("F", strtotime('m'));$allmonths = array('January','February','March','April','May','June','July','August','September','October','November','December'); ?>
-					<h2 class="page-header" >Attendance Graph </h2>
-					<div style="width: 100%; text-align: right; padding-right: 85px;">
-						<select class="form-control" style="width:50%;"><?php foreach($allmonths as $month){?>
-							<option value="<?php print $month;?>" <?php if($currentmonth==$month){print "selected='selected'";}?>><?php print $month?></option><?php }?>
-						</select>
-					</div>
-					<div id="piechart"></div>
-					<!-- <canvas  id="chartjs_bar"></canvas>--
-				</div> --->  
-				<?php 
-					$year = date('Y');
-					$productname = array('Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'); 
-					foreach($productname as $month){
-						$sales[] = $this->Staff_Model->get_present_count($year,$month,$id);
-						$abs[] = $this->Staff_Model->get_absent_count($year,$month,$id);
-					}
-				?>
-			</md-content>
-		</div>
+			<div class="col-sm-1 label label-success" style="width: 12%;padding-top: 7px;padding-bottom: 0px; margin-left: 10px;"> 
+				<span><?= $totalpresent; ?></span>
+				<label style="color:white">&nbsp;&nbsp;Present</label>
+			</div>&nbsp;&nbsp;&nbsp;&nbsp; 
+		
+			<div class="col-sm-4"></div><br>
+		</div><br>
 		<?php if (!$this->session->userdata('other') )  { ?>
 		<div class="col-md-12 staff-tabs-content"  ng-cloak>
 			<md-divider></md-divider>
@@ -717,6 +688,7 @@ if (isAdmin()) {
 							<?php if($this->session->flashdata('apprmessage')!=''){?>
 								<div id="infoMessage" class="alert alert-danger col-md-12"><?php echo $this->session->flashdata('apprmessage');?></div>
 							<?php }?>
+							<?php  if (check_privilege('appraisal', 'create')) { ?>
 								<div class="col-md-12">
 									<form  action="<?php echo base_url('staff/update_appraisal_details/'.$staffres['id']);?>" method="post" enctype="multipart/form-data">
 										<div class="form-row">
@@ -774,7 +746,9 @@ if (isAdmin()) {
 											</div>
 										</div>  
 									</form>
-								</div><hr/>
+								</div>
+							<?php } ?>
+								<hr/>
 								<div class="col-md-12">
 									<?php   if($appraisal){ ?>
 										<h2>Appraisal Lists</h2>
@@ -795,7 +769,7 @@ if (isAdmin()) {
 											?>
 												<tr>
 													<th ><?php echo $value->increment_date;?></th>
-													<td> <?php if($value->type_of_amount=='minus'){print "-";}else{print "+";}?><?php echo $value->increment_amount;?></td>
+													<td> <?php /*if($value->type_of_amount=='minus'){print "-";}else{print "+";}*/?><?php echo $value->increment_amount;?></td>
 													<td> <?php echo $value->increment_type;?></td>
 													<td> <?php echo $value->increment_reason;?></td>
 													<td> <?php echo $value->remarks;?></td>
@@ -818,11 +792,12 @@ if (isAdmin()) {
 					<?php if($accessTab['warnings']== true) { ?>
 						<md-tab label="<?php echo lang('warning');?>">
 							<md-content class="bg-white"><br>
+							<?php  if (check_privilege('warnings', 'create')) { ?>
 								<div class="col-md-12">
 									<form  action="<?php echo base_url('staff/add_warning/'.$staffres['id']);?>" method="post" enctype="multipart/form-data">
 										<div class="form-row">
 											<div class="form-group col-md-2">
-												<label for="inputState">Date</label>
+												<label for="inputState">Date of Warning</label>
 												<div class="input-group">
 													<input type="text" name="warning_date" class="form-control newdatepicker1 " id="warning_date" required=""><span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
 												</div> 
@@ -834,7 +809,7 @@ if (isAdmin()) {
 												</div>
 											</div>--->
 											<div class="form-group col-md-2">
-												<label for="inputState">Date</label>
+												<label for="inputState">Date of incident</label>
 												<div class="input-group">
 													<input type="text" name="date_of_incident" class="form-control newdatepicker1" id="date_of_incident" required=""><span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
 												</div> 
@@ -914,7 +889,9 @@ if (isAdmin()) {
 												<button type="submit" class="btn btn-primary">Save</button>
 											</div>
 									</form>
-								</div><hr/>
+								</div>
+							<?php } ?>
+								<hr/>
 								<?php   if($warning){ ?>
 									<h2>Warnings Lists</h2>
 									<table id="example" class="table table-striped table-bordered listdata" style="width:100%">
@@ -969,6 +946,7 @@ if (isAdmin()) {
 					
 						<md-tab label="<?php echo lang('leaves');?>">
 							<md-content class="bg-white"><br>
+							<?php  if (check_privilege('leaves', 'create')) { ?>
 								<div class="col-md-12">
 									<form  action="<?php echo base_url('staff/update_leaves/'.$staffres['id']);?>" method="post" enctype="multipart/form-data">
 										<div class="form-row">
@@ -1032,7 +1010,9 @@ if (isAdmin()) {
 											<button type="submit" class="btn btn-primary btn-lg">Save</button>
 										</div>
 									</form>
-								</div><hr/>
+								</div>
+							<?php } ?>
+								<hr/>
 								<?php   if($leaves){  ?>
 									<h2>Leaves Lists</h2>
 									<table id="example" class="table table-striped table-bordered listdata" style="width:100%">
@@ -1088,6 +1068,7 @@ if (isAdmin()) {
 					<?php if($accessTab['tools']== true) { ?>
 					<md-tab label="<?php echo lang('assets');?>">
 						<md-content class="bg-white"><br>
+						<?php  if (check_privilege('tools', 'create')) { ?>
 							<div class="col-md-12 row">
 								<form  action="<?php echo base_url('staff/add_tools/'.$staffres['id']);?>" method="post" enctype="multipart/form-data">
 									<div class="form-row">
@@ -1145,7 +1126,9 @@ if (isAdmin()) {
 										<button type="submit" class="btn btn-primary btn-lg">Save</button>
 									</div>
 								</form>
-							</div><hr/>
+							</div>
+						<?php } ?>
+							<hr/>
 							<?php   if($tools){  ?>
 							<h2>Tools & Assets Lists</h2>
 							<table id="example" class="table table-striped table-bordered listdata" style="width:100%">
@@ -1201,10 +1184,12 @@ if (isAdmin()) {
 						<md-content class="bg-white"> <br>
 							<form  action="<?php echo base_url('staff/update_notes/'.$staffres['id']);?>" method="post">
 								<div class="form-row">
+								<?php  if (check_privilege('notes', 'create')) { ?>
 									<div class="form-group col-md-10">
 										<label for="warning_date"> Notes</label>
 										<textarea type="text" class="form-control" name="notes" id="notes"></textarea>
 									</div>
+								<?php } ?>
 									<!-- <div class="form-group col-md-2">
 									  <label for="inputZip">Added By</label>
 									  <input type="text" class="form-control" name="added_by" id="added_by">
@@ -1222,11 +1207,13 @@ if (isAdmin()) {
 									<article class="ciuis-note-detail">
 										<div class="ciuis-note-detail-img"> <img src="<?php echo base_url('assets/img/note.png') ?>" alt="" width="50" height="50" /> </div>
 										<div class="ciuis-note-detail-body">
+											<?php  if (check_privilege('notes', 'delete')) { ?>
 											<div class="text">
 												<p> <span><?php echo $value->notes;?></span> 
 												<a href="<?php echo base_url();?>staff/delete_notes/<?php echo $value->id ;?>/<?php echo $staffres['id'] ;?>" class="mdi ion-trash-b pull-right delete-note-button" style="cursor: pointer;" onclick="return  confirm('are you sure?');"></a>
 												</p>
 											</div>
+											<?php } ?>
 											<p class="attribution"> Added by <strong>
 												<a href="<?php echo base_url('staff/staffmember/');?>/<?php echo $value->added_by; ?>">
 												<?php echo $value->staffname;?></a></strong> at <span>  <?php echo $value->updated_on ;?></span>		
@@ -1431,8 +1418,8 @@ if (isAdmin()) {
 				<md-input-container class="md-block">
 					<label><?php echo lang('joining_date') ?></label>
 					<!---<?php  $jdate=$this->Staff_Model->get_format_change1($staffres['joining_date']);?>-->
-					<?php  $jdate=date('m/d/Y',strtotime($staffres['joining_date']));?>
-					<input type="text" name="joining_date" value="<?php echo $staffres['joining_date']; ?>" class="form-control newdatepicker1" id="joining_date">
+					<?php  $jdate=$this->Staff_Model->get_format_change1($staffres['joining_date']); ?>
+					<input type="text" name="joining_date" value="<?php echo  $jdate; ?>" class="form-control newdatepicker1" id="joining_date">
 					<!-- <md-datepicker name="joining_date" ng-model="staff.joining_date_edit" md-open-on-focus></md-datepicker>
 					<input type="text" name="joining_date" id="joining_date" class="newdatepicker form-control" readonly value="">
 					<md-datepicker required name="joining_date"  ng-model="staff.joining_date" md-open-on-focus style="width: 200px !important;" ></md-datepicker>-->
@@ -1446,7 +1433,7 @@ if (isAdmin()) {
 				<md-input-container class="md-block">
 					<label><?php echo lang('date_of_birth') ?></label>
 					<?php  $bdate=$this->Staff_Model->get_format_change1($staffres['birthday']);?>
-					<input type="text" name="date_of_birth" value="<?php echo $staffres['birthday'];?>" class="form-control newdatepicker1" id="date_of_birth">
+					<input type="text" name="date_of_birth" value="<?php echo $bdate;?>" class="form-control newdatepicker1" id="date_of_birth">
 					<!-- <md-datepicker name="date_of_birth" ng-model="staff.date_of_birth_edit" md-open-on-focus></md-datepicker>
 					<input mdc-datetime-picker="" date="true" time="false" type="text" id="date_of_birth" placeholder="Choose a date"  minutes="false"  show-icon="true" ng-model="staff.date_of_birth_result" class="ng-pristine ng-valid ng-isolate-scope ng-empty ng-touched" name="date_of_birth" value=""  aria-invalid="false" style="" format="DD-MM-YYYY" >
 					<input type="text" name="date_of_birth" id="date_of_birth" class="newdatepicker form-control" readonly value="">
@@ -1873,7 +1860,7 @@ function drawVisualization() {
 	var cat= JSON.parse( '<?php echo json_encode($attendace_result) ?>' );
 	$.each(cat,function(index,value){
 		dataArray.push([value['label'],value['absent'],value['present']]);
-	})
+	});
 	var data = new google.visualization.DataTable();
 	data.addColumn('string', 'Month');
 	data.addColumn('number', 'Absent');
@@ -1881,7 +1868,10 @@ function drawVisualization() {
 	data.addRows(dataArray);
 	var options = {
     title: 'Monthly Attendence Graph',
+	colors:['#f52f24','#26c281'],
     legend:{position:'bottom'},
+	width:800,height:350,
+	'is3D':true,
   };
   var chart=new google.visualization.ColumnChart(document.getElementById('chart'));
   chart.draw(data, options);
@@ -2923,7 +2913,7 @@ function select_rejoin1(){
 <script type="text/javascript"  src="https://www.gstatic.com/charts/loader.js"></script>
 
 <script type="text/javascript">  
-google.charts.load('current', {'packages':['corechart']});  
+/* google.charts.load('current', {'packages':['corechart']});  
 google.charts.setOnLoadCallback(drawPieChart);  
 
 function drawPieChart()  
@@ -2940,7 +2930,7 @@ function drawPieChart()
          };  
     var piechart = new google.visualization.PieChart(document.getElementById('piechart'));  
     piechart.draw(pie, header);  
-} 
+}  */
 
 
 

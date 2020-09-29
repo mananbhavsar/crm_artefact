@@ -106,7 +106,7 @@ class Document extends CIUIS_Controller {
 		echo ' <form id="formsupplier" method="post"><div class="row"><div class="form-group col-sm-6"><label for="exampleInputFile">Supplier</label> <input type="text" name="supplier" placeholder="Enter Supplier" id="email" title="Supplier" aria-describedby="" class="form-control" value=""> <!----></div></div></form>';
 	}
 	function create() {
-		if ( $this->Privileges_Model->check_privilege( 'material', 'create' ) ) {
+		if ( $this->Privileges_Model->check_privilege( 'document', 'create' ) ) {
 			if ( isset( $_POST ) && count( $_POST ) > 0 ) {
 				
 				$hasError = false;
@@ -436,9 +436,13 @@ function update(){
 
 
 	function get_all_materials() {
-		if ( $this->Privileges_Model->check_privilege( 'material', 'all' ) ) {
+		
 		    $user_id  = $this->session->userdata( 'usr_id' );
+		    if ( $this->Privileges_Model->check_privilege( 'document', 'all' ) ) {
 			$staffs = $this->Document_Model->get_all_materials($user_id);
+		    }else if( $this->Privileges_Model->check_privilege( 'document', 'own' )){
+		        	$staffs = $this->Document_Model->get_all_own_materials($user_id);
+		    }
 			$data_staffs = array();
 			foreach ( $staffs as $staff ) {
 				
@@ -477,7 +481,7 @@ function update(){
 			);
 		};
 			echo json_encode( $data_staffs );
-		}
+	//	}
 	}
 		////// Code By Namrta Get Document////
 	function documentdocfiles( $id ) {

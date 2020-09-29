@@ -57,6 +57,7 @@ class Tickets extends CIUIS_Controller {
 					$params = array(
 						'contact_id' => $this->input->post( 'contact' ),
 						'customer_id' => $this->input->post( 'customer' ),
+						'project_id' => $this->input->post( 'project_id' ),
 						'department_id' => $this->input->post( 'department' ),
 						'employee_id' => $this->input->post( 'employee' ),
 						'priority' => $this->input->post( 'priority' ),
@@ -488,6 +489,7 @@ class Tickets extends CIUIS_Controller {
 				'last_reply_date' => $ticket[ 'lastreply' ]?(date(get_dateTimeFormat(),strtotime($ticket[ 'lastreply' ]))):lang('n_a'),
 				'attachment' => $ticket[ 'attachment' ],
 				'customer' => $customer,
+				'project' => $ticket[ 'projectname' ],
 				'assigned_staff_name' => $ticket[ 'staffmembername' ],
 				'assign_to' => $emps_nms['empname'],
 				'replies' => $replies,

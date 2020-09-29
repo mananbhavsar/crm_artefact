@@ -8,7 +8,10 @@ class Vendors_Model extends CI_Model {
 		$this->db->select( '*, vendors.id as id ' );
 		return $this->db->get_where( 'vendors', array( 'vendors.id' => $id ) )->row_array();
 	}
-	
+	function get_vendor_group_by_name($name){
+		$this->db->select( 'id' );
+		return $this->db->get_where( 'vendors_groups', array( 'name' => $name ) )->row_array();
+	}
 	function get_all_supplier_by_search($supplier='') {
 		$this->db->select( '*' );
 		$this->db->from('vendors');
@@ -26,6 +29,10 @@ class Vendors_Model extends CI_Model {
 		$supplier_id = $this->db->insert_id();
 	
 		return $supplier_id;
+	}
+	function insert_bulk_vendor( $params ) {
+		$this->db->insert_batch( 'vendors', $params );
+		return true;
 	}
 	function add_customer( $params ) {
 		$this->db->insert( 'customers', $params );
@@ -47,7 +54,7 @@ class Vendors_Model extends CI_Model {
 
 
 	function get_all_vendors() {
-		$this->db->select( '*, vendors.id as id ' );
+		$this->db->select( '*, vendors.id as id,vendors_groups.name as grpname ' );
 		$this->db->join('vendors_groups','vendors.groupid = vendors_groups.id','left');
 		$this->db->order_by( 'vendors.id', 'desc' );
 		return $this->db->get_where( 'vendors', array( '' ) )->result_array();

@@ -110,12 +110,18 @@
               <md-icon><i class="ion-android-more-vertical text-muted"></i></md-icon>
             </md-button>
             <md-menu-content width="4">
-              <?php if (check_privilege('projects', 'edit')) { ?> 
-                <md-menu-item>
+            <md-menu-item>
                   <md-button ng-click="Update()" aria-label="Delete">
                     <div layout="row" flex>
                       <p flex ng-bind="lang.updateproject"></p>
                       <md-icon md-menu-align-target class="ion-compose" style="margin: auto 3px auto 0;"></md-icon>
+                    </div>
+                  </md-button>
+                </md-menu-item>
+                <md-menu-item  ng-repeat="status in subprojects">
+                  <md-button ng-click="MarkAs($index)" aria-label="Delete">
+                    <div layout="row" flex>
+                      <p flex ng-bind="'Mark as ' + status.stagename">Mark as {{status.stagename}}</p>
                     </div>
                   </md-button>
                 </md-menu-item>
@@ -135,40 +141,7 @@
                     </div>
                   </md-button>
                 </md-menu-item>-->
-                <md-menu-item ng-hide="project.status_id == '3'">
-                  <md-button ng-click="MarkAs(3,'<?php echo lang("hold") ?>')" aria-label="Delete">
-                    <div layout="row" flex>
-                      <p flex ng-bind="lang.markasprojecthold"></p>
-                      <md-icon md-menu-align-target class="ion-toggle-filled" style="margin: auto 3px auto 0;"></md-icon>
-                    </div>
-                  </md-button>
-                </md-menu-item>
-                <md-menu-item ng-hide="project.status_id == '4'">
-                  <md-button ng-click="MarkAs(4,'<?php echo lang("cancelled") ?>')" aria-label="Delete">
-                    <div layout="row" flex>
-                      <p flex ng-bind="lang.markasprojectcancelled"></p>
-                      <md-icon md-menu-align-target class="mdi mdi-close-circle-o" style="margin: auto 3px auto 0;"></md-icon>
-                    </div>
-                  </md-button>
-                </md-menu-item>
-                <md-menu-item ng-hide="project.status_id == '4' || project.status_id == '5'">
-                  <md-button ng-click="MarkAs(5,'<?php echo lang("completed") ?>')" aria-label="Delete">
-                    <div layout="row" flex>
-                      <p flex ng-bind="lang.markasprojectcomplete"></p>
-                      <md-icon md-menu-align-target class="ion-checkmark-circled" style="margin: auto 3px auto 0;"></md-icon>
-                    </div>
-                  </md-button>
-                </md-menu-item>
-              <?php } if (check_privilege('projects', 'delete')) { ?> 
-                <md-menu-item>
-                  <md-button ng-click="Delete()" aria-label="Delete">
-                    <div layout="row" flex>
-                      <p flex ng-bind="lang.delete"></p>
-                      <md-icon md-menu-align-target class="ion-trash-b" style="margin: auto 3px auto 0;"></md-icon>
-                    </div>
-                  </md-button>
-                </md-menu-item>
-              <?php } ?>
+                
             </md-menu-content>
           </md-menu>
         <?php } ?>

@@ -43,55 +43,58 @@ class Estimations extends CIUIS_Controller {
 	}
 	function add_file( $id ) { 
 		if ( $this->Privileges_Model->check_privilege( 'estimations', 'edit' ) ) {
-			if ( isset( $id ) ) {
-				$orderData=array();
-				$orderData=$this->db->get_where('orders', array('estimation_id' => $id))->row_array();
-				$allow_delete=$this->Estimations_Model->get_item_by_estimation($id);
 				if ( isset( $_POST ) ) {
-					if (!is_dir('uploads/estimate_documents')) { 
+				if (!is_dir('./uploads/estimate_documents')) { 
 						mkdir('./uploads/estimate_documents', 0777, true);
 					}
+				if (!is_dir('uploads/order_documents')) { 
+					mkdir('./uploads/order_documents', 0777, true);
+				}
+				$count = count($_FILES);
+				if($count > 0){
+				$orderData=array();
+				$orderData=$this->db->get_where('orders', array('estimation_id' => $id))->row_array();
+					for($i=0;$i<$count;$i++){
+						if(!empty($_FILES[$i]['name'])){
+						  $_FILES['file']['name'] = $_FILES[$i]['name'];
+						  $_FILES['file']['type'] = $_FILES[$i]['type'];
+						  $_FILES['file']['tmp_name'] = $_FILES[$i]['tmp_name'];
+						  $_FILES['file']['error'] = $_FILES[$i]['error'];
+						  $_FILES['file']['size'] = $_FILES[$i]['size'];
 					$config[ 'upload_path' ] = './uploads/estimate_documents';
 					$config[ 'allowed_types' ] = 'zip|rar|tar|gif|jpg|png|jpeg|gif|pdf|doc|docx|xls|xlsx|txt|csv|ppt|opt';
 					$config['max_size'] = '9000';
-					$new_name = preg_replace("/[^a-z0-9\_\-\.]/i", '', basename($_FILES["file"]['name']));
-					$config['file'] = $new_name;
+						  $new_name =rand(100,1000).'_'.preg_replace("/[^a-z0-9\_\-\.]/i", '', basename($_FILES[$i]['name']));
+						  $config['file_name'] = $new_name; 
 					$this->load->library( 'upload', $config );
-					if (!$this->upload->do_upload('file')) {
-						$data['success'] = false;
-						$data['message'] = $this->upload->display_errors();
-						echo json_encode($data);
-					} else {
-						$image_data = $this->upload->data();
-							if (is_file('./uploads/estimate_documents/'.$image_data[ 'file_name' ])) {
+						  $this->upload->initialize($config);
+						  if($this->upload->do_upload('file')){  
+							$uploadData = $this->upload->data();
+							$filename = $uploadData['file_name'];
+							$filetype = $uploadData['file_type'];
+							$params1=array();
 							$params1 = array(
-							'document_name' =>$image_data[ 'file_name' ],
+							'document_name' =>$filename,
 							'estimation_id'=>$id);
 							$this->db->insert( 'estimations_documents', $params1 );
-							if(sizeof($orderData) > 0 && $allow_delete == '1'){
-								if (!is_dir('uploads/order_documents')) { 
-									mkdir('./uploads/order_documents', 0777, true);
-								}
+							if(sizeof($orderData) > 0 && ($orderData['status_id'] == '1' || $orderData['status_id'] == '3' || $orderData['status_id'] == '7')){
 								$orderparams=array();
 								$orderparams = array(
 									'orderid' => $orderData['id'],
-									'document_name' =>$image_data[ 'file_name' ],
+									'document_name' =>$filename,
 									'filepath' =>'uploads/order_documents',
 								);
 								$this->db->insert('order_documents', $orderparams );
-								$orderDir ='uploads/order_documents/'. $image_data['file_name'];
-								$quotsDir='uploads/estimate_documents/'. $image_data['file_name'];
+								$orderDir ='uploads/order_documents/'.$filename;
+								$quotsDir='uploads/estimate_documents/'. $filename;
 								copy($quotsDir, $orderDir);
 							}
+						  }
+						}
+					}
 							$data['success'] = true;
 							$data['message'] = lang('file').' '.lang('uploadmessage');
 							echo json_encode($data);
-						} else {
-							$data['success'] = false;
-							$data['message'] = lang('errormessage');
-							echo json_encode($data);
-						} 
-					}
 				}
 			}
 		} else {
@@ -394,6 +397,8 @@ if($request == 2){
 				
 				}
 				}
+				$historyparams=array('module'=>'estimations','relation_id'=>$estimation_id,'type'=>'created');
+				$this->Privileges_Model->create_history($historyparams);
 
 				$result1 = $this->Customers_Model->get_customers($client_id);	
 				$company=$result1['company'];
@@ -791,6 +796,8 @@ $alldata='';
 				}
 				}
 				
+				$historyparams=array('module'=>'estimations','relation_id'=>$estimation_id,'type'=>'update');
+				$this->Privileges_Model->create_history($historyparams);
 				 $countfiles = count($_FILES['file']['name']);
 				 if( $countfiles>0){
 				  for($i=0;$i<$countfiles;$i++){
@@ -1255,6 +1262,9 @@ $alldata='';
 	function markas() { 
 		if ( $this->Privileges_Model->check_privilege( 'estimations', 'edit' ) ) {
 			if ( isset( $_POST ) && count( $_POST ) > 0 ) {
+				$estimationsDetails = $this->db->get_where( 'estimations', array( 'estimation_id' => $_POST['proposal_id']) )->row_array();
+				$oldValue=$estimationsDetails['estimate_status'];
+				$newValue=$_POST[ 'name' ];
 				$name = $_POST[ 'name' ];
 				$params = array(
 					'proposal_id' => $_POST[ 'proposal_id' ],
@@ -1635,5 +1645,33 @@ $alldata='';
 			$data[ 'insert_id' ] = $this->db->insert_id();
 		}
 		return json_encode($data);
+	}
+	function get_history($id,$loadMore=''){
+		$estimationHistory=$this->Privileges_Model->get_histroy_by_relation_id($id,'estimations',$loadMore);
+		$data_history= array();
+		foreach ($estimationHistory as $eachhistory ) {
+		$staffname=$eachhistory['staffmembername'];
+		$oldvalue=(isset($eachhistory['oldvalue']) && $eachhistory['oldvalue'] !='' ? $eachhistory['oldvalue'] : '');
+		$newvalue=(isset($eachhistory['newvalue']) && $eachhistory['newvalue'] !='' ? $eachhistory['newvalue'] : '');
+		if($oldvalue !='' && $newvalue!=''){
+			$statusmsg=lang($oldvalue).' from '.lang($newvalue).'&nbsp for';
+		}else{
+			$statusmsg='';
+		}
+		//<a href="'.$eachhistory[ 'relation_id' ].'">' . ' '. lang( 'estimation' ) .' '. get_number('estimation ',$eachhistory['relation_id'],'estimation','estimation'). '</a>.'
+		$detail='<a>' . $staffname . '</a> ' .lang($eachhistory['comments']).'&nbsp'.$statusmsg.' <a href="'.$eachhistory[ 'relation_id' ].'">'. lang( 'estimation' ).'&nbsp EST-'.$eachhistory[ 'relation_id' ].'</a>';
+			$data_history[] = array(
+				'logdate' => date( DATE_ISO8601, strtotime( $eachhistory[ 'date' ] ) ),
+				'date' => tes_ciuis( $eachhistory[ 'date' ] ),
+				'detail' => $detail,
+				'relation_id' => $eachhistory[ 'relation_id' ],
+				'staff_id' => $eachhistory[ 'staff_id' ],
+			);
+		};
+		echo json_encode( $data_history );
+	}
+	function get_customer_termsconditions() {
+		$customer = $this->db->select('*')->get_where( 'customers', array( 'id' => $_POST['client_id']))->row_array();
+		echo json_encode($customer);
 	}
 }

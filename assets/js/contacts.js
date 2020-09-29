@@ -52,6 +52,7 @@ function Contacts_Controller($scope, $http, $mdSidenav, $filter,$mdDialog,fileUp
 	$scope.taskLoader = true;
 	
 	$scope.open_students = function (type) {
+		$scope.setBold = type;
 		$scope.staff_list = {
 		order: '',
 		limit: 20,
@@ -300,19 +301,28 @@ $scope.ViewPdfFiledoc = function(index, image) {
 			targetEvent: ev
 		});
 	};
+	$http.get(BASE_URL + 'api/doclogs/'+TASKID+'/" "/Document').then(function (Logs) {
+		$scope.logs = Logs.data;
+	});
+	$scope.loadMoreLogs = function() {
+		$scope.getLogs = true;
+		$http.get(BASE_URL + 'api/doclogs/'+TASKID+'/loadMore/Document').then(function (Logs) {
+			$scope.logs = Logs.data;
+			$scope.getLogs = false;
+		});
+	}
 
 $scope.projectFiles = true;
 	$http.get(BASE_URL + 'contacts/projectfiles/' + TASKID).then(function (Files) {
 		$timeout(function(){
 			$scope.files = Files.data;
 			$scope.projectFiles = false;
-		},500);
 		
 
-		$scope.itemsPerPage = 6;
+		$scope.itemsPerPage = 4;
 		$scope.currentPage = 0;
 		$scope.range = function () {
-			var rangeSize = 6;
+			var rangeSize = 4;
 			var ps = [];
 			var start;
 
@@ -359,6 +369,7 @@ $scope.projectFiles = true;
 				targetEvent: $scope.file.id
 			});
 		}
+		},500);
 
 		$scope.DeleteFile = function(id) {
 			var confirm = $mdDialog.confirm()
@@ -404,14 +415,13 @@ $scope.documentFiles = true;
 		$timeout(function(){
 			$scope.files1 = Files.data;
 			$scope.documentFiles = false;
-		},1000);
 		
 		
 
-		$scope.itemsPerPage = 6;
+			$scope.itemsPerPage = 4;
 		$scope.currentPage = 0;
 		$scope.range = function () {
-			var rangeSize = 6;
+				var rangeSize = 4;
 			var ps = [];
 			var start;
 
@@ -458,7 +468,7 @@ $scope.documentFiles = true;
 				targetEvent: $scope.file.id
 			});
 		}
-
+		},1000);
 		$scope.DeleteDocFile = function(id) {
 			var confirm = $mdDialog.confirm()
 				.title($scope.lang.delete_file_title)

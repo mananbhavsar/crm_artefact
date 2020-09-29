@@ -47,7 +47,9 @@ class Notebooks extends CIUIS_Controller {
 	function delete($id) {
 		$this->Notebooks_Model->delete_notebooks_id($id);
 		$this->Notebooks_Model->delete_notebooks_desc_id($id);
-		redirect("notebooks","refresh");
+		//redirect("notebooks","refresh");
+		$data['success'] = true;
+		echo json_encode($data);
 	}
 
 	function create() {
@@ -69,7 +71,14 @@ class Notebooks extends CIUIS_Controller {
 
                 $this->db->insert( 'notebook_dec',$new_arr);
                 $notebook_dec_id =  $this->db->insert_id();
-
+				$loggedinuserid = $this->session->usr_id;
+					$this->db->insert( 'history_logs', array(
+						'date' => date( 'Y-m-d H:i:s' ),
+						'detail' => ( '<a href="staff/staffmember/' . $this->session->usr_id . '"> ' . $this->session->staffname . '</a> ' . lang( 'added' ) . ' <a href="notebooks/view/' . $main_item_id . '">' . $notes_title . '</a>.' ),
+						'staff_id' => $loggedinuserid,
+						'type'=>'Notbook',
+						'vendor_id'=>$main_item_id
+					) );
                 if(isset($_FILES['upload_file']['name'][$i])){
             		$file_upload  = array();
             		$doc_type = array();
@@ -97,7 +106,13 @@ class Notebooks extends CIUIS_Controller {
 
 						         );
 						         $this->db->insert( 'notebook_files',$notes_arry);
-
+								$this->db->insert( 'history_logs', array(
+									'date' => date( 'Y-m-d H:i:s' ),
+									'detail' => ( '<a href="staff/staffmember/' . $this->session->usr_id . '"> ' . $this->session->staffname . '</a> ' . lang( 'Upload file' ) . ' <a href="notebooks/view/' . $main_item_id . '">' . $notes_title . '</a>.' ),
+									'staff_id' => $loggedinuserid,
+									'type'=>'Notbook',
+									'vendor_id'=>$main_item_id
+								) );
 			                }
 			          
 		            }
@@ -129,6 +144,17 @@ class Notebooks extends CIUIS_Controller {
 		}
 		$this->db->where('notebook_files_id',$file_id);
 		$this->db->delete('notebook_files');
+		$loggedinuserid = $this->session->usr_id;
+		$this->db->insert( 'history_logs', array(
+			'date' => date( 'Y-m-d H:i:s' ),
+			'detail' => ( '<a href="staff/staffmember/' . $this->session->usr_id . '"> ' . $this->session->staffname . '</a> ' . lang( 'Delete File' ) . ' <a href="notebooks/view/' .$file_id . '">' . $result->file_name . '</a>.' ),
+			'staff_id' => $loggedinuserid,
+			'type'=>'Notbook',
+			'vendor_id'=>$file_id
+		) );
+		$data['success'] = true;
+		$data['message'] = "File delete successfully";
+		echo json_encode($data);
 	}
 
 	function upload_image($id){
@@ -152,7 +178,14 @@ class Notebooks extends CIUIS_Controller {
 
 				);
 				$this->db->insert( 'notebook_files',$notes_arry);
-
+				$loggedinuserid = $this->session->usr_id;
+				$this->db->insert( 'history_logs', array(
+					'date' => date( 'Y-m-d H:i:s' ),
+					'detail' => ( '<a href="staff/staffmember/' . $this->session->usr_id . '"> ' . $this->session->staffname . '</a> ' . lang( 'Upload File' ) . ' <a href="notebooks/view/' .$id . '">' . $file_upload . '</a>.' ),
+					'staff_id' => $loggedinuserid,
+					'type'=>'Notbook',
+					'vendor_id'=>$id
+				) );
 		       }
 		 }  
         redirect("notebooks/view/".$id,"refresh");
@@ -981,6 +1014,14 @@ function get_material_data(){
 				}
 				$this->db->where('notebook_files_id',$eachImg['notebook_files_id']);
 				$this->db->delete('notebook_files');
+				$loggedinuserid = $this->session->usr_id;
+				$this->db->insert( 'history_logs', array(
+					'date' => date( 'Y-m-d H:i:s' ),
+					'detail' => ( '<a href="staff/staffmember/' . $this->session->usr_id . '"> ' . $this->session->staffname . '</a> ' . lang( 'Update Description' ) . ' <a href="notebooks/view/' .$id . '">' . $eachImg['file_name']. '</a>.' ),
+					'staff_id' => $loggedinuserid,
+					'type'=>'Notbook',
+					'vendor_id'=>$id
+				) );
 			}
 		}
 		$data['success'] = true;
@@ -1014,7 +1055,14 @@ function get_material_data(){
                      );	
 					$this->db->insert( 'notebook_dec',$new_arr);
 					$notebook_dec_id =  $this->db->insert_id();
-					
+					$loggedinuserid = $this->session->usr_id;
+					$this->db->insert( 'history_logs', array(
+						'date' => date( 'Y-m-d H:i:s' ),
+						'detail' => ( '<a href="staff/staffmember/' . $this->session->usr_id . '"> ' . $this->session->staffname . '</a> ' . lang( 'added' ) . ' <a href="notebooks/view/' . $noteid . '">' . $notes_title . '</a>.' ),
+						'staff_id' => $loggedinuserid,
+						'type'=>'Notbook',
+						'vendor_id'=>$noteid
+					) );
 					if(isset($_FILES['files']['name'][$i])){
             		$file_upload  = array();
             		$doc_type = array();
@@ -1041,6 +1089,13 @@ function get_material_data(){
 
 						         );
 						         $this->db->insert( 'notebook_files',$notes_arry);
+								 $this->db->insert( 'history_logs', array(
+									'date' => date( 'Y-m-d H:i:s' ),
+									'detail' => ( '<a href="staff/staffmember/' . $this->session->usr_id . '"> ' . $this->session->staffname . '</a> ' . lang( 'Upload file' ) . ' <a href="notebooks/view/' . $noteid . '">' . $notes_title . '</a>.' ),
+									'staff_id' => $loggedinuserid,
+									'type'=>'Notbook',
+									'vendor_id'=>$noteid
+								) );
 			                }
 		              }
 		   
@@ -1074,6 +1129,14 @@ function get_material_data(){
 
 				);
 				$this->db->insert( 'notebook_files',$notes_arry);
+				$loggedinuserid = $this->session->usr_id;
+				$this->db->insert( 'history_logs', array(
+					'date' => date( 'Y-m-d H:i:s' ),
+					'detail' => ( '<a href="staff/staffmember/' . $this->session->usr_id . '"> ' . $this->session->staffname . '</a> ' . lang( 'Upload file' ) . ' <a href="notebooks/view/' . $notebookId . '">' . $file_upload . '</a>.' ),
+					'staff_id' => $loggedinuserid,
+					'type'=>'Notbook',
+					'vendor_id'=>$notebookId
+				) );
 		       }  
 		}
 		$data['success'] = true;
@@ -1085,11 +1148,15 @@ function get_material_data(){
 		$response =$this->notebooks_lib->getNoteBookList($searchdata);
 		return $response;
 	}
-	function update_type(){
-	    $switch_val = $this->input->post('switch_val');
-	    $id = $this->input->post('id');
-	    $data['res'] = $this->Notebooks_Model->update_type($switch_val,$id);
-	    	echo json_encode($data);
+	function attachments($file) {
+		if (is_file('./assets/files/notebook/' . $file)) {
+    		$this->load->helper('file');
+    		$this->load->helper('download');
+    		$data = file_get_contents('./uploads/attachments/' . $file);
+    		force_download($file, $data);
+    	} else {
+    		$this->session->set_flashdata( 'ntf4', lang('filenotexist'));
+    		redirect('tickets/index');
 	}
-	
+	}
 }

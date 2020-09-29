@@ -1,10 +1,6 @@
-function QuoteRequest_Controller($scope, $http, $mdSidenav,$mdDialog, $q, $timeout,fileUpload) {
+function QuoteRequest_Controller($scope, $http, $mdSidenav,$mdDialog, $q, $timeout,$parse,fileUpload) {
 	"use strict";
 	
-	/*$http.get(BASE_URL + 'api/get_projects/').then(function (Projects) {
-		console.log(Projects);
-		$scope.projects = Projects.data;
-	});*/
 	
 	$http.get(BASE_URL + 'quoterequest/get_all_customers/').then(function (Customers) {
 		$scope.customers = Customers.data;
@@ -41,15 +37,27 @@ function QuoteRequest_Controller($scope, $http, $mdSidenav,$mdDialog, $q, $timeo
 		$mdDialog.hide();
 	};
 	
-	$scope.uploadQuoterequestFile=function (){
-		$scope.uploading = true;
-		var file = $scope.quoterequest_file;
+	var formdata = new FormData();
+	$scope.getTheFiles = function ($files) {              
+		angular.forEach($files, function (value, key) {
+			formdata.append(key, value);
+		});
+	};
+	$scope.uploadFiles = function(){
         var uploadUrl = BASE_URL+'quoterequest/add_file/';
-        fileUpload.uploadFileToUrl(file, uploadUrl, function(response) {
-        	if (response.success == true) {
-        		globals.mdToast('success', response.message);
+		var request = {
+			   method: 'POST',
+			   url: uploadUrl,
+			   data: formdata,
+			   headers: {
+				   'Content-Type': undefined
+			   }
+		};
+	   $http(request).then(function(response){
+			if (response.data.success == true){
+        		globals.mdToast('success', response.data.message);
         	} else {
-        		globals.mdToast('error', response.message);
+        		globals.mdToast('error', response.data.message);
         	}
         	$scope.quoterequestFiles = true;
         	$http.get(BASE_URL + 'quoterequest/quoterequestfilesbysession/').then(function (Files) {
@@ -59,7 +67,7 @@ function QuoteRequest_Controller($scope, $http, $mdSidenav,$mdDialog, $q, $timeo
         	$scope.uploading = false;
         	$mdDialog.hide();
         });
-	};
+	}
 	
 	$scope.ViewFile = function(index, image) {
 		console.log(index);
@@ -121,3 +129,14 @@ function QuoteRequest_Controller($scope, $http, $mdSidenav,$mdDialog, $q, $timeo
 }
 
 CiuisCRM.controller('QuoteRequest_Controller', QuoteRequest_Controller);
+CiuisCRM.directive('ngFiles', ['$parse', function ($parse) {
+	function fn_link(scope, element, attrs) {
+		var onChange = $parse(attrs.ngFiles);
+		element.on('change', function (event) {
+			onChange(scope, { $files: event.target.files });
+		});
+	};
+	return {
+		link: fn_link
+	}
+} ]);

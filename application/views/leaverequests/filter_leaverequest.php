@@ -22,10 +22,15 @@
 											<tr md-row>
 												
 												<td md-cell>
+													<?php if($this->Privileges_Model->check_privilege('leaverequests', 'edit') )  {   ?>
 													<strong>
 														<a  onclick="view_leave('<?php print $oreq['leave_id'];?>')" class="link"><?php echo $oreq['staffname']; ?></a>
 													</strong>
-													
+												<?php }else{?>
+												<strong>
+														<?php echo $oreq['staffname']; ?>
+													</strong>
+												<?php }?>
 												</td>
 												<td md-cell>
 													<strong ><?php if($oreq['leave_start_date'] != '0000-00-00') { echo date('d-m-Y',strtotime($oreq['leave_start_date'])); } ?></strong>

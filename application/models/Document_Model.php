@@ -123,6 +123,13 @@ function get_all_suppliers_material($id) {
 	    
 	}
 	}
+		function get_all_own_materials($user_id) {
+	$sql = "(SELECT *,st.staffname,st.staffavatar FROM documents LEFT JOIN staff as st ON st.id = documents.staff_id WHERE staff_id = '$user_id' order by documents.document_id desc)  
+       ";
+        $res = $this->db->query($sql);
+        $result = $res->result_array();
+        return $result;
+	}
 	function get_all_material_sessions() {
 		
 		$this->db->order_by("material_supp_sessions.id ","desc");

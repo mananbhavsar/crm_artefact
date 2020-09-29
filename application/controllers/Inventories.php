@@ -189,6 +189,17 @@ function update_status( $id ) {
 				if (!$hasError) {
 					$appconfig = get_appconfig();
 					 $supplier_id = $this->input->post('supplier_id');
+					   	$product_name = $this->input->post('product_name');
+					   	$unit_type = $this->input->post('inv_unit_type');
+					   	$price =$this->input->post('cost');
+					   	$warehouse = $this->input->post('inv_warehouse');
+					   	$stock = $this->input->post( 'stock');
+				$wh_result = 	$this->Inventories_Model->get_duplicate_inventory_record($product_name,$unit_type,$supplier_id,$price,$warehouse);
+     if(!empty($wh_result)){
+         $tot_stock = $wh_result['stock']+$stock;
+         $param = array('stock'=>$tot_stock);
+         	$vendors_id = $this->Inventories_Model->update_inventory( $wh_result['inv_id'],$param);
+     }else{
 					if($supplier_id !='-1'){
 										
 								        $supplier_id = $supplier_id ;
@@ -244,6 +255,7 @@ function update_status( $id ) {
 						'staff_id' => $this->session->userdata( 'usr_id' ),
 					);
 					$vendors_id = $this->Inventories_Model->add_inventories( $params );
+     }
 					$data['success'] = true;
 					$data['message'] = lang('inventory').' '.lang('createmessage');
 					//$data['id'] = $vendors_id;
@@ -300,6 +312,72 @@ function update() {
 					//$data['id'] = $vendors_id;
 					
 					
+					echo json_encode($data);
+					redirect(base_url().'inventories/invview/'.$inv_id.'');
+				}
+			}
+		} else {
+			$data['success'] = false;
+			$data['message'] = lang( 'you_dont_have_permission' );
+			echo json_encode($data);
+		}
+	}
+function view_details($id)
+	{
+		$data['inv_id'] = $id;
+		$data['projects']= $this->Projects_Model->get_all_projects();
+		$data[ 'warehouses'] = $this->Inventories_Model->get_warehouses_all();
+		$data['result'] = $this->Inventories_Model->get_inventory_record($id);
+		$this->load->view('inventories/view_details',$data);
+	}
+	function transfer() {
+		if ( $this->Privileges_Model->check_privilege( 'inventories', 'edit' ) ) {
+			if ( isset( $_POST ) && count( $_POST ) > 0 ) {
+				$inv_id = $this->input->post('inventory_id');
+				$qty = $this->input->post('qty');
+				$project_id = $this->input->post('project_id');
+				$warehouse_id = $this->input->post('warehouse_id');
+				$project_type = $this->input->post('project');
+				$staff_id = $this->session->userdata( 'usr_id' );
+				if($project_id == ''){
+					$project_id = 0;
+				}else{
+					$project_id = $project_id;
+				}
+				if($warehouse_id == ''){
+					$warehouse_id = 0;
+				}
+				else{
+					$warehouse_id = $warehouse_id;
+				}
+				 $hasError = false;
+			/*	 if ($qty == '' || $qty <= 0) {
+					$hasError = true;
+					$data['message'] = 'Please enter correct quanity' ;
+				}
+			    if ($project_id == '0' && $warehouse_id == '0') {
+					$hasError = true;
+					$data['message'] = 'Please select either project or warehouse' ;
+				}
+			 */
+				if ($hasError) {
+					$data['success'] = false;
+					echo json_encode($data);
+				}
+				if (!$hasError) {
+					$appconfig = get_appconfig();
+					$params = array(
+					    'inventory_id' => $inv_id,
+						'project_type' => $project_type,
+						'project_id' => $project_id,
+						'to_warehouse' => $warehouse_id,
+						'qty' => $qty,
+						'staff_id' => $staff_id
+					);
+					$vendors_id = $this->db->insert('inventory_items',$params );
+					$data['success'] = true;
+					$data['message'] = lang('inventory').' '.lang('updatemessage');
+					//$data['id'] = $vendors_id;
 					echo json_encode($data);
 					redirect(base_url().'inventories/invview/'.$inv_id.'');
 				}
@@ -1009,9 +1087,12 @@ function remove_move_type( $id ) {
 			$data[ 'unittypes' ] = $this->Settings_Model->get_mat_unittype();
 		$result=$this->Inventories_Model->get_inventory_record($id);
 		//print_r($result);
+		$itemresult = $this->Inventories_Model->get_inventory_items($id);
 		
-		
+		$tot_qty = $this->Inventories_Model->get_tot_qty($id);
 		$data['result']=$result;
+		$data['itemresult'] = $itemresult;
+		$data['tot_qty'] = $tot_qty['tot_qty'];
 		$this->load->view('inc/header', $data);
 		$this->load->view('inventories/invview',$data);
 		

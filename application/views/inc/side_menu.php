@@ -46,9 +46,20 @@ if($this->Privileges_Model->check_privilege( 'billrequests', 'all' ) ){
 	
 			
 		}
- ?><a onclick="window.location.href = '<?php echo base_url('mrequests') ?>';" class="side-tickets-menu-item"><?php echo 'Material Request'; ?> <span class="ticket-num" ng-bind="<?php print count($mrequests);?>"></span></a>
+ ?>
+ <?php if ( $this->Privileges_Model->has_privilege( 'mrequests' ) ) {?>
+ <a onclick="window.location.href = '<?php echo base_url('mrequests') ?>';" class="side-tickets-menu-item"><?php echo 'Material Request'; ?> <span class="ticket-num" ng-bind="<?php print count($mrequests);?>"></span></a>
+ <?php }?>
+  <?php if ( $this->Privileges_Model->has_privilege( 'leaverequests' ) ) {?>
 						  <a onclick="window.location.href = '<?php echo base_url('leaverequests') ?>';" class="side-tickets-menu-item"><?php echo 'Leave Request' ?> <span class="ticket-num" ng-bind="<?php print count($lrequests);?>"></span></a>
+  <?php }?>
+   <?php if ( $this->Privileges_Model->has_privilege( 'billrequests' ) ) {?>
 						  <a onclick="window.location.href = '<?php echo base_url('billrequests') ?>';" class="side-tickets-menu-item"><?php echo 'Bill Request' ?> <span class="ticket-num" ng-bind="<?php print count($brequests);?>"></span></a>
+						   <?php }?>
+						     <?php if ( $this->Privileges_Model->has_privilege( 'salaryrequests' ) ) {?>
 						  <a onclick="window.location.href = '<?php echo base_url('salaryrequests') ?>';" class="side-tickets-menu-item"><?php echo 'Salary Request' ?> <span class="ticket-num" ng-bind="<?php print count($srequests);?>"></span></a>
+						  <?php }?>
+						  <?php /*if ( $this->Privileges_Model->has_privilege( 'salaryrequests' ) ) {?>
 						   <a onclick="window.location.href = '<?php echo base_url('otherrequests') ?>';" class="side-tickets-menu-item"><?php echo 'Other Request' ?> <span class="ticket-num" ng-bind="<?php print count($orequests);?>"></span></a>
+						  <?php }*/?>
 						   

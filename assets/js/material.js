@@ -15,6 +15,7 @@ function Material_Controller($scope, $http, $mdSidenav, $mdDialog, $filter) {
 		
 	//$scope.toggleFilter = buildToggler('ContentFilter');
 	$scope.Create = buildToggler('Create');
+	$scope.ImportCustomersNav = buildToggler('ImportCustomersNav');
 	$scope.toggleFilter = showmodal();
 	
 	function showmodal(){
@@ -62,10 +63,39 @@ function buildToggler1(navID) {
 	
 	$scope.close = function () {
 		$mdSidenav('Update').close();
+		$mdSidenav('ImportCustomersNav').close();
 		$mdDialog.hide();
 	};
 
-	
+	$scope.importing = false;
+	$scope.importerror = false;
+	$scope.importMaterial = function () {
+		alert("saS");
+		$scope.importing = true;
+		var file = $scope.customer_file;
+		var uploadUrl = BASE_URL + 'material/materialimport/';
+		fileUpload.uploadFileToUrl(file, uploadUrl, function (response) {
+			if ((response.success == true) && (!response.errors)) {
+				globals.mdToast('success', response.message);
+				$mdSidenav('ImportCustomersNav').close();
+			} else if ((response.success == false) && (response.errors)) {
+				$scope.importerror = true;
+				$scope.errors = response.errors;
+				console.log(response.errors);
+				globals.mdToast('error', response.message);
+			} else {
+				$scope.importerror = true;
+				$scope.errors = response.errors;
+				globals.mdToast('error', response.message);
+				console.log(response.errors);
+			}
+			$http.get(BASE_URL + 'api/material').then(function (Customers) {
+				$scope.customers = Customers.data;
+			});
+			$scope.customerFiles = true;
+			$scope.importing = false;
+		});
+	};
 	
 	
 	$http.get(BASE_URL + 'api/matunittype').then(function (Departments) {

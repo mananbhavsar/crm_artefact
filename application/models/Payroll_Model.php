@@ -60,6 +60,21 @@ function get_staff_details_info( $id ) {
 	  return $result;
 	    
 	}
+	function update_payslip($id,$from_date,$to_date,$params) {
+	 //$this->db->set(array);
+	$response =   $this->db->where('staff_id', $id)
+	->$this->db->where('from_date', $from_date)->update('payslip', $params);
+	return $response;
+//	 return  $this->db->update('payslip',$params, array('staff_id' => $id, 'from_date' => $from_date, 'to_date' => $to_date));
+	// echo $sql; die;
+		// echo $this->db->get_compiled_select(); die;
+	}
+	function get_payslip_record($id,$from_date,$to_date){
+	     $sql = "SELECT * FROM payslip WHERE from_date <= '$from_date' AND to_date >= '$to_date' AND staff_id = '$id' ";
+	   $res = $this->db->query($sql);
+	  $result = $res->row_array();
+	  return $result;
+	}
 	
 	function get_srequests($staff_id,$from_date,$to_date) {
 			

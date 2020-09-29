@@ -115,21 +115,32 @@ function Leads_Controller($scope, $http, $mdSidenav, $mdDialog, $mdConstant, $fi
 			$scope.daywiseArr = [];
 			$scope.daywiseArr.push(opt);
 		}
-		console.log($scope.tempAssignedArr);
-		var data = {stat:$scope.tempStatusArr, assigned:$scope.tempAssignedArr, source:	$scope.tempSourceArr, dates:$scope.tempDateArr,category:$scope.tempCategory, daySelection:$scope.daywiseArr};
+		var days = $scope.setLedtype;
+		var assignedperson = $scope.setAssignPerson;
+		//console.log('days'+days);
+		//console.log('dates'+$scope.tempDateArr);
+		
+		var data = {source:	$scope.tempSourceArr, dates:$scope.tempDateArr,category:$scope.tempCategory, daytype:days, assignedperson:assignedperson};
 		$.ajax({
 			url: BASE_URL + 'leads/get_filter_count',
 			method: 'post',
 			data: data,
 			dataType: 'json',
-			success: function(response){
-				$scope.openLeads=response.openLeads;
+			success: function(Leads){
+				console.log('ss');
+				console.log(Leads);
+				/*$scope.openLeads=response.openLeads;
 				$scope.chaseLeads=response.chaseLeads;
 				$scope.convertedLeads=response.convertedLeads;
 				$scope.ecfollowupLeads=response.ecfollowupLeads;
-				//$scope.cfollowupLeads=response.cfollowupLeads;
 				$scope.lostfollowupLeads=response.lostfollowupLeads;
-				$scope.totalleadslength = parseInt(response.openLeads) + parseInt(response.chaseLeads) + parseInt(response.convertedLeads) + parseInt(response.ecfollowupLeads) +parseInt(response.lostfollowupLeads);
+				$scope.totalleadslength = parseInt(response.openLeads) + parseInt(response.chaseLeads) + parseInt(response.convertedLeads) + parseInt(response.ecfollowupLeads) +parseInt(response.lostfollowupLeads);*/
+				$scope.openLeads=Leads.openLeads;
+				$scope.chaseLeads=Leads.chaseLeads;
+				$scope.convertedLeads=Leads.convertedLeads;
+				$scope.ecfollowupLeads=Leads.ecfollowupLeads;
+				$scope.lostfollowupLeads=Leads.lostfollowupLeads;
+				$scope.totalleadslength = parseInt(Leads.openLeads) + parseInt(Leads.chaseLeads) + parseInt(Leads.convertedLeads) + parseInt(Leads.ecfollowupLeads) +parseInt(Leads.lostfollowupLeads);
 			}
 		});
 	};
@@ -626,9 +637,21 @@ function Leads_Controller($scope, $http, $mdSidenav, $mdDialog, $mdConstant, $fi
 	$scope.changeDate = function (_prop) {
 			var fromDt = $('#fromdatetime').val();
 			var toDt = $('#todatetime').val();
+			fromDt = fromDt.replaceAll('-','/');
+			toDt = toDt.replaceAll('-','/');
+			console.log('fromdate'+fromDt);
+			console.log('todate'+toDt);
+			var fromDtsplitArr = fromDt.split("/");
+			console.log('fromDtsplitArr'+fromDtsplitArr);
+			fromDt = fromDtsplitArr[1] + '/' + fromDtsplitArr[0] + '/' + fromDtsplitArr[2];
+			var toDtsplitArr = toDt.split("/");
+			toDt = toDtsplitArr[1] + '/' + toDtsplitArr[0] + '/' + toDtsplitArr[2];
+			console.log('toDtsplitArr'+toDtsplitArr);
 			for(var key in $scope.filter['filterbydate']) {
 				$scope.filter['filterbydate'][key] = false;
 			}
+			console.log('after split fromdate:'+fromDt);
+			console.log('after split todate:'+toDt);
 			if(fromDt != '' && toDt != '' && fromDt <= toDt) {
 				var mydt = '';
 				var loopDate = new Date(fromDt);
@@ -681,6 +704,7 @@ function Leads_Controller($scope, $http, $mdSidenav, $mdDialog, $mdConstant, $fi
 		};
 
 		$scope.EditStatus = function (status_id, lead_status, event) { 
+			if(lead_status != 'Converted' && lead_status != 'Lost') {
 			globals.editDialog($scope.lang.edit+' '+$scope.lang.lead+' '+$scope.lang.status, $scope.lang.lead_title+' '+$scope.lang.lead+' '+$scope.lang.status+' '+$scope.lang.name, $scope.lang.status+' '+$scope.lang.name, lead_status,  event, $scope.lang.save, $scope.lang.cancel, 'leads/update_status/'+status_id, function(response) {
 				if (response.success == true) {
 					showToast(NTFTITLE, response.message, ' success');
@@ -692,6 +716,7 @@ function Leads_Controller($scope, $http, $mdSidenav, $mdDialog, $mdConstant, $fi
 					globals.mdToast('error', response.message);
 				}
 			});
+			}
 		};
 		
 		$scope.DeleteLeadStatus = function (index) { 
@@ -793,6 +818,12 @@ function Lead_Controller($scope, $http, $mdSidenav, $mdDialog, $filter) {
 		
 		if($scope.lead.status_id == '7') {
 			$('.lostBtn').css('display','none');
+		}
+		if($scope.lead.public == false) {
+			$scope.lead.type = true;
+			$scope.isIndividual = 1;
+			$scope.isPublic = 0;
+			$scope.IsVisibleAssigned = true;
 		}
 		$scope.MarkLeadAs = function (status) {
 			if (status === 1) {
@@ -902,6 +933,7 @@ function Lead_Controller($scope, $http, $mdSidenav, $mdDialog, $filter) {
 						if (response.data.success == true) {
 							showToast(NTFTITLE, response.data.message, ' success');
 							$mdSidenav('Update').close();
+							window.location.href = BASE_URL + 'leads/lead/' + LEADID;
 						} else {
 							globals.mdToast('error', response.data.message);
 						}

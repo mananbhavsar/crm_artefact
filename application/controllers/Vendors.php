@@ -103,6 +103,171 @@ class Vendors extends CIUIS_Controller {
 		}
 	}
 
+	function exportdata()
+	{
+		$this->load->library('excel');
+        if ($this->Privileges_Model->check_privilege('vendors', 'all')) {
+            $q = $this->Vendors_Model->get_all_vendors();
+        }
+        // create file name
+        $fileName = 'data-' . time() . '.xlsx';
+        // load excel library
+        $this->load->library('excel');
+        $listInfo = $q;
+        $objPHPExcel = new PHPExcel();
+        $objPHPExcel->setActiveSheetIndex(0);
+        // set Header
+        $objPHPExcel->getActiveSheet()->getStyle('A1')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setARGB('ff9933');
+        $objPHPExcel->getActiveSheet()->getStyle('B1:D1')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setARGB('66ccff');
+        $objPHPExcel->getActiveSheet()->getStyle('E1:F1')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setARGB('ff9933');
+        $objPHPExcel->getActiveSheet()->getStyle('G1:J1')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setARGB('66ccff');
+		 $objPHPExcel->getActiveSheet()->getStyle('K1:Q1')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setARGB('ff9933');
+        $styleArray = array(
+            'borders' => array(
+                'allborders' => array(
+                    'style' => PHPExcel_Style_Border::BORDER_THIN
+                )
+            )
+        );
+        $objPHPExcel->getDefaultStyle()->applyFromArray($styleArray);
+        $objPHPExcel->getActiveSheet()->SetCellValue('A1', 'Vendor Name');
+        $objPHPExcel->getActiveSheet()->SetCellValue('B1', 'Vendor Group*');
+        $objPHPExcel->getActiveSheet()->SetCellValue('C1', 'Contact Person');
+        $objPHPExcel->getActiveSheet()->SetCellValue('D1', 'Contact Number');
+        $objPHPExcel->getActiveSheet()->SetCellValue('E1', 'Company Mail');
+        $objPHPExcel->getActiveSheet()->SetCellValue('F1', 'Company Adress');
+        $objPHPExcel->getActiveSheet()->SetCellValue('G1', 'Vat Office');
+        $objPHPExcel->getActiveSheet()->SetCellValue('H1', 'Vat Number');
+        $objPHPExcel->getActiveSheet()->SetCellValue('I1', 'Mobile Number');
+        $objPHPExcel->getActiveSheet()->SetCellValue('J1', 'Fax');
+		$objPHPExcel->getActiveSheet()->SetCellValue('K1', 'Web');
+		$objPHPExcel->getActiveSheet()->SetCellValue('L1', 'Post code');
+		$objPHPExcel->getActiveSheet()->SetCellValue('M1', 'Trade Lisence Number');
+		$objPHPExcel->getActiveSheet()->SetCellValue('N1', 'Expiry Date');
+		$objPHPExcel->getActiveSheet()->SetCellValue('O1', 'Terms and Conditions');
+		$objPHPExcel->getActiveSheet()->SetCellValue('P1', 'Credit Period');
+		$objPHPExcel->getActiveSheet()->SetCellValue('Q1', 'Credit Limit');
+        $from = "A1"; // or any value
+        $to   = "Q1"; // or any value
+        $objPHPExcel->getActiveSheet()->getStyle("$from:$to")->getFont()->setBold(true);
+        $rowCount = 2;
+        foreach ($listInfo as $list) {
+            $objPHPExcel->getActiveSheet()->SetCellValue('A' . $rowCount, $list['company']);
+			$objPHPExcel->getActiveSheet()->SetCellValue('B' . $rowCount, $list['grpname']);
+            $objPHPExcel->getActiveSheet()->SetCellValue('C' . $rowCount, $list['company_person']);
+            $objPHPExcel->getActiveSheet()->SetCellValue('D' . $rowCount, $list['contact_number']);
+            $objPHPExcel->getActiveSheet()->SetCellValue('E' . $rowCount, $list['email']);
+            $objPHPExcel->getActiveSheet()->SetCellValue('F' . $rowCount, $list['address']);
+            $objPHPExcel->getActiveSheet()->SetCellValue('G' . $rowCount, $list['taxoffice']);
+            $objPHPExcel->getActiveSheet()->SetCellValue('H' . $rowCount, $list['taxnumber']);
+            $objPHPExcel->getActiveSheet()->SetCellValue('I' . $rowCount, $list['phone']);
+            $objPHPExcel->getActiveSheet()->SetCellValue('J' . $rowCount, $list['fax']);
+			$objPHPExcel->getActiveSheet()->SetCellValue('K' . $rowCount, $list['web']);
+			$objPHPExcel->getActiveSheet()->SetCellValue('L' . $rowCount, $list['zipcode']);
+			$objPHPExcel->getActiveSheet()->SetCellValue('M' . $rowCount, $list['licence_no']);
+			$objPHPExcel->getActiveSheet()->SetCellValue('N' . $rowCount, $list['trade_expiry_date']);
+			$objPHPExcel->getActiveSheet()->SetCellValue('O' . $rowCount, $list['terms_condition']);
+			$objPHPExcel->getActiveSheet()->SetCellValue('P' . $rowCount, $list['credit_period']);
+			$objPHPExcel->getActiveSheet()->SetCellValue('Q' . $rowCount, $list['credit_limit']);
+            $rowCount++;
+        }
+        // Redirect output to a client’s web browser (Excel2007)
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="Vendors.xlsx"');
+        header('Cache-Control: max-age=0');
+        // If you're serving to IE 9, then the following may be needed
+        header('Cache-Control: max-age=1');
+        // If you're serving to IE over SSL, then the following may be needed
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT'); // always modified
+        header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+        header('Pragma: public'); // HTTP/1.0
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+        $objWriter->save('php://output');
+        exit;
+	}
+	function importdata()
+	{
+		if ( $this->Privileges_Model->check_privilege( 'vendors', 'create' ) ) {
+			$path = './uploads/imports/';
+			require_once APPPATH . "/third_party/PHPExcel.php";
+			$config['upload_path'] = $path;
+			$config['allowed_types'] = 'xlsx|xls|csv';
+			$config['remove_spaces'] = TRUE;
+			$this->load->library('upload', $config);
+			$this->upload->initialize($config);            
+			if (!$this->upload->do_upload()) {
+				$error = array('error' => $this->upload->display_errors());
+			} else {
+				$data = array('upload_data' => $this->upload->data());
+			}
+			if(empty($error)){
+			  if (!empty($data['upload_data']['file_name'])) {
+				$import_xls_file = $data['upload_data']['file_name'];
+			} else {
+				$import_xls_file = 0;
+			}
+			  $inputFileName = $path . $import_xls_file;
+			try {
+				$inputFileType = PHPExcel_IOFactory::identify($inputFileName);
+				$objReader = PHPExcel_IOFactory::createReader($inputFileType);
+				$objPHPExcel = $objReader->load($inputFileName);
+				$allDataInSheet = $objPHPExcel->getActiveSheet()->toArray(null, true, true, true);
+				$flag = true;
+				$i=0;
+				foreach ($allDataInSheet as $row) {
+				  if($flag){
+					$flag =false;
+					continue;
+				  }
+				  $materialcattype = $this->Vendors_Model->get_vendor_group_by_name($row[ 'B' ]);
+				  if(sizeof($materialcattype) > 0){
+					$groupid = $materialcattype['id']; 
+				  } else {
+						$param = array('name'=>$row[ 'B' ]);
+						$this->db->insert('vendors_groups',$param);
+						$groupid = $this->db->insert_id();
+				  }
+				  $inserdata[$i]['created'] = date( 'Y-m-d' );
+				  $inserdata[$i]['company'] = $row['A'];
+				  $inserdata[$i]['groupid'] = $groupid;				  
+				  $inserdata[$i]['company_person'] = $row['C'];
+				  $inserdata[$i]['contact_number'] = $row['D'];
+				  $inserdata[$i]['email'] = $row['E'];
+				  $inserdata[$i]['address'] = $row['F'];
+				  $inserdata[$i]['taxoffice'] = $row['G'];
+				   $inserdata[$i]['taxnumber'] = $row['H'];
+				  $inserdata[$i]['phone'] = $row['I'];
+				  $inserdata[$i]['fax'] = $row['J'];
+				  $inserdata[$i]['web'] = $row['K'];
+				  $inserdata[$i]['credit_period'] = $row['L'];
+				  $inserdata[$i]['credit_limit'] = $row['M'];
+				  $i++;
+				} 
+				$result = $this->Vendors_Model->insert_bulk_vendor($inserdata);
+				if($result){
+				  $this->session->set_flashdata( 'ntf3', 'Your Excel File Imported Successfully.' );
+				  unlink($inputFileName);
+				  // echo $this->session->flashdata('success');exit;
+				  redirect( 'vendors' );
+				}else{
+					unlink($inputFileName);
+				  redirect( 'vendors' );
+				  $this->session->set_flashdata( 'ntf3', 'Error' );
+				}             
+		  } catch (Exception $e) {
+			   die('Error loading file "' . pathinfo($inputFileName, PATHINFO_BASENAME)
+						. '": ' .$e->getMessage());
+			}
+		  }else{
+			  $this->session->set_flashdata( 'ntf3',lang( 'There is some issue while upload. Please try again later.' ) );
+			redirect(base_url('vendors'));
+			}
+		} else {
+			$this->session->set_flashdata( 'ntf3',lang( 'you_dont_have_permission' ) );
+			redirect(base_url('vendors'));
+		}
+	}
 	function vendor( $id ) {
 		if ( $this->Privileges_Model->check_privilege( 'vendors', 'all' ) ) {
 			$vendor = $this->Vendors_Model->get_vendor_by_privileges( $id );

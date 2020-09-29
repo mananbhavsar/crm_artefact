@@ -172,32 +172,32 @@
   <div class="main-content container-fluid col-xs-12 col-md-9 col-lg-9">
     <md-toolbar class="toolbar-white">
       <div class="md-toolbar-tools">
-        <h2 flex md-truncate class="text-bold"><?php echo lang('Payslip'); ?> <small>(<span ng-bind="'<?php echo count($getpayslip); ?>'"></span>)</small><br>
-         <b style='color:red'><?php echo date('Y-m'); ?></b></h2>
-        <div class="ciuis-external-search-in-table">
-          <input ng-model="order_search" class="search-table-external" id="search" name="search" type="text" placeholder="<?php echo lang('searchword')?>">
+        <h2 flex md-truncate class="text-bold"><?php echo lang('Payslip'); ?> <small>(<span ng-bind="'<?php //echo count($getpayslip); ?>'"></span>)</small><br>
+         <b style='color:red'><?php echo $year; ?></b></h2>
+       <!-- <div class="ciuis-external-search-in-table">
+          <input ng-model="order_search" class="search-table-external" id="search" name="search" type="text" placeholder="<?php //echo lang('searchword')?>">
           <md-button class="md-icon-button" aria-label="Search" ng-cloak>
             <md-icon><i class="ion-search text-muted"></i></md-icon>
           </md-button>
-        </div>
+        </div> -->
         <md-button onclick="update()" class="md-icon-button" aria-label="Filter" ng-cloak>
           <md-icon><i class="ion-android-funnel text-muted"></i></md-icon>
         </md-button>
         
-           <md-menu>
+	<!--	<md-menu>
 		<md-button aria-label="Convert" class="md-icon-button" ng-click="$mdMenu.open($event)" ng-cloak>
               <md-icon><i class="ion-android-add-circle text-success"></i></md-icon>
             </md-button>
          <md-menu-content width="4">
 		 <md-menu-item>
-          <a href="<?php echo base_url('payroll/create');?>">Payslip</a>
+          <a href="<?php //echo base_url('payroll/create');?>">Payslip</a>
 		  </md-menu-item>
 		  <md-menu-item>
-          <a href="<?php echo base_url('paysheet');?>">Payroll</a>
+          <a href="<?php //echo base_url('paysheet');?>">Payroll</a>
 		  </md-menu-item>
 		  
 		   </md-menu-content>
-		   </md-menu>
+		   </md-menu> -->
            
       </div>
     </md-toolbar>

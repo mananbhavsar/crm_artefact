@@ -1003,9 +1003,11 @@ class Contacts extends CIUIS_Controller {
 	}
     function get_tasks($type="") {
         $tasks = array();
-        //if ( $this->Privileges_Model->check_privilege( 'tasks', 'all' ) ) {
-        $tasks = $this->Newcontacts_Model->get_all_contacts($type);
-        //}
+        if ( $this->Privileges_Model->check_privilege( 'contacts', 'all' ) ) {
+        $tasks = $this->Newcontacts_Model->get_all_contacts($type,'');
+        }else  if ( $this->Privileges_Model->check_privilege( 'contacts', 'own' ) ) {
+              $tasks = $this->Newcontacts_Model->get_all_contacts($type,$this->session->userdata('usr_id'));
+        }
         $data_tasks = array();
         foreach ($tasks as $task) {
             $settings = $this->Settings_Model->get_settings_ciuis();

@@ -13,6 +13,9 @@
     border: 1px dashed #26c281;
     width: 100px;
 }
+.fa-info {
+	color: #26c281;
+}
 </style>
 <div class="ciuis-body-content" ng-controller="Orders_Controller">
   <div class="main-content container-fluid col-xs-12 col-md-3 col-lg-3 hidden-xs">
@@ -138,6 +141,12 @@
 					<a ng-href="<?php echo base_url('projects/project/') ?>{{order.projectid}}">
 						<md-tooltip md-direction="bottom"><?php echo lang('Convert') ?></md-tooltip>
 						<md-icon><i class="ion-checkmark-circled text-success"></i></md-icon>
+					</a>
+				</span>
+				<span style="float: right;" ng-show="order.is_invoiced=='1'">
+					<a ng-href="<?php echo base_url('invoices/invoice/') ?>{{order.invoice_id}}">
+						<md-tooltip md-direction="bottom"><?php echo lang('Invoiced') ?></md-tooltip>
+						<md-icon><i class="fa fa-info" aria-hidden="true"></i></md-icon>
 					</a>
 				</span>
               </td>

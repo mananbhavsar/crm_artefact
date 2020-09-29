@@ -74,6 +74,7 @@ class Delivery extends CIUIS_Controller {
 							'delivery_stage_id' => $eachProjectStage['id'],
 							'finished' => 0,
 							'created' => date( 'Y-m-d H:i:s' ),
+							'update' => date( 'Y-m-d H:i:s' ),
 							'staff_id' => $this->session->userdata( 'usr_id' ),
 							'complete' => 0
 						);
@@ -750,67 +751,57 @@ class Delivery extends CIUIS_Controller {
 	function markas() {
 		if ( $this->Privileges_Model->check_privilege( 'projects', 'edit' ) ) {
 			if ( isset( $_POST ) && count( $_POST ) > 0 ) {
+				
+				$subdelivery = $_POST[ 'subdelivery' ];
+				$deliveryid = $_POST[ 'deliveryid' ];
+				$delivery_stage_id = $_POST[ 'delivery_stage_id' ];
+			
+
+				$deliverydata = $this->db->get_where( 'delivery', array( 'id'=>$deliveryid  ))-> result_array();
+				$appconfig = get_appconfig();
 				$params = array(
-					'project_id' => $_POST[ 'project_id' ],
-					'status_id' => $_POST[ 'status_id' ],
+					'description' => $deliverydata[0]["description"],
+					'projectid' => $deliverydata[0]["projectid"],
+					'delivery_date' => $deliverydata[0]["delivery_date"],
+					'staff_id' => $this->session->userdata( 'usr_id' ),
+					'category_id' => $deliverydata[0]["category_id"],
+					'status_id' => 1,
+					'created' => date( 'Y-m-d H:i:s' ), 
 				);
-				$tickets = $this->Projects_Model->markas();
 
-				$template = $this->Emails_Model->get_template('project', 'project_status_changed');
-				if ($template['status'] == 1) {
-					$project = $this->Projects_Model->get_projects( $_POST[ 'project_id' ] );
-					$project_url = '' . base_url( 'area/projects/project/' . $_POST[ 'project_id' ] . '' ) . '';
-					switch ( $project[ 'status' ] ) {
-						case '1':
-							$status_project = lang( 'notstarted' );
-							break;
-						case '2':
-							$status_project = lang( 'started' );
-							break;
-						case '3':
-							$status_project = lang( 'hold' );
-							break;
-						case '4':
-							$status_project = lang( 'cancelled' );
-							break;
-						case '5':
-							$status_project = lang( 'complete' );
-							break;
-					};
+				$this->db->insert( 'delivery', $params );
+				$newdelivery_id = $this->db->insert_id();
 
-					if ( $project[ 'namesurname' ] ) {
-						$customer = $project[ 'namesurname' ];
-					} else {
-						$customer = $project[ 'customercompany' ];
+				$response = $this->db->where( 'id', $subdelivery )->update( 'subdelivery', array( 'complete' => 1 ,'update' => date( 'Y-m-d H:i:s' )) );
+				$this->db->where( 'id', $deliveryid );
+				$this->db->update('delivery', array('status_id'=>2));
+
+					$allProjectStages = $this->db->get_where( 'installation', array( '' ))->result_array();
+					
+					foreach($allProjectStages as $eachProjectStage) {
+						$subprojectparams = array(
+							'deliveryid' => $newdelivery_id,
+							'delivery_stage_id' => $eachProjectStage['id'],
+							'finished' => 0,
+							'created' => date( 'Y-m-d H:i:s' ),
+							'staff_id' => $this->session->userdata( 'usr_id' ),
+							'complete' => 0
+						);
+						$this->db->insert( 'subdelivery', $subprojectparams );
 					}
-					$message_vars = array(
-						'{customer}' => $customer,
-						'{project_name}' => $project[ 'name' ],
-						'{project_start_date}' => $project[ 'start_date' ],
-						'{project_end_date}' => $project[ 'deadline' ],
-						'{project_value}' => $project[ 'projectvalue' ],
-						'{project_tax}' => $project[ 'tax' ],
-						'{loggedin_staff}' => $this->session->userdata('staffname'),
-						'{project_url}' => $project_url,
-						'{project_status}' => $status_project,
-						'{name}' => $this->session->userdata('staffname'),
-						'{email_signature}' => $this->session->userdata('email'),
-						'{project_description}' => $project['description']
-					);
-					$subject = strtr($template['subject'], $message_vars);
-					$message = strtr($template['message'], $message_vars);
+					
+					$appconfig = get_appconfig();
+					$number = $appconfig['project_series'] ? $appconfig['project_series'] : $newdelivery_id;
+					$delivery_number = $appconfig['delivery_prefix'].$number;
+					$this->db->where('id', $newdelivery_id)->update( 'delivery', array('delivery_number' => $delivery_number ) );
 
-					$param = array(
-						'from_name' => $template['from_name'],
-						'email' => $project['customeremail'],
-						'subject' => $subject,
-						'message' => $message,
-						'created' => date( "Y.m.d H:i:s" )
-					);
-					if ($project['customeremail']) {
-						$this->db->insert( 'email_queue', $param );
-					}
-				}
+					$array = array('deliveryid' => $newdelivery_id, 'delivery_stage_id' => $delivery_stage_id);
+					 $this->db->where( $array)->update( 'subdelivery', array( 'complete' => 1 ) );
+
+					$this->db->where( 'id', $newdelivery_id );
+					$this->db->update('delivery', array('status_id'=>2));
+				
+				
 				$data['success'] = true;
 			}
 		} else {
@@ -1080,7 +1071,7 @@ class Delivery extends CIUIS_Controller {
 			if ( isset( $_POST ) && count( $_POST ) > 0 ) {
 				$staff = $_POST[ 'staff' ];
 				$projectId = $_POST[ 'project' ];
-				$members = $this->Projects_Model->get_members($projectId);
+				$members = $this->Delivery_Model->get_members($projectId);
 				$hasError = false;
 				$data['message'] = '';
 				if ($staff == '' || $staff == null) {
@@ -1104,13 +1095,13 @@ class Delivery extends CIUIS_Controller {
 						'staff_id' => $staff,
 						'project_id' => $_POST[ 'project' ],
 					);
-					$this->db->insert( 'projectmembers', $params );
+					$this->db->insert( 'deliverymembers', $params );
 					$this->db->insert( 'notifications', array(
 						'date' => date( 'Y-m-d H:i:s' ),
 						'detail' => ( lang( 'assignednewproject' ) ),
 						'perres' => $this->session->staffavatar,
 						'staff_id' => $_POST[ 'staff' ],
-						'target' => '' . base_url( 'projects/project/' . $_POST[ 'project' ] . '' ) . ''
+						'target' => '' . base_url( 'delivery/delivery/' . $_POST[ 'project' ] . '' ) . ''
 					) );
 					$this->db->insert( 'logs', array(
 						'date' => date( 'Y-m-d H:i:s' ),
@@ -1120,63 +1111,7 @@ class Delivery extends CIUIS_Controller {
 					) );
 					$member_detail = $this->Staff_Model->get_staff( $_POST[ 'staff' ] );
 
-					$template = $this->Emails_Model->get_template('project', 'staff_added');
-					if ($template['status'] == 1) {
-						$project = $this->Projects_Model->get_projects( $_POST[ 'project' ] );
-						$project_url = '' . base_url( 'projects/project/' . $_POST[ 'project' ] . '' ) . '';
-						switch ( $project[ 'status' ] ) {
-							case '1':
-								$status_project = lang( 'notstarted' );
-								break;
-							case '2':
-								$status_project = lang( 'started' );
-								break;
-							case '3':
-								$status_project = lang( 'percentage' );
-								break;
-							case '4':
-								$status_project = lang( 'cancelled' );
-								break;
-							case '5':
-								$status_project = lang( 'complete' );
-								break;
-						};
-
-						if ( $project[ 'namesurname' ] ) {
-							$customer = $project[ 'namesurname' ];
-						} else {
-							$customer = $project[ 'customercompany' ];
-						}
-						$message_vars = array(
-							'{customer}' => $customer,
-							'{project_name}' => $project[ 'name' ],
-							'{project_start_date}' => $project[ 'start_date' ],
-							'{project_end_date}' => $project[ 'deadline' ],
-							'{project_value}' => $project[ 'projectvalue' ],
-							'{project_tax}' => $project[ 'tax' ],
-							'{loggedin_staff}' => $this->session->userdata('staffname'),
-							'{project_url}' => $project_url,
-							'{staff}' => $member_detail['staffname'],
-							'{project_status}' => $status_project,
-							'{name}' => $this->session->userdata('staffname'),
-							'{email_signature}' => $this->session->userdata('email'),
-							'{project_description}' => $project['description']
-						);
-						$subject = strtr($template['subject'], $message_vars);
-						$message = strtr($template['message'], $message_vars);
-
-						$param = array(
-							'from_name' => $template['from_name'],
-							'email' => $member_detail['email'],
-							'subject' => $subject,
-							'message' => $message,
-							'created' => date( "Y.m.d H:i:s" )
-						);
-						if ($member_detail['email']) {
-							$this->db->insert( 'email_queue', $param );
-						}
-					}
-
+				
 					$data['success'] = true;
 					$data['message'] = lang('project'). ' ' .lang('createmessage');
 					$data['member'] = $member_detail;
@@ -1194,7 +1129,7 @@ class Delivery extends CIUIS_Controller {
 		if ( $this->Privileges_Model->check_privilege( 'projects', 'edit' ) ) {
 			if ( isset( $_POST[ 'linkid' ] ) ) {
 				$linkid = $_POST[ 'linkid' ];
-				$response = $this->db->where( 'id', $linkid )->delete( 'projectmembers', array( 'id' => $linkid ) );
+				$response = $this->db->where( 'id', $linkid )->delete( 'deliverymembers', array( 'id' => $linkid ) );
 				$data['success'] = true;
 				$data['message'] = lang('staff'). ' '.lang('deletemessage');
 				echo json_encode($data);
@@ -1217,8 +1152,8 @@ class Delivery extends CIUIS_Controller {
 				    		unlink('./uploads/files/' . $fileData['file_name']);
 				    	}
 					} else {
-						if (is_file('./uploads/files/projects/'.$fileData['relation'].'/' . $fileData['file_name'])) {
-				    		unlink('./uploads/files/projects/'.$fileData['relation'].'/' . $fileData['file_name']);
+						if (is_file('./uploads/files/delivery/'.$fileData['relation'].'/' . $fileData['file_name'])) {
+				    		unlink('./uploads/files/delivery/'.$fileData['relation'].'/' . $fileData['file_name']);
 				    	}
 					}
 			    	if ($response) {
@@ -1244,10 +1179,10 @@ class Delivery extends CIUIS_Controller {
 		if ( $this->Privileges_Model->check_privilege( 'projects', 'edit' ) ) {
 			if ( isset( $id ) ) {
 				if ( isset( $_POST ) ) {
-					if (!is_dir('uploads/files/projects/'.$id)) { 
-						mkdir('./uploads/files/projects/'.$id, 0777, true);
+					if (!is_dir('uploads/files/delivery/'.$id)) { 
+						mkdir('./uploads/files/delivery/'.$id, 0777, true);
 					}
-					$config[ 'upload_path' ] = './uploads/files/projects/'.$id.'';
+					$config[ 'upload_path' ] = './uploads/files/delivery/'.$id.'';
 					$config[ 'allowed_types' ] = 'zip|rar|tar|gif|jpg|png|jpeg|gif|pdf|doc|docx|xls|xlsx|txt|csv|ppt|opt';
 					$config['max_size'] = '9000';
 					$new_name = preg_replace("/[^a-z0-9\_\-\.]/i", '', basename($_FILES["file"]['name']));
@@ -1259,69 +1194,16 @@ class Delivery extends CIUIS_Controller {
 						echo json_encode($data);
 					} else {
 						$image_data = $this->upload->data();
-						if (is_file('./uploads/files/projects/'.$id.'/'.$image_data[ 'file_name' ])) {
+						if (is_file('./uploads/files/delivery/'.$id.'/'.$image_data[ 'file_name' ])) {
 							$params = array(
-								'relation_type' => 'project',
+								'relation_type' => 'delivery',
 								'relation' => $id,
 								'file_name' => $image_data[ 'file_name' ],
 								'created' => date( " Y.m.d H:i:s " ),
 								'is_old' => '0'
 							);
 							$this->db->insert( 'files', $params );
-							$template = $this->Emails_Model->get_template('project', 'new_file_uploaded_to_customer');
-							if ($template['status'] == 1) {
-								$project = $this->Projects_Model->get_projects( $id );
-								$project_url = '' . base_url( 'area/projects/project/' . $id . '' ) . '';
-								switch ( $project[ 'status' ] ) {
-									case '1':
-										$status_project = lang( 'notstarted' );
-										break;
-									case '2':
-										$status_project = lang( 'started' );
-										break;
-									case '3':
-										$status_project = lang( 'percentage' );
-										break;
-									case '4':
-										$status_project = lang( 'cancelled' );
-										break;
-									case '5':
-										$status_project = lang( 'complete' );
-										break;
-								};
-								if ( $project[ 'namesurname' ] ) {
-									$customer = $project[ 'namesurname' ];
-								} else {
-									$customer = $project[ 'customercompany' ];
-								}
-								$message_vars = array(
-									'{customer}' => $customer,
-									'{project_name}' => $project[ 'name' ],
-									'{project_start_date}' => $project[ 'start_date' ],
-									'{project_end_date}' => $project[ 'deadline' ],
-									'{project_value}' => $project[ 'projectvalue' ],
-									'{project_tax}' => $project[ 'tax' ],
-									'{loggedin_staff}' => $this->session->userdata('staffname'),
-									'{project_url}' => $project_url,
-									'{project_status}' => $status_project,
-									'{name}' => $this->session->userdata('staffname'),
-									'{email_signature}' => $this->session->userdata('email'),
-									'{project_description}' => $project['description']
-								);
-								$subject = strtr($template['subject'], $message_vars);
-								$message = strtr($template['message'], $message_vars);
-
-								$param = array(
-									'from_name' => $template['from_name'],
-									'email' => $project['customeremail'],
-									'subject' => $subject,
-									'message' => $message,
-									'created' => date( "Y.m.d H:i:s" )
-								);
-								if ($project['customeremail']) {
-									$this->db->insert( 'email_queue', $param );
-								}
-							}
+						
 							$data['success'] = true;
 							$data['message'] = lang('file').' '.lang('uploadmessage');
 							echo json_encode($data);
@@ -2246,7 +2128,8 @@ class Delivery extends CIUIS_Controller {
 		if($project) {
 			$settings = $this->Settings_Model->get_settings_ciuis();
 			$milestones = $this->Projects_Model->get_all_project_milestones( $id );
-			$projectmembers = $this->Projects_Model->get_members( $id );
+			$projectmembers = $this->Delivery_Model->get_members( $id );
+			$get_last_status = $this->Delivery_Model->get_last_status( $id );
 			$project_logs = $this->Logs_Model->project_logs( $id );
 			$percentage_completed = $this->Delivery_Model->GetdeliveryStatusByStage($id);
 			$customer = ($project['customercompany'])?$project['customercompany']:$project['namesurname'];
@@ -2329,6 +2212,7 @@ class Delivery extends CIUIS_Controller {
 				'file_name' =>  get_number('projects', $project[ 'id' ], 'project','project').'.pdf',
 				'project_number' => get_number('projects', $project[ 'id' ], 'project','project'),
 				'order_id'=> $project['order_id'],
+				'latest_status'=> $get_last_status['stagename'],
 				'items'=> $this->Projects_Model->get_project_items($project[ 'id' ]),
 			);
 			echo json_encode( $data_projectdetail );
@@ -2368,7 +2252,7 @@ class Delivery extends CIUIS_Controller {
 
 	function projectfiles( $id ) {
 		if (isset($id)) {
-			$files = $this->Projects_Model->get_project_files( $id );
+			$files = $this->Delivery_Model->get_project_files( $id );
 			$data = array();
 			foreach ($files as $file) {
 				$ext = pathinfo($file['file_name'], PATHINFO_EXTENSION);
@@ -2395,7 +2279,7 @@ class Delivery extends CIUIS_Controller {
 				if ($file['is_old'] == '1') {
 					$path = base_url('uploads/files/'.$file['file_name']);
 				} else {
-					$path = base_url('uploads/files/projects/'.$id.'/'.$file['file_name']);
+					$path = base_url('uploads/files/delivery/'.$id.'/'.$file['file_name']);
 				}
 				$data[] = array(
 					'id' => $file['id'],
@@ -2474,6 +2358,8 @@ class Delivery extends CIUIS_Controller {
 				$completetasks = $this->Report_Model->completeprojecttasks( $project[ 'id' ] );
 				$progress = ( $totaltasks > 0 ? number_format( ( $completetasks * 100 ) / $totaltasks ) : 0 ); */
 				$percentage_completed = $this->Delivery_Model->GetdeliveryStatusByStage($delivery[ 'id' ]);
+				$get_last_status = $this->Delivery_Model->get_last_status($delivery[ 'id' ]);
+				$last_querry =  $this->db->last_query();
 				$project_id = $delivery[ 'id' ];
 				switch ( $delivery[ 'status' ] ) {
 					case '1':
@@ -2554,6 +2440,8 @@ class Delivery extends CIUIS_Controller {
 					lang('filterbycustomer') => $customer,
 					'project_number' => get_number('projects', $delivery[ 'id' ], 'project','project'),
 					'delivery_number' => $delivery[ 'delivery_number' ],
+					'latest_status'=> $get_last_status['stagename'],
+
 				);
 			} 
 		}
