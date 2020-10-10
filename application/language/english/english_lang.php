@@ -16,8 +16,10 @@ $lang[ 'forgotpasswordsub' ] = 'Please enter your email address and we\'ll send 
 $lang[ 'resetyourpassword' ] = 'Reset your password';
 $lang[ 'resetyourpasswordsub' ] = 'Please enter your password 2x below to reset';
 $lang[ 'confirmpassword' ] = 'Confirm Password';
+$lang[ 'lock_meesage' ] = 'Do you confirm the lock of this Department?';
 $lang[ 'importmaterial' ] = 'Import Material';
 $lang['choosexlsfile']='Choose xls file.';
+$lang[ 'lockdepartment' ] = 'has been locked successfully';
 // Firs Notifications
 
 $lang[ 'crmwelcome' ] = '';
@@ -34,6 +36,7 @@ $lang[ 'new' ] = 'New';
 $lang[ 'yes' ] = 'Yes';
 $lang[ 'no' ] = 'No';
 $lang[ 'delete' ] = 'Delete';
+$lang[ 'lock' ] = 'Lock';
 $lang[ 'edit' ] = 'Edit';
 $lang[ 'update' ] = 'Update';
 $lang[ 'name' ] = 'Name';
@@ -2004,7 +2007,13 @@ $lang[ 'delivery' ] = 'Delivery';
 $lang[ 'collection' ] = 'Collection';
 $lang[ 'removal&disposal' ] = 'Removal Disposal';
 $lang[ 'choiseproject' ] = 'Choose Project';
+$lang[ 'addvehicle' ] = 'Add Vehicle';
+$lang[ 'vehicle_number' ] = 'Vehicle Number';
+$lang[ 'vehicle_type' ] = 'Vehicle Type';
+$lang[ 'driver_name' ] = 'Driver Name';
+$lang[ 'driver_name' ] = 'Driver Name';
+$lang[ 'Delivery Vehicle' ] = 'Delivery Vehicle';
+$lang[ 'delivery_date' ] = 'Delivery Date';
 //Approval changes
 $lang[ 'value' ] = 'Value below ';
-
 ?>

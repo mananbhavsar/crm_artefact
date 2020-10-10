@@ -399,14 +399,19 @@ class Delivery_Model extends CI_Model {
 	}
 
 	function get_all_delivery() {
-		$this->db->select( '*,customers.company as customercompany,customers.namesurname as individual,customers.address as customeraddress,delivery.status_id as status, delivery.id as id, delivery.staff_id as staff_id, customers.email as customeremail ' );
+		$this->db->select( '*,customers.company as customercompany,customers.namesurname as individual,customers.address as customeraddress,delivery.status_id as status, delivery.id as id, delivery.staff_id as staff_id, customers.email as customeremail,DATE_FORMAT(delivery_date, "%d/%m/%Y") AS deliverydate ' );
 		$this->db->join( 'projects', 'delivery.projectid = projects.id', 'left' );
 		$this->db->join( 'customers', 'projects.customer_id = customers.id', 'left' );
 		$this->db->order_by( 'delivery.id', 'desc' );
 		return $this->db->get( 'delivery' )->result_array();
 	}
+
+	function get_all_deliverystatus() {
+		$this->db->select( ' SUM(if(delivery.status_id = 1, 1, 0)) AS sumnotstarted,SUM(if(delivery.status_id = 2, 1, 0)) AS sumstarted,SUM(if(delivery.status_id = 3, 1, 0)) AS sumhold,SUM(if(delivery.status_id = 4, 1, 0)) AS sumcancelled,SUM(if(delivery.status_id = 5, 1, 0)) AS sumcomplete' );
+		return $this->db->get( 'delivery' )->result_array();
+	}
 	function get_delivery($delivery_uid) {
-		$this->db->select( '*,customers.company as customercompany,customers.namesurname as individual,customers.address as customeraddress,delivery.status_id as status, delivery.id as id, delivery.staff_id as staff_id, customers.email as customeremail ' );
+		$this->db->select( '*,customers.company as customercompany,customers.namesurname as individual,customers.address as customeraddress,delivery.status_id as status, delivery.id as id, delivery.staff_id as staff_id, customers.email as customeremail ,delivery.address as custaddress,delivery.* ,projects.id as projectid' );
 		$this->db->join( 'projects', 'delivery.projectid = projects.id', 'left' );
 		$this->db->join( 'customers', 'projects.customer_id = customers.id', 'left' );
 		$this->db->order_by( 'delivery.id', 'desc' );
@@ -421,10 +426,10 @@ class Delivery_Model extends CI_Model {
 		return $data;
 	}
 	function get_subdelivery( $id ) {
-		$this->db->select('subdelivery.id, subdelivery.deliveryid, subdelivery.delivery_stage_id, subdelivery.finished, subdelivery.created, subdelivery.staff_id, subdelivery.complete, installation.name as stagename');
+		$this->db->select('subdelivery.id, subdelivery.deliveryid, subdelivery.delivery_stage_id, subdelivery.finished, subdelivery.created, subdelivery.staff_id, subdelivery.complete, installation.name as stagename,subdelivery.update');
 		$this->db->order_by( 'subdelivery.id', 'desc' );
 		$this->db->join( 'installation', 'subdelivery.delivery_stage_id = installation.id');
-		return $this->db->get_where( 'subdelivery', array( 'subdelivery.deliveryid' => $id, 'subdelivery.complete' => 0 ) )->result_array();
+		return $this->db->get_where( 'subdelivery', array( 'subdelivery.deliveryid' => $id ) )->result_array();
 	}
 	function get_subdeliverycomplete( $id ) {
 		$this->db->select('subdelivery.id, subdelivery.deliveryid, subdelivery.delivery_stage_id, subdelivery.finished, subdelivery.created, subdelivery.staff_id, subdelivery.complete, installation.name as stagename');
@@ -449,7 +454,39 @@ class Delivery_Model extends CI_Model {
 		$this->db->select('subdelivery.id, subdelivery.deliveryid, subdelivery.delivery_stage_id, subdelivery.finished, subdelivery.created, subdelivery.staff_id, subdelivery.complete, installation.name as stagename');
 		$this->db->order_by( 'subdelivery.update', 'desc' );
 		$this->db->join( 'installation', 'subdelivery.delivery_stage_id = installation.id');
-		return $this->db->get_where( 'subdelivery', array( 'subdelivery.deliveryid' => $id, 'subdelivery.complete' => 1 ) )->result();
+		return $this->db->get_where( 'subdelivery', array( 'subdelivery.deliveryid' => $id, 'subdelivery.complete' => 1 ) )->result_array();
+	}
+
+	function remove_installation( $id ) {
+		$response = $this->db->delete( 'installation', array( 'id' => $id ) );
+	}
+
+	function get_stage( $id ) {
+		return $this->db->get_where( 'installation', array( 'id' => $id ) )->row_array();
+	}
+
+	function update( $id, $params ) {
+		
+		$this->db->where( 'id', $id );
+		$response = $this->db->update( 'delivery', $params );
+		$loggedinuserid = $this->session->usr_id;
+		$staffname = $this->session->staffname;
+		$this->db->insert( 'logs', array(
+			'date' => date( 'Y-m-d H:i:s' ),
+			'detail' => ( '<a href="'.base_url().'staff/staffmember/' . $loggedinuserid . '"> ' . $staffname . '</a> ' . lang( 'updated' ).' '.lang('project') . ' <a href="'.base_url().'delivery/delivery/' . $id . '">' . get_number('delivery',$id,'delivery','delivery'). '</a>.' ),
+			'staff_id' => $loggedinuserid,
+		) );
+		$this->db->insert( 'logs', array(
+			'date' => date( 'Y-m-d H:i:s' ),
+			'detail' => ( ''.$staffname.' '.lang('updated').' '.lang('delivery') ),
+			'staff_id' => $loggedinuserid,
+			'project_id' => $id,
+		) );
+	}
+
+	function StatusMarkAs() {
+		$response = $this->db->where( 'id', $_POST[ 'project_id' ] )->update( 'delivery',array( 'status_id' => $_POST[ 'status_id' ] ) );
+		
 	}
 
 

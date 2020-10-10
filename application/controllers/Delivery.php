@@ -12,24 +12,26 @@ class Delivery extends CIUIS_Controller {
 		}
 
 		$this->load->model('Delivery_Model');
+		$this->load->model('Newcontacts_Model');
 
 	}
 
 	function index() {
 		$data[ 'title' ] = lang( 'Delivery' );
 	//	$data[ 'projects' ] = $this->Projects_Model->get_all_projects();
-		$data[ 'staff' ] = $this->Delivery_Model->get_all_staff();
+		$data[ 'staff' ] = $this->Delivery_Model->get_all_staff();       
+		$data['countries'] = $this->Newcontacts_Model->get_countries();
+
 		$this->load->view( 'delivery/index', $data );
 	}
 
 	function delivery( $id ) {
 		$project = $this->Delivery_Model->get_delivery( $id );
-		if ($this->Privileges_Model->check_privilege( 'projects', 'all') ) {
 			$data[ 'title' ] = $project[ 'name' ];
 			$data[ 'projects' ] = $project;
 			$this->load->view( 'inc/header', $data );
 			$this->load->view( 'delivery/delivery', $data );
-		}
+		
 	}
 
 	function create() { 
@@ -39,6 +41,13 @@ class Delivery extends CIUIS_Controller {
 				$projectid = $this->input->post('projectname');
 				$delivery_date = $this->input->post( 'delivery_date' );
 				$description = $this->input->post( 'description' );
+				$address = $this->input->post( 'address' );
+				$shipping_country_id = $this->input->post( 'shipping_country_id' );
+				$shipping_state_id = $this->input->post( 'shipping_state_id' );
+				$shipping_city = $this->input->post( 'shipping_city' );
+				$shipping_zip = $this->input->post( 'shipping_zip' );
+				$contact_number = $this->input->post( 'contact_number' );
+				$contact_name = $this->input->post( 'contact_name' );
 				$hasError = false;
 				$data['message'] = '';
 				if ($installation == '') {
@@ -59,7 +68,14 @@ class Delivery extends CIUIS_Controller {
 						'projectid' => $projectid,
 						'delivery_date' => $delivery_date,
 						'staff_id' => $this->session->userdata( 'usr_id' ),
-						'category_id' => $installation,
+						'stage_id' => $installation,
+						'address' => $address,
+						'shipping_country_id' => $shipping_country_id,
+						'shipping_state_id' => $shipping_state_id,
+						'shipping_city' => $shipping_city,
+						'shipping_zip' => $shipping_zip,
+						'contact_name' => $contact_name,
+						'contact_number' => $contact_number,
 						'status_id' => 1,
   						'created' => date( 'Y-m-d H:i:s' ), 
 					);
@@ -80,6 +96,9 @@ class Delivery extends CIUIS_Controller {
 						);
 						$this->db->insert( 'subdelivery', $subprojectparams );
 					}
+
+					$array = array('deliveryid' => $delivery_id, 'delivery_stage_id' => $installation);
+					$this->db->where( $array)->update( 'subdelivery', array( 'complete' => 1 ) );
 					
 					$appconfig = get_appconfig();
 					$number = $appconfig['project_series'] ? $appconfig['project_series'] : $delivery_id;
@@ -178,108 +197,39 @@ class Delivery extends CIUIS_Controller {
 	}
 
 	function update( $id ) {
-		if ( $this->Privileges_Model->check_privilege( 'projects', 'all' ) ) {
-			$data[ 'project' ] = $this->Projects_Model->get_project_by_priviliges( $id );
-		} else if ($this->Privileges_Model->check_privilege( 'projects', 'own') ) {
-			$projects = $this->Projects_Model->get_projects( $id );
-			if (($projects['staff_id'] == $this->session->usr_id) || ($this->Projects_Model->check_member($projects['id'], $this->session->usr_id)) == 'true') {
-				$data[ 'project' ] = $this->Projects_Model->get_projects( $id );
-			}
-		} else {
-			$data['success'] = false;
-			$data['message'] = lang('you_dont_have_permission');
-			echo json_encode($data);
-		}
-		if($data[ 'project' ]) {
-			if ( $this->Privileges_Model->check_privilege( 'projects', 'edit' ) ) {
-				if ( isset( $data[ 'project' ][ 'id' ] ) ) {
-					if ( isset( $_POST ) && count( $_POST ) > 0 ) {
-						$name = $this->input->post( 'name' );
-						$customer_id = $this->input->post('customer');
-						$description = $this->input->post( 'description' );
-						$tax = $this->input->post( 'tax' );
-						$value = $this->input->post( 'value' );
-						$start_date = $this->input->post( 'start' );
-						$end_date = $this->input->post( 'deadline' );
-						$template = $this->input->post( 'template' );
-						if ($template == 'false' || $template == '0' || !$template) {
-							$template = 0;
-						} else if ($template == 'true' || $template == '1') {
-							$template = 1;
-							$customer_id = 0;
-						}
-						$hasError = false;
-						$data['message'] = '';
-						if ($name == '') {
-							$hasError = true;
-							$data['message'] = lang('invalidmessage'). ' ' .lang('name');
-						} else if ($customer_id == '' && $template == 0) {
-							$hasError = true;
-							$data['message'] = lang('selectinvalidmessage'). ' ' .lang('choisecustomer');
-						} else if ($start_date == '') {
-							$hasError = true;
-							$data['message'] = lang('selectinvalidmessage'). ' ' .lang('startdate');
-						} else if ($end_date == '') {
-							$hasError = true;
-							$data['message'] = lang('selectinvalidmessage'). ' ' .lang('deadline');
-						} else if (strtotime($end_date) < strtotime($start_date)) {
-							$hasError = true;
-							$data['message'] = lang('startdate').' '.lang('date_error'). ' ' .lang('deadline');
-						} else if ($value == '') {
-							$hasError = true;
-							$data['message'] = lang('invalidmessage'). ' ' .lang('projectcost');
-						} else if ($tax == '') {
-							$hasError = true;
-							$data['message'] = lang('invalidmessage'). ' ' .lang('tax');
-						} else if ($description == '') {
-							$hasError = true;
-							$data['message'] = lang('invalidmessage'). ' ' .lang('description');
-						}
-						if ($hasError) {
-							$data['success'] = false;
-							echo json_encode($data);
-						}
-						if (!$hasError) {
+		
+		if ( isset( $_POST ) && count( $_POST ) > 0 ) {
+			$shipping_country_id = $this->input->post( 'shipping_country_id' );
+			$shipping_state_id = $this->input->post( 'shipping_state_id' );
+			$shipping_city = $this->input->post( 'shipping_city' );
+			$shipping_zip = $this->input->post( 'shipping_zip' );
+			$contact_number = $this->input->post( 'contact_number' );
+			$contact_name = $this->input->post( 'contact_name' );
 							$params = array(
-								'name' => $name,
 								'description' => $this->input->post( 'description', true ),
-								'customer_id' => $customer_id,
-								'projectvalue' => $value,
-								'tax' => $tax,
-								'start_date' => $_POST[ 'start' ],
-								'deadline' => $_POST[ 'deadline' ],
+								'address' => $this->input->post( 'address', true ),
+								'delivery_date' => $this->input->post( 'editdelivery_date', true ),
 								'staff_id' => $this->session->userdata( 'usr_id' ),
-								'status_id' => 1,
-								'created' => date( 'Y-m-d H:i:s' ),
+								'modified_on' => date( 'Y-m-d H:i:s' ),
+								'shipping_country_id' => $shipping_country_id,
+								'shipping_state_id' => $shipping_state_id,
+								'shipping_city' => $shipping_city,
+								'shipping_zip' => $shipping_zip,
+								'contact_name' => $contact_name,
+								'contact_number' => $contact_number,
 							);
-							$this->Projects_Model->update( $id, $params );
-							// Custom Field Post
-							if ( $this->input->post( 'custom_fields' ) ) {
-								$custom_fields = array(
-									'custom_fields' => $this->input->post( 'custom_fields' )
-								);
-								$this->Fields_Model->custom_field_data_add_or_update_by_type( $custom_fields, 'project', $id );
-							}
+							$this->Delivery_Model->update( $id, $params );
 							$data['success'] = true;
 							$data['message'] = lang('project'). ' ' .lang('updatemessage');
 							echo json_encode($data);
-						}
-					} else {
-						$this->load->view( 'projects/index', $data );
-					}
-				} else {
-					show_error( 'The task you are trying to edit does not exist.' );
-				}
+				
 			} else {
 				$data['success'] = false;
 				$data['message'] = lang('you_dont_have_permission');
 				echo json_encode($data);
 			}
-		} else {
-			$this->session->set_flashdata( 'ntf3',lang( 'you_dont_have_permission' ) );
-			redirect(base_url('projects'));
-		}
-	}
+		
+}
 
 	function createticket($id) {
 		if ( $this->Privileges_Model->check_privilege( 'tickets', 'create' ) ) { 
@@ -755,8 +705,13 @@ class Delivery extends CIUIS_Controller {
 				$subdelivery = $_POST[ 'subdelivery' ];
 				$deliveryid = $_POST[ 'deliveryid' ];
 				$delivery_stage_id = $_POST[ 'delivery_stage_id' ];
-			
-
+				$address = $_POST[ 'address' ];
+				$shipping_country_id = $this->input->post( 'shipping_country_id' );
+				$shipping_state_id = $this->input->post( 'shipping_state_id' );
+				$shipping_city = $this->input->post( 'shipping_city' );
+				$shipping_zip = $this->input->post( 'shipping_zip' );
+				$contact_number = $this->input->post( 'contact_number' );
+				$contact_name = $this->input->post( 'contact_name' );
 				$deliverydata = $this->db->get_where( 'delivery', array( 'id'=>$deliveryid  ))-> result_array();
 				$appconfig = get_appconfig();
 				$params = array(
@@ -764,7 +719,14 @@ class Delivery extends CIUIS_Controller {
 					'projectid' => $deliverydata[0]["projectid"],
 					'delivery_date' => $deliverydata[0]["delivery_date"],
 					'staff_id' => $this->session->userdata( 'usr_id' ),
-					'category_id' => $deliverydata[0]["category_id"],
+					'address' => $address,
+					'stage_id' => $delivery_stage_id,
+					'shipping_country_id' => $shipping_country_id,
+					'shipping_state_id' => $shipping_state_id,
+					'shipping_city' => $shipping_city,
+					'shipping_zip' => $shipping_zip,
+					'contact_name' => $contact_name,
+					'contact_number' => $contact_number,
 					'status_id' => 1,
 					'created' => date( 'Y-m-d H:i:s' ), 
 				);
@@ -774,7 +736,7 @@ class Delivery extends CIUIS_Controller {
 
 				$response = $this->db->where( 'id', $subdelivery )->update( 'subdelivery', array( 'complete' => 1 ,'update' => date( 'Y-m-d H:i:s' )) );
 				$this->db->where( 'id', $deliveryid );
-				$this->db->update('delivery', array('status_id'=>2));
+				$this->db->update('delivery', array('status_id'=>2,'stage_id'=>$delivery_stage_id));
 
 					$allProjectStages = $this->db->get_where( 'installation', array( '' ))->result_array();
 					
@@ -785,7 +747,8 @@ class Delivery extends CIUIS_Controller {
 							'finished' => 0,
 							'created' => date( 'Y-m-d H:i:s' ),
 							'staff_id' => $this->session->userdata( 'usr_id' ),
-							'complete' => 0
+							'complete' => 0,
+							'update'=>date( 'Y-m-d H:i:s' ),
 						);
 						$this->db->insert( 'subdelivery', $subprojectparams );
 					}
@@ -2112,13 +2075,14 @@ class Delivery extends CIUIS_Controller {
 		return $data_timelogs;
 	}
 
-	function projects_stats() {
-		if ( $this->Privileges_Model->check_privilege( 'projects', 'all' ) ) {
-			$stats = $this->Projects_Model->get_projects_stats();
-		} else if ( $this->Privileges_Model->check_privilege( 'projects', 'own' ) ) {
-			$stats = $this->Projects_Model->get_projects_stats($this->session->usr_id);
-		}
-		echo json_encode($stats);
+	function delivery_stats() {
+		$stats = $this->Delivery_Model->get_all_deliverystatus();
+		$finalstatus =  array('sumstarted' => $stats[0][ 'sumstarted' ],
+		'sumnotstarted' => $stats[0][ 'sumnotstarted' ],
+		'sumhold' => $stats[0][ 'sumhold' ],
+		'sumcancelled' => $stats[0][ 'sumcancelled' ],
+		'sumcomplete' => $stats[0][ 'sumcomplete' ]);
+		echo json_encode($finalstatus);
 	}
 
 	function get_deliverys( $id ) {
@@ -2130,7 +2094,9 @@ class Delivery extends CIUIS_Controller {
 			$milestones = $this->Projects_Model->get_all_project_milestones( $id );
 			$projectmembers = $this->Delivery_Model->get_members( $id );
 			$get_last_status = $this->Delivery_Model->get_last_status( $id );
+			$fetquerry = $this->db->last_query();
 			$project_logs = $this->Logs_Model->project_logs( $id );
+			$last_status = 	$get_last_status[0]['stagename'];
 			$percentage_completed = $this->Delivery_Model->GetdeliveryStatusByStage($id);
 			$customer = ($project['customercompany'])?$project['customercompany']:$project['namesurname'];
 			$enddate = $project[ 'delivery_date' ];
@@ -2191,7 +2157,8 @@ class Delivery extends CIUIS_Controller {
 				'description' => $project[ 'description' ],
 				'start' => $project[ 'start_date' ],
 				'start_edit' => $project[ 'start_date' ],
-				'deadline' => date(get_dateFormat(),strtotime($project[ 'deadline' ])),
+				'delivery_date' => date("d-m-Y H:i:s",strtotime($project[ 'delivery_date' ])),
+				'editdelivery_date' => date("d-m-Y H:i:s",strtotime($project[ 'delivery_date' ])),
 				'deadline_edit' => $project[ 'deadline' ],
 				'created' => $project[ 'created' ],
 				'finished' => $project[ 'finished' ],
@@ -2212,8 +2179,16 @@ class Delivery extends CIUIS_Controller {
 				'file_name' =>  get_number('projects', $project[ 'id' ], 'project','project').'.pdf',
 				'project_number' => get_number('projects', $project[ 'id' ], 'project','project'),
 				'order_id'=> $project['order_id'],
-				'latest_status'=> $get_last_status['stagename'],
-				'items'=> $this->Projects_Model->get_project_items($project[ 'id' ]),
+				'latest_status'=> $last_status,
+				'address'=>  $project['custaddress'],
+				'shipping_country_id'=>  $project['shipping_country_id'],
+				'shipping_state_id'=>  $project['shipping_state_id'],
+				'shipping_city'=>  $project['shipping_city'],
+				'shipping_zip'=>  $project['shipping_zip'],
+				'delivery_number'=>  $project['delivery_number'],
+				'contact_number'=>  $project['contact_number'],
+				'contact_name'=>  $project['contact_name'],
+				'items'=> $this->Projects_Model->get_project_items($project[ 'projectid' ]),
 			);
 			echo json_encode( $data_projectdetail );
 		}
@@ -2349,6 +2324,7 @@ class Delivery extends CIUIS_Controller {
 
 	function get_delivery() {
 		$delivery = $this->Delivery_Model->get_all_delivery();
+		$deliverystatus = $this->Delivery_Model->get_all_deliverystatus();
 		$data_projects = array();
 		if ($this->Privileges_Model->check_privilege( 'projects', 'all') ) {
 			foreach ( $delivery as $delivery ) {
@@ -2360,6 +2336,8 @@ class Delivery extends CIUIS_Controller {
 				$percentage_completed = $this->Delivery_Model->GetdeliveryStatusByStage($delivery[ 'id' ]);
 				$get_last_status = $this->Delivery_Model->get_last_status($delivery[ 'id' ]);
 				$last_querry =  $this->db->last_query();
+
+				$last_status = 	$get_last_status[0]['stagename'];
 				$project_id = $delivery[ 'id' ];
 				switch ( $delivery[ 'status' ] ) {
 					case '1':
@@ -2439,8 +2417,13 @@ class Delivery extends CIUIS_Controller {
 					lang('filterbystatus') => lang($projectstatus),
 					lang('filterbycustomer') => $customer,
 					'project_number' => get_number('projects', $delivery[ 'id' ], 'project','project'),
-					'delivery_number' => $delivery[ 'delivery_number' ],
-					'latest_status'=> $get_last_status['stagename'],
+					'delivery_number' => $delivery[0][ 'delivery_number' ],
+					'sumstarted' => $deliverystatus[0][ 'sumstarted' ],
+					'sumnotstarted' => $deliverystatus[0][ 'sumnotstarted' ],
+					'sumhold' => $deliverystatus[0][ 'sumhold' ],
+					'sumcancelled' => $deliverystatus[0][ 'sumcancelled' ],
+					'sumcomplete' => $deliverystatus[0][ 'sumcomplete' ],
+					'latest_status'=> $last_status,
 
 				);
 			} 
@@ -2487,23 +2470,18 @@ class Delivery extends CIUIS_Controller {
 		echo json_encode($data);
 	}
 
-	function remove_stage( $id ) {
-		if ( $this->Privileges_Model->check_privilege( 'customers', 'delete' ) ) {
-			$stage = $this->Projects_Model->get_stage( $id );
+	function remove_installation( $id ) {
+			$stage = $this->Delivery_Model->get_stage( $id );
 			if ( isset( $stage[ 'id' ] ) ) { 
-				if ($this->Projects_Model->check_stage($id) == 0) {
-					$this->Projects_Model->remove_stage( $id );
+					$this->Delivery_Model->remove_installation( $id );
 					$data['success'] = true;
-					$data['message'] = lang('projectstage'). ' ' .lang('deletemessage');
+					$data['message'] = "Stage deleted successfully";
 				} else {
 					$data['success'] = false;
 					$data['message'] = $data['message'] = lang('stage').' '.lang('is_linked').' '.lang('with').' '.lang('project').', '.lang('so').' '.lang('cannot_delete').' '.lang('stage');
-				}
+				
 			}
-		} else {
-			$data['success'] = false;
-			$data['message'] = lang('you_dont_have_permission');
-		}
+		
 		echo json_encode($data);
 	}
 	
@@ -2661,5 +2639,100 @@ class Delivery extends CIUIS_Controller {
 		}
 		echo json_encode($data);
 	}
+
+	//Add vehcile
+	function deliveryvehcile($id){
+		$project_tracking = $this->db->select( '*' )->get_where( 'delivery_vehicle', array( 'delivery_id' => $id))->result_array();
+		if($project_tracking){
+			$delivery['items']=$project_tracking;
+		}else{
+			$delivery['items'][]=array("id"=>0,"vehicle_number"=>"","driver_name"=>"","vehicle_type"=>"");
+		}
+		echo json_encode($delivery);
+	}
+	//Add 
+	function create_delivery_vehicle(){
+		if ( isset( $_POST ) && count( $_POST ) > 0 ) {
+			$hasError = false;
+			$data['message'] = '';
+			if($this->input->post('deliveryId') == '') {
+				$hasError = true;
+				$data['message'] = lang('invalidmessage').' '.lang('deliveryId');
+			}
+			if(!$hasError){
+				$vehicleitem=$this->input->post('vehicleitem');
+				$delivery_id=$this->input->post('deliveryId');
+				foreach($vehicleitem as $eachItem){
+						if($eachItem['id']==0){
+							$trackingparams = array(
+								'delivery_id'=>$delivery_id,
+								'vehicle_number'=>$eachItem['vehicle_number'],
+								'driver_name'=>$eachItem['driver_name'],
+								'vehicle_type'=>$eachItem['vehicle_type'],
+								'created_on'=> date('Y-m-d H:i:s'),
+								'created_by'=>$this->session->usr_id,
+							);
+							$this->db->insert( 'delivery_vehicle', $trackingparams);
+						}else{
+							$this->db->where('id', $eachItem['id'])->update( 'delivery_vehicle', array('delivery_id' =>$delivery_id,'vehicle_number'=>$eachItem['vehicle_number'],'vehicle_type'=>$eachItem['vehicle_type'],'created_on'=> date('Y-m-d H:i:s'),'created_by'=>$this->session->usr_id));
+						}
+					}
+				}
+				$data['success'] = true;
+				$data['message'] = lang('update').' '.lang('Delivery Vehicle');
+				echo json_encode($data);
+		
+		}else{
+			$data['success'] = false;
+			$data['message'] ='No data present';
+			echo json_encode($data);
+		}
+	}
+
+	function delect_delivery_vehicle(){
+		if ( isset( $_POST ) && count( $_POST ) > 0 ) {
+			$hasError = false;
+			$data['message'] = '';
+			if($this->input->post('projectId') == '') {
+				$hasError = true;
+				$data['message'] = lang('invalidmessage').' '.lang('projectId');
+			}else if($this->input->post('deleteItemId') == 0) {
+				$hasError = true;
+				$data['message'] = lang('invalid_items');
+			}
+			if($hasError){
+				$data['success'] = false;
+				echo json_encode($data);
+			}
+			if(!$hasError){
+				$projectId=$this->input->post('projectId');
+				$deleteItemId=$this->input->post('deleteItemId');
+				$response = $this->db->delete( 'delivery_vehicle', array( 'id' => $deleteItemId,'delivery_id'=>$projectId));
+				$data['success'] = true;
+				$data['message'] = lang('delete').' '.lang('Delivery Vehicle');
+				echo json_encode($data);
+			}	
+		}else{
+			$data['success'] = false;
+			$data['message'] ='No data present';
+			echo json_encode($data);
+		}
+	}
+
+
+	function StatusMarkAs() {
+			if ( isset( $_POST ) && count( $_POST ) > 0 ) {
+				$params = array(
+					'project_id' => $_POST[ 'project_id' ],
+					'status_id' => $_POST[ 'status_id' ],
+				);
+				$tickets = $this->Delivery_Model->StatusMarkAs();			
+				$data['success'] = true;
+			}
+		
+		echo json_encode($data);
+	}
+
+
 
 }

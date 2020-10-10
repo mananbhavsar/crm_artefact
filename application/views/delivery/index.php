@@ -86,9 +86,9 @@
                 <th md-column><span>#</span></th>
                 <th ng-show="table_columns.name" md-column md-order-by="name"><span><?php echo lang('project'); ?></span></th>
                 <th ng-show="table_columns.customer" md-column md-order-by="customer"><span><?php echo lang('customer'); ?></span></th>
-                <th ng-show="table_columns.value" md-column><span><?php echo lang('value'); ?></span></th>
                 <th ng-show="table_columns.members" md-column><span><?php echo lang('members'); ?></span></th>
                 <th ng-show="table_columns.latest_status" md-column><span>Last Status</span></th>
+                <th ng-show="table_columns.delivery_date" md-column><span>Date</span></th>
                 <th ng-show="table_columns.status" md-column md-order-by="progress"><span><?php echo lang('status'); ?></span></th>
 
               </tr>
@@ -108,9 +108,7 @@
                   <small ng-bind="project.customeremail"></small>
                 </td>
 
-                <td md-cell ng-show="table_columns.value">
-                  <span ng-bind-html="project.value | currencyFormat:cur_code:null:true:cur_lct"></span>
-                </td>
+              
             
 
                 <td md-cell ng-show="table_columns.members">
@@ -125,7 +123,10 @@
                   </div>
                 </td>
                 <td md-cell ng-show="table_columns.latest_status">
-                  <span ng-bind-html="project.latest_status"></span>
+                  <span ng-bind="project.latest_status"></span>
+                </td>
+                <td md-cell ng-show="table_columns.delivery_date ">
+                  <span ng-bind="project.delivery_date | date:'MM/dd/yyyy'"></span>
                 </td>
                 <td md-cell ng-show="table_columns.status">
                   <div class="progress-widget">
@@ -231,10 +232,9 @@
 		  </div>
           <div class="panel-body" style="padding: 0px;">
             <div class="project-stats-body pull-left">
-              <div class="project-progress-data"> <span class="project-progress-value pull-right" ng-bind="stats.not_started_count"></span> <span class="project-name"><?php echo lang('notstarted'); ?></span> </div>
-              <div class="progress" style="height: 5px">
-                <div style="width: {{stats.not_started_percent}}%;" class="progress-bar progress-bar-success"></div>
-              </div>
+              <div class="project-progress-data"> <span class="project-progress-value pull-right" ng-bind="project.sumnotstarted"></span> <span class="project-name"><?php echo lang('notstarted'); ?></span> </div>
+            
+                <h4 >{{stats.sumnotstarted}}</h4>
             </div>
             <!--<div class="project-stats-body pull-left">
               <div class="project-progress-data"> <span class="project-progress-value pull-right" ng-bind="stats.started_percent+'%'"></span> <span class="project-name"><?php echo lang('started'); ?></span> </div>
@@ -243,28 +243,20 @@
               </div>
             </div>-->
 			      <div class="project-stats-body pull-left">
-              <div class="project-progress-data"> <span class="project-progress-value pull-right" ng-bind="stats.started_count"></span> <span class="project-name"><?php echo lang('percentage'); ?></span> </div>
-              <div class="progress" style="height: 5px">
-                <div style="width: {{stats.started_percent}}%;" class="progress-bar progress-bar-success"></div>
-              </div>
+              <div class="project-progress-data"> <span class="project-progress-value pull-right" ng-bind="stats.started_count"></span> <span class="project-name"><?php echo lang('started'); ?></span> </div>
+              <h4 >{{stats.sumstarted}}</h4>
             </div>
             <div class="project-stats-body pull-left">
               <div class="project-progress-data"> <span class="project-progress-value pull-right" ng-bind="stats.hold_count"></span> <span class="project-name"><?php echo lang('hold'); ?></span> </div>
-              <div class="progress" style="height: 5px">
-                <div style="width: {{stats.hold_percent}}%;" class="progress-bar progress-bar-success"></div>
-              </div>
+              <h4 >{{stats.sumhold}}</h4>
             </div>
             <div class="project-stats-body pull-left">
               <div class="project-progress-data"> <span class="project-progress-value pull-right" ng-bind="stats.cancelled_count"></span> <span class="project-name"><?php echo lang('cancelled'); ?></span> </div>
-              <div class="progress" style="height: 5px">
-                <div style="width: {{stats.cancelled_percent}}%;" class="progress-bar progress-bar-success"></div>
-              </div>
+              <h4 >{{stats.sumcancelled}}</h4>
             </div>
             <div class="project-stats-body pull-left">
               <div class="project-progress-data"> <span class="project-progress-value pull-right" ng-bind="stats.complete_count"></span> <span class="project-name"><?php echo lang('complete'); ?></span> </div>
-              <div class="progress" style="height: 5px">
-                <div style="width: {{stats.complete_percent}}%;" class="progress-bar progress-bar-success"></div>
-              </div>
+              <h4 >{{stats.sumcomplete}}</h4>
             </div>
           </div>
         </div>
@@ -291,7 +283,9 @@
       </div>
     </div>
   </div>
-  <md-sidenav class="md-sidenav-right md-whiteframe-4dp" md-component-id="Create" ng-cloak style="width: 450px;">
+
+<!-- Side Nav
+ -->  <md-sidenav class="md-sidenav-right md-whiteframe-4dp" md-component-id="Create" ng-cloak style="width: 450px;">
     <md-toolbar class="toolbar-white">
       <div class="md-toolbar-tools">
         <md-button ng-click="close()" class="md-icon-button" aria-label="Close"> <i class="ion-android-arrow-forward"></i> </md-button>
@@ -331,7 +325,44 @@
           <label><?php echo lang('description') ?></label><br>
           <input type="text" id="location" class="form-control text-left" placeholder="" <?php echo lang('description'); ?>  ng-model="delivery.description">
         </md-input-container>
+        <md-switch ng-model="NeedShippingAddress" aria-label="Status"><strong class="text-muted"><?php echo lang('need_shipping_address') ?></strong></md-switch>
+        <md-subheader ng-show='NeedShippingAddress == true' class="md-primary bg-white text-uppercase text-bold"><?php echo lang('shipping_address') ?></md-subheader>
+        <md-content  ng-show='NeedShippingAddress == true' layout-padding class="bg-white" ng-cloak>
+        <md-input-container class="md-block">
+          <label><?php echo lang('address') ?></label>
+          <textarea ng-model="delivery.address" md-maxlength="500" rows="2" md-select-on-focus></textarea>
+        </md-input-container>
+        <md-input-container class="md-block">
+        <md-select placeholder="<?php echo lang('country'); ?>" ng-model="delivery.shipping_country_id"  ng-change="getShippingStates(delivery.shipping_country_id)" name="shipping_country" style="min-width: 200px;">
+            <md-option ng-value="{{country.id}}" ng-repeat="country in countries">{{country.shortname}}</md-option>
+          </md-select>
+          <br />
+        </md-input-container>        
+        <md-input-container class="md-block">
+          <md-select placeholder="<?php echo lang('state'); ?>" ng-model="delivery.shipping_state_id" name="shipping_state_id" style="min-width: 200px;">
+            <md-option ng-value="state.id" ng-repeat="state in shippingStates">{{state.state_name}}</md-option>
+          </md-select>
+        </md-input-container>
+        <md-input-container class="md-block">
+          <label><?php echo lang('city'); ?></label>
+          <input name="city" ng-model="delivery.shipping_city">
+        </md-input-container>
+        <md-input-container class="md-block">
+          <label><?php echo lang('zipcode'); ?></label>
+          <input name="zipcode" ng-model="delivery.shipping_zip">
+        </md-input-container>
+        <md-input-container class="md-block">
+          <label>Contact Name</label>
+          <input name="zipcode" ng-model="delivery.contact_number">
+        </md-input-container>
+        <md-input-container class="md-block">
+          <label>Contact number</label>
+          <input name="zipcode" ng-model="delivery.contact_name">
+        </md-input-container>
+
+        <bind-expression ng-init="delivery.shipping_country = '----'" expression="delivery.shipping_country" ng-model="delivery.shipping_country" />
       </md-content>
+     
       <md-content layout-padding>
         <section layout="row" layout-sm="column" layout-align="center center" layout-wrap>
           <md-button ng-click="CreateNew()" class="md-raised md-primary btn-report block-button" ng-disabled="saving == true">
@@ -341,6 +372,7 @@
           <br /><br /><br /><br />
         </section>
       </md-content>
+
     </md-content>
   </md-sidenav>
   <md-sidenav class="md-sidenav-right md-whiteframe-4dp" md-component-id="CreateGroup" ng-cloak style="width: 450px;">
@@ -422,6 +454,7 @@
     </md-content>
   </md-sidenav>
 </div>
+
 <script type="text/ng-template" id="copyProjectDialog.html">
   <md-dialog aria-label="Expense Detail">
       <md-toolbar class="toolbar-white">

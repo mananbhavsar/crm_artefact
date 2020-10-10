@@ -1,5 +1,6 @@
 function Delivery_Controller($scope, $http, $mdSidenav, $mdDialog, $filter, $q) {
 	"use strict";
+	globals.get_countries();
 
 	$http.get(BASE_URL + 'api/custom_fields_by_type/' + 'project').then(function (custom_fields) {
 		$scope.all_custom_fields = custom_fields.data;
@@ -12,7 +13,10 @@ function Delivery_Controller($scope, $http, $mdSidenav, $mdDialog, $filter, $q) 
 	$scope.get_customers();
 	$scope.get_staff();
 
-
+		$http.get(BASE_URL + 'delivery/delivery_stats/' ).then(function(Stats) {
+			$scope.stats = Stats.data;
+		});
+	
 	$scope.Create = buildToggler('Create');
 	$scope.toggleFilter = buildToggler('ContentFilter');
 	$scope.ProjectSettings = buildToggler('ProjectSettings');
@@ -180,7 +184,11 @@ function Delivery_Controller($scope, $http, $mdSidenav, $mdDialog, $filter, $q) 
 			});
 		};
 	});
-
+	$scope.getShippingStates = function (country) {
+		$http.get(BASE_URL + 'api/get_states/' + country).then(function (States) {
+			$scope.shippingStates = States.data;
+		});
+	};
 
 	$scope.saving = false;
 	$scope.CreateNew = function () { 
@@ -212,7 +220,7 @@ function Delivery_Controller($scope, $http, $mdSidenav, $mdDialog, $filter, $q) 
 		});
 	
 			if ($scope.delivery.delivery_date) {
-				$scope.delivery.delivery_date = moment($scope.delivery.delivery_date).format("YYYY-MM-DD")
+				$scope.delivery.delivery_date = moment($scope.delivery.delivery_date).format("YYYY-MM-DD hh:mm")
 			}
 			
 			var dataObj = $.param({
@@ -220,6 +228,14 @@ function Delivery_Controller($scope, $http, $mdSidenav, $mdDialog, $filter, $q) 
 				installation: $scope.delivery.installation,
 				delivery_date: $scope.delivery.delivery_date,
 				description: $scope.delivery.description,
+				address: $scope.delivery.address,
+				shipping_country_id: $scope.delivery.shipping_country_id,
+				shipping_state_id: $scope.delivery.shipping_state_id,
+				shipping_city: $scope.delivery.shipping_city,
+				shipping_zip: $scope.delivery.shipping_zip,
+				shipping_country: $scope.delivery.shipping_country,
+				contact_name: $scope.delivery.contact_name,
+				contact_number: $scope.delivery.contact_number,
 				custom_fields: $scope.tempArr,
 			});
 		
@@ -244,7 +260,7 @@ function Delivery_Controller($scope, $http, $mdSidenav, $mdDialog, $filter, $q) 
 						$http.get(BASE_URL + 'delivery/get_delivery').then(function (Projects) {
 							$scope.projects = Projects.data;
 						});
-						$scope.get_project_stat();
+					/* 	$scope.get_project_stat(); */
 					} else {
 						globals.mdToast('error', response.data.message);
 					}
@@ -288,7 +304,8 @@ function Delivery_Controller($scope, $http, $mdSidenav, $mdDialog, $filter, $q) 
 		$scope.get_customers();
 		$scope.get_staff();
 		globals.get_departments();
-	
+		globals.get_countries();
+
 		$scope.close = function () {
 			$mdSidenav('NewMilestone').close();
 			$mdSidenav('NewTask').close();
@@ -309,9 +326,12 @@ function Delivery_Controller($scope, $http, $mdSidenav, $mdDialog, $filter, $q) 
 				targetEvent: ev
 			});
 		};
-		$scope.project;
 	$http.get(BASE_URL + 'delivery/get_deliverys/' + PROJECTID).then(function (Project) {
 		$scope.project = Project.data;
+		$scope.project.delivery_date = moment(Project.data.delivery_date).format("DD-MM-YYYY H:I")
+		if($scope.project.shipping_country_id){
+		$scope.getShippingStates($scope.project.shipping_country_id);
+		}
 		var cust = $scope.project.customer;
 	});
 
@@ -448,12 +468,45 @@ $http.get(BASE_URL + 'projects/subprojectscomplete/' + PROJECTID).then(function 
 	};
 }); */
 
-$scope.MarkAs = function (index) {
-	var subproject = $scope.subprojects[index];
+var subprojectindex;
+var date;
+date = new Date();
+var todatmysqldate = date.getUTCFullYear() + '-' +
+    ('00' + (date.getUTCMonth()+1)).slice(-2) + '-' +
+    ('00' + date.getUTCDate()).slice(-2) 
+	$scope.MarkasPopup = function (ev) {
+	subprojectindex = ev
+/* 	var subproject = $scope.subprojects[subprojectindex];
+		if(todatmysqldate == subproject.update){ */
+		$mdDialog.show({
+			templateUrl: 'markas-template.html', 
+			scope: $scope,
+			preserveScope: true,
+			targetEvent: ev,
+			
+		});
+
+
+};
+
+$scope.today = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+$scope.MarkAs = function () {
+
+	/* if(!$scope.project.delivery_date){
+		globals.mdToast('error', "Date is compulsory");
+		return
+	} */
+
+	if ($scope.project.addnewdelivery_date) {
+		$scope.project.changenewdelivery_date = moment($scope.project.addnewdelivery_date).format("YYYY-MM-DD H:I")
+	}
+	var subproject = $scope.subprojects[subprojectindex];
 	var dataObj = $.param({
 		subdelivery: subproject.id,
 		delivery_stage_id: subproject.delivery_stage_id,
-		deliveryid: PROJECTID
+		deliveryid: PROJECTID,
+		delivery_date :$scope.delivery.changenewdelivery_date,
+		address :$scope.delivery.newaddress
 	});
 	var config = {
 		headers: {
@@ -465,14 +518,13 @@ $scope.MarkAs = function (index) {
 		.then(
 			function (response) {
 				if(response.data.success == true) {
-					$http.get(BASE_URL + 'delivery/get_deliverys/'+PROJECTID).then(function (Projects) {
-						$scope.project = Projects.data;
-					});
-					showToast(NTFTITLE, langs.marked+' <b>'+name+'</b>', ' success');
-					location.reload();
+						globals.mdToast('success', "Project marked successfully");
+						location.reload();
 
 				} else {
 					globals.mdToast('error', response.data.message);
+					$mdDialog.hide(); 
+
 				}
 			},
 			function (response) {
@@ -641,10 +693,13 @@ $scope.InsertMember = function (ev) {
 	$mdDialog.show({
 		templateUrl: 'insert-member-template.html', 
 		scope: $scope,
+		locals:{dataToPass: $scope.parentScopeData},                
 		preserveScope: true,
 		targetEvent: ev
 	});
 };
+
+
 
 
 
@@ -690,64 +745,22 @@ $scope.InsertMember = function (ev) {
 		$scope.UpdateProject = function () {
 			$scope.saving = true;
 			$scope.tempArr = [];
-			angular.forEach($scope.custom_fields, function (value) {
-				if (value.type === 'input') {
-					$scope.field_data = value.data;
-				}
-				if (value.type === 'textarea') {
-					$scope.field_data = value.data;
-				}
-				if (value.type === 'date') {
-					$scope.field_data = moment(value.data).format("YYYY-MM-DD");
-				}
-				if (value.type === 'select') {
-					$scope.field_data = JSON.stringify(value.selected_opt);
-				}
-				$scope.tempArr.push({
-					id: value.id,
-					name: value.name,
-					type: value.type,
-					order: value.order,
-					data: $scope.field_data,
-					relation: value.relation,
-					permission: value.permission,
-				});
-			});
-
-			if (!$scope.project) {
-				var dataObj = $.param({
-					name: '',
-					customer: '',
-					value: '',
-					description: '',
-					start: moment('').format("YYYY-MM-DD"),
-					deadline: moment('').format("YYYY-MM-DD"),
-					custom_fields: '',
-				});
-			} else {
-				if ($scope.project.template != true || !$scope.project.template) {
-					$scope.project.template = false;
-				} else {
-					$scope.project.template = true;
-				}
-				if ($scope.project.start) {
-					$scope.project.start = moment($scope.project.start).format("YYYY-MM-DD")
-				}
-				if ($scope.project.deadline_edit) {
-					$scope.project.deadline_edit = moment($scope.project.deadline_edit).format("YYYY-MM-DD")
-				}
-				var dataObj = $.param({
-					name: $scope.project.name,
-					customer: $scope.project.customer_id,
-					value: $scope.project.value,
-					tax: $scope.project.tax,
-					description: $scope.project.description,
-					start: $scope.project.start_edit,
-					deadline: $scope.project.deadline_edit,
-					custom_fields: $scope.tempArr,
-					template: $scope.project.template
-				});
+			if ($scope.project.editdelivery_date) {
+				$scope.project.newdelivery_date = moment($scope.project.editdelivery_date).format("YYYY-MM-DD hh:mm")
 			}
+			
+				var dataObj = $.param({
+					address: $scope.project.address,
+					description: $scope.project.description,
+					editdelivery_date: $scope.project.newdelivery_date,
+					shipping_city: $scope.project.shipping_city,
+					shipping_zip: $scope.project.shipping_zip,
+					contact_number: $scope.project.contact_number,
+					contact_name: $scope.project.contact_name,
+					shipping_state_id: $scope.project.shipping_state_id,
+					shipping_country_id: $scope.project.shipping_country_id,
+				});
+			
 
 			var config = {
 				headers: {
@@ -766,9 +779,9 @@ $scope.InsertMember = function (ev) {
 								class_name: 'color success'
 							});
 							$mdSidenav('Update').close();
-							$http.get(BASE_URL + 'delivery/get_project/'+PROJECTID).then(function (Projects) {
+						/* 	$http.get(BASE_URL + 'delivery/get_project/'+PROJECTID).then(function (Projects) {
 								$scope.project = Projects.data;
-							});
+							}); */
 						} else {
 							globals.mdToast('error', response.data.message);
 						}
@@ -781,6 +794,107 @@ $scope.InsertMember = function (ev) {
 		};
 		
 
+		//Vehcle add 
+		$http.get(BASE_URL + 'delivery/deliveryvehcile/' + PROJECTID).then(function (deliveryvehicle){
+			$scope.vehicle = deliveryvehicle.data;
+		});
+		$scope.add_vehicle = function () {
+			$scope.vehicle.items.push({
+				id:'0',
+				vehicle_number: '',
+				vehicle_name: '',
+				driver_name: '',
+			
+			});
+		};
+		$scope.save_vehicle = function (){
+			$scope.saving = true;
+			var dataObj = $.param({
+				vehicleitem: $scope.vehicle.items,
+				deliveryId:PROJECTID
+			});
+			var config = {
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8;'
+				}
+			};
+			var posturl = BASE_URL + 'delivery/create_delivery_vehicle/';
+			$http.post(posturl, dataObj, config)
+			.then(
+				function(response) {
+					console.log(response.data);
+					if (response.data.success == true) {
+						globals.mdToast('success', response.data.message);
+					} else {
+						globals.mdToast('error', response.data.message);
+					}
+				}
+			);
+		};
+
+
+		$scope.vehicle_remove = function (index,itemId) {
+			$scope.vehicle.items.splice(index, 1);
+			if(itemId !='0'){
+				var dataObj = $.param({
+					deleteItemId: itemId,
+					projectId:PROJECTID
+				});
+				var config = {
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8;'
+					}
+				};
+				var posturl = BASE_URL + 'delivery/delect_delivery_vehicle/';
+				$http.post(posturl, dataObj, config)
+				.then(
+					function(response) {
+						console.log(response.data);
+						if (response.data.success == true) {
+							globals.mdToast('success', response.data.message);
+						} else {
+							globals.mdToast('error', response.data.message);
+						}
+					}
+				);
+			}
+		};
+
+		$scope.getShippingStates = function (country) {
+			$http.get(BASE_URL + 'api/get_states/' + country).then(function (States) {
+				$scope.shippingStates = States.data;
+			});
+		};
+
+
+		$scope.StatusMarkAs = function (id, name) {
+			var dataObj = $.param({
+				status_id: id,
+				project_id: PROJECTID,
+			});
+			var config = {
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8;'
+				}
+			};
+			var posturl = BASE_URL + 'delivery/StatusMarkAs/';
+			$http.post(posturl, dataObj, config)
+				.then(
+					function (response) {
+						if(response.data.success == true) {
+							$http.get(BASE_URL + 'delivery/get_deliverys/'+PROJECTID).then(function (Projects) {
+								$scope.project = Projects.data;
+							});
+							showToast(NTFTITLE, langs.marked+' <b>'+name+'</b>', ' success');
+						} else {
+							globals.mdToast('error', response.data.message);
+						}
+					},
+					function (response) {
+						console.log(response);
+					}
+				);
+		};
 
 };
 
