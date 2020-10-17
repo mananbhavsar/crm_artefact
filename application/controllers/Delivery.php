@@ -205,10 +205,11 @@ class Delivery extends CIUIS_Controller {
 			$shipping_zip = $this->input->post( 'shipping_zip' );
 			$contact_number = $this->input->post( 'contact_number' );
 			$contact_name = $this->input->post( 'contact_name' );
+			$editdelivery_date =  date("Y-m-d H:i:s",strtotime($this->input->post( 'editdelivery_date' , true)));
 							$params = array(
 								'description' => $this->input->post( 'description', true ),
 								'address' => $this->input->post( 'address', true ),
-								'delivery_date' => $this->input->post( 'editdelivery_date', true ),
+								'delivery_date' => $editdelivery_date,
 								'staff_id' => $this->session->userdata( 'usr_id' ),
 								'modified_on' => date( 'Y-m-d H:i:s' ),
 								'shipping_country_id' => $shipping_country_id,
@@ -641,10 +642,10 @@ class Delivery extends CIUIS_Controller {
 					$project_url = '' . base_url( 'area/projects/project/' . $_POST[ 'project_id' ] . '' ) . '';
 					switch ( $project[ 'status' ] ) {
 						case '1':
-							$status_project = lang( 'notstarted' );
+							$status_project = lang( 'notsch' );
 							break;
 						case '2':
-							$status_project = lang( 'started' );
+							$status_project = lang( 'schdule' );
 							break;
 						case '3':
 							$status_project = lang( 'hold' );
@@ -736,7 +737,7 @@ class Delivery extends CIUIS_Controller {
 
 				$response = $this->db->where( 'id', $subdelivery )->update( 'subdelivery', array( 'complete' => 1 ,'update' => date( 'Y-m-d H:i:s' )) );
 				$this->db->where( 'id', $deliveryid );
-				$this->db->update('delivery', array('status_id'=>2,'stage_id'=>$delivery_stage_id));
+				$this->db->update('delivery', array('stage_id'=>$delivery_stage_id));
 
 					$allProjectStages = $this->db->get_where( 'installation', array( '' ))->result_array();
 					
@@ -761,8 +762,6 @@ class Delivery extends CIUIS_Controller {
 					$array = array('deliveryid' => $newdelivery_id, 'delivery_stage_id' => $delivery_stage_id);
 					 $this->db->where( $array)->update( 'subdelivery', array( 'complete' => 1 ) );
 
-					$this->db->where( 'id', $newdelivery_id );
-					$this->db->update('delivery', array('status_id'=>2));
 				
 				
 				$data['success'] = true;
@@ -1196,17 +1195,17 @@ class Delivery extends CIUIS_Controller {
 		    		force_download($fileData['file_name'], $data);
 		    	} else {
 		    		$this->session->set_flashdata( 'ntf4', lang('filenotexist'));
-		    		redirect('projects/project/'.$fileData['relation']);
+		    		redirect('delivery/delivery/'.$fileData['relation']);
 		    	}
 			} else {
-				if (is_file('./uploads/files/projects/'.$fileData['relation'].'/' . $fileData['file_name'])) {
+				if (is_file('./uploads/files/delivery/'.$fileData['relation'].'/' . $fileData['file_name'])) {
 		    		$this->load->helper('file');
 		    		$this->load->helper('download');
-		    		$data = file_get_contents('./uploads/files/projects/'.$fileData['relation'].'/' . $fileData['file_name']);
+		    		$data = file_get_contents('./uploads/files/delivery/'.$fileData['relation'].'/' . $fileData['file_name']);
 		    		force_download($fileData['file_name'], $data);
 		    	} else {
 		    		$this->session->set_flashdata( 'ntf4', lang('filenotexist'));
-		    		redirect('projects/project/'.$fileData['relation']);
+		    		redirect('delivery/delivery/'.$fileData['relation']);
 		    	}
 		    }
 				
@@ -1534,30 +1533,15 @@ class Delivery extends CIUIS_Controller {
 
 	/* Remove Project */
 	function remove( $id ) {
-		if ( $this->Privileges_Model->check_privilege( 'projects', 'all' ) ) {
-			$project = $this->Projects_Model->get_project_by_priviliges( $id );
-		} else if ($this->Privileges_Model->check_privilege( 'projects', 'own') ) {
-			$projects = $this->Projects_Model->get_projects( $id );
-			if (($projects['staff_id'] == $this->session->usr_id) || ($this->Projects_Model->check_member($projects['id'], $this->session->usr_id)) == 'true') {
-				$project = $projects;
-			}
-		} else {
-			$data['success'] = false;
-			$data['message'] = lang('you_dont_have_permission');
-			echo json_encode($data);
-		}
+			$project = $this->Delivery_Model->get_delivery( $id );
+
+		
 		if($project) {
-			if ( $this->Privileges_Model->check_privilege( 'projects', 'delete' ) ) {
-				if ( isset( $project[ 'id' ] ) ) {
+			
 					$this->Projects_Model->delete_projects( $id, get_number('projects',$id,'project','project') );
 					$data['success'] = true;
-				} else {
-					show_error( 'The projects you are trying to delete does not exist.' );
-				}
-			} else {
-				$data['success'] = false;
-				$data['message'] = lang('you_dont_have_permission');
-			}
+				
+		
 			echo json_encode($data);
 		} else {
 			$data['success'] = false;
@@ -2109,27 +2093,33 @@ class Delivery extends CIUIS_Controller {
 			} else $ldt = $project_left_date;
 			switch ( $project[ 'status' ] ) {
 				case '1':
-					$status_project = lang( 'notstarted' );
+					$status_project = lang( 'notsch' );
 					$status_class = 'notstarted';
+					$status_type="#ff43df";
 					break;
 				case '2':
-					$status_project = lang( 'started' ); 
+					$status_project = lang( 'schdule' ); 
 					$status_class = 'started';
+					$status_type="#ff2946";
 					break;
 				case '3':
 					$status_project = lang( 'hold' );
 					$status_class = 'hold';
+					$status_type="#0645f5";
 					break;
 				case '4':
 					$status_project = lang( 'cancelled' );
 					$status_class = 'cancelled';
+					$status_type="#e8ab00";
 					break;
 				case '5':
 					$status_project = lang( 'completed' );
 					$status_class = 'completed';
+					$status_type="#ff43df";
 					break;
 			};
-			
+
+		
 			if ($project[ 'status' ] == '5') {
 				$status_class = 'completed';
 				$progress = 100;
@@ -2157,8 +2147,8 @@ class Delivery extends CIUIS_Controller {
 				'description' => $project[ 'description' ],
 				'start' => $project[ 'start_date' ],
 				'start_edit' => $project[ 'start_date' ],
-				'delivery_date' => date("d-m-Y H:i:s",strtotime($project[ 'delivery_date' ])),
-				'editdelivery_date' => date("d-m-Y H:i:s",strtotime($project[ 'delivery_date' ])),
+				'delivery_date' => date("d-m-Y H:i",strtotime($project[ 'delivery_date' ])),
+				'editdelivery_date' => $project[ 'delivery_date' ],
 				'deadline_edit' => $project[ 'deadline' ],
 				'created' => $project[ 'created' ],
 				'finished' => $project[ 'finished' ],
@@ -2188,6 +2178,7 @@ class Delivery extends CIUIS_Controller {
 				'delivery_number'=>  $project['delivery_number'],
 				'contact_number'=>  $project['contact_number'],
 				'contact_name'=>  $project['contact_name'],
+				'status_type'=>  $status_type,
 				'items'=> $this->Projects_Model->get_project_items($project[ 'projectid' ]),
 			);
 			echo json_encode( $data_projectdetail );
@@ -2324,6 +2315,8 @@ class Delivery extends CIUIS_Controller {
 
 	function get_delivery() {
 		$delivery = $this->Delivery_Model->get_all_delivery();
+		$last_querry =  $this->db->last_query();
+
 		$deliverystatus = $this->Delivery_Model->get_all_deliverystatus();
 		$data_projects = array();
 		if ($this->Privileges_Model->check_privilege( 'projects', 'all') ) {
@@ -2335,35 +2328,41 @@ class Delivery extends CIUIS_Controller {
 				$progress = ( $totaltasks > 0 ? number_format( ( $completetasks * 100 ) / $totaltasks ) : 0 ); */
 				$percentage_completed = $this->Delivery_Model->GetdeliveryStatusByStage($delivery[ 'id' ]);
 				$get_last_status = $this->Delivery_Model->get_last_status($delivery[ 'id' ]);
-				$last_querry =  $this->db->last_query();
 
 				$last_status = 	$get_last_status[0]['stagename'];
 				$project_id = $delivery[ 'id' ];
+
+			
 				switch ( $delivery[ 'status' ] ) {
 					case '1':
 					$projectstatus = 'notstarted';
 					$icon = 'notstarted.png';
-					$status = lang( 'notstarted' );
+					$status = lang( 'notsch' );
+					$status_type="#26c281";
 					break;
 					case '2':
 					$projectstatus = 'started';
 					$icon = 'started.png';
-					$status = lang( 'started' );
+					$status = lang( 'schdule' );
+					$status_type="#ff2946";
 					break;
 					case '3':
 					$projectstatus = 'hold';
 					$icon = 'percentage.png';
 					$status = lang( 'hold' );
+					$status_type="#0645f5";
 					break;
 					case '4':
 					$projectstatus = 'cancelled';
 					$icon = 'cancelled.png';
 					$status = lang( 'cancelled' );
+					$status_type="#e8ab00";
 					break;
 					case '5':
 					$projectstatus = 'complete';
 					$icon = 'complete.png';
 					$status = lang( 'complete' );
+					$status_type="#ff43df";
 					break;
 				}
 				if ($delivery[ 'status' ] == '5') {
@@ -2395,7 +2394,7 @@ class Delivery extends CIUIS_Controller {
 				};
 				$customer = ($delivery['customercompany'])?$delivery['customercompany']:$delivery['namesurname'];
 				$current_date = new DateTime( date( 'Y-m-d' ), new DateTimeZone( 'Asia/Dhaka' ) );
-				$members = $this->Projects_Model->get_members_index( $project_id );
+				$members = $this->Delivery_Model->get_members_index( $project_id );
 				$milestones = $this->Projects_Model->get_all_project_milestones( $project_id );
 				$appconfig = get_appconfig();
 				$data_projects[] = array(
@@ -2417,13 +2416,15 @@ class Delivery extends CIUIS_Controller {
 					lang('filterbystatus') => lang($projectstatus),
 					lang('filterbycustomer') => $customer,
 					'project_number' => get_number('projects', $delivery[ 'id' ], 'project','project'),
-					'delivery_number' => $delivery[0][ 'delivery_number' ],
+					'delivery_number' => $delivery[ 'delivery_number' ],
+					'delivery_date' => date("d-m-Y H:i:m a",strtotime($delivery[ 'delivery_date' ])),
 					'sumstarted' => $deliverystatus[0][ 'sumstarted' ],
 					'sumnotstarted' => $deliverystatus[0][ 'sumnotstarted' ],
 					'sumhold' => $deliverystatus[0][ 'sumhold' ],
 					'sumcancelled' => $deliverystatus[0][ 'sumcancelled' ],
 					'sumcomplete' => $deliverystatus[0][ 'sumcomplete' ],
 					'latest_status'=> $last_status,
+					'status_type'=> $status_type,
 
 				);
 			} 

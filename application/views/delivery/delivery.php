@@ -117,7 +117,16 @@
                       <md-icon md-menu-align-target class="ion-compose" style="margin: auto 3px auto 0;"></md-icon>
                     </div>
                   </md-button>
+                
                 </md-menu-item>
+                <md-menu-item>
+                <md-button ng-click="Delete()" aria-label="Delete">
+                    <div layout="row" flex>
+                      <p flex ng-bind="lang.delete"></p>
+                      <md-icon md-menu-align-target class="ion-trash-b" style="margin: auto 3px auto 0;"></md-icon>
+                    </div>
+                  </md-button>
+                  </md-menu-item>
                 <md-menu-item  ng-repeat="status in subprojects">
                   <md-button ng-click="MarkasPopup($index)" aria-label="Delete">
                     <div layout="row" flex>
@@ -208,31 +217,28 @@
          </div>
         <div ng-show="!projectLoader" id="project-details" class="on-schedule projects-top">
           <div layout="row" layout-wrap>
-            <div flex-sm="33" flex-xs="50" flex-lg="16" flex-gt-sm="16" class="text-center">
-              <h5><?php echo lang('status') ?> <span class="status-indicator on-schedule"></span></h5>
-              <div class="progress-data text-left"><span ng-show="project.status_class == 'started'" class="progress-value" ng-bind="project.percentage_completed+'%'"></span></div>
-              <div ng-hide="project.status_class == 'cancelled' || project.status_class == 'started'" class="progress" style="height: 7px">
-                <div ng-hide="project.progress == 100" style="width: {{project.progress}}%;" class="progress-bar progress-bar-primary"></div>
-                <div ng-show="project.progress == 100" style="width: {{project.progress}}%;" class="progress-bar progress-bar-success"></div>
-                      </div>
-              <div ng-show="project.status_class == 'started'" class="progress" style="height: 7px">
-                <div ng-hide="project.progress == 100" style="width: {{project.percentage_completed}}%;" class="progress-bar progress-bar-primary"></div>
-                <div ng-show="project.progress == 100" style="width: {{project.percentage_completed}}%;" class="progress-bar progress-bar-success"></div>
-              </div>
+            <div flex-sm="33" flex-xs="20" flex-lg="16" flex-gt-sm="16" class="text-center">
+            <strong>  <h5>Stage </h5></strong>
               <h3 class="on-schedule" ng-bind="project.latest_status"></h3>
             </div>
-            <div flex-sm="20" flex-xs="20" flex-lg="20" flex-gt-sm="20" class="text-center">
-              <h5>Contact Name</h5>
-              <h3 ng-bind="project.contact_name" ></h3>
-            </div>
-            <div flex-sm="20" flex-xs="20" flex-lg="20" flex-gt-sm="20" class="text-center">
-              <h5>Contact Number</h5>
-              <h3 ng-bind="project.contact_number"></h3>
-            </div>
-            <div flex-sm="50" flex-xs="60" flex-lg="30" flex-gt-sm="30" class="text-center">
-              <h5><?php echo lang('delivery_date') ?></h5>
+            <div flex-sm="30" flex-xs="30" flex-lg="30" flex-gt-sm="30" class="text-center">
+            <strong> <h5><?php echo lang('delivery_date') ?></h5></strong>
               <h3 ng-bind="project.delivery_date | date:dd/mm/yyyy"></h3>
             </div>
+            <div flex-sm="20" flex-xs="20" flex-lg="20" flex-gt-sm="20" class="text-center">
+            <strong>   <h5>Address</h5></strong>
+              <h3 ng-bind="project.address" ></h3>
+            </div>
+            <div flex-sm="20" flex-xs="10" flex-lg="10" flex-gt-sm="10" class="text-center">
+            <strong> <h5>Contact Name</h5></strong>
+              <h3 ng-bind="project.contact_name" ></h3>
+            </div>
+          
+            <div flex-sm="20" flex-xs="10" flex-lg="10" flex-gt-sm="10" class="text-center">
+            <strong> <h5>Contact Number</h5></strong>
+              <h3 ng-bind="project.contact_number"></h3>
+            </div>
+         
           </div>
         </div>
      
@@ -254,7 +260,7 @@
                   <h4><strong ng-bind="project.ldt"></strong> <i class="ion-ios-stopwatch-outline"></i></h4>
                 <span class="stat-label text-muted"> <?php echo lang('daysleft') ?> </span> 
                 </div>
-                <div flex-sm="33" flex-xs="50" flex-lg="16" flex-gt-sm="16" class="text-center">
+               <!--  <div flex-sm="33" flex-xs="50" flex-lg="16" flex-gt-sm="16" class="text-center">
                   <h4><span><span ng-bind="project.progress+'%'"></span></span></h4>
                   <span class="stat-label"> <?php echo lang('progresscompleted') ?> </span> 
                 </div>
@@ -273,7 +279,7 @@
                 <div flex-sm="33" flex-xs="50" flex-lg="16" flex-gt-sm="16" class="text-center">
                   <h4><span><span ng-bind="expenses.length"></span></span></h4>
                   <span class="stat-label"> <?php echo lang('total_s').' '.lang('expenses') ?> </span> 
-                </div>
+                </div> -->
               </div>
             </div>
           </md-content>
@@ -316,8 +322,8 @@
             </md-list-item>
           </md-content>
         </md-tab>
-
-	<md-tab label="<?php echo lang('stage') ?>">
+<!-- 
+	    <md-tab label="<?php echo lang('stage') ?>">
           <md-content class="md-padding bg-white">
             <article class="project_milestone_detail">
 				<md-content class="ciuis-task-subtask bg-white">
@@ -352,7 +358,7 @@
 				</md-content>
             </article>
           </md-content>
-        </md-tab>
+        </md-tab> -->
         <md-tab label="<?php echo lang('milestones') ?>">
           <md-content class="md-padding bg-white">
             <article class="project_milestone_detail">
@@ -546,21 +552,21 @@
               <md-tooltip md-direction="left"><?php echo lang('preview') ?></md-tooltip>
               <img src="{{file.path}}">
             </a>
-            <a ng-if="(file.type == 'archive')" class="cursor" ng-href="<?php echo base_url('projects/download_file/{{file.id}}');?>">
+            <a ng-if="(file.type == 'archive')" class="cursor" ng-href="<?php echo base_url('delivery/download_file/{{file.id}}');?>">
               <md-tooltip md-direction="left"><?php echo lang('download') ?></md-tooltip>
               <img src="<?php echo base_url('assets/img/zip_icon.png');?>">
             </a>
-            <a ng-if="(file.type == 'file')" class="cursor" ng-href="<?php echo base_url('projects/download_file/{{file.id}}');?>">
+            <a ng-if="(file.type == 'file')" class="cursor" ng-href="<?php echo base_url('delivery/download_file/{{file.id}}');?>">
               <md-tooltip md-direction="left"><?php echo lang('download') ?></md-tooltip>
               <img src="<?php echo base_url('assets/img/file_icon.png');?>">
             </a>
-            <a ng-if="file.type == 'pdf'" class="cursor" ng-href="<?php echo base_url('projects/download_file/{{file.id}}');?>">
+            <a ng-if="file.type == 'pdf'" class="cursor" ng-href="<?php echo base_url('delivery/download_file/{{file.id}}');?>">
               <md-tooltip md-direction="left"><?php echo lang('download') ?></md-tooltip>
               <img src="<?php echo base_url('assets/img/pdf_icon.png');?>">
             </a>
           </div>
           <div class="md-list-item-text">
-            <a class="cursor" ng-href="<?php echo base_url('projects/download_file/{{file.id}}');?>">
+            <a class="cursor" ng-href="<?php echo base_url('delivery/download_file/{{file.id}}');?>">
               <h3 class="link" ng-bind="file.file_name"></h3>
             </a>
           </div>
@@ -619,9 +625,9 @@
           <label><?php echo lang('description') ?></label><br>
           <input type="text" id="location" class="form-control text-left" placeholder="" <?php echo lang('description'); ?>  ng-model="project.description">
         </md-input-container>
-        <md-switch ng-model="NeedShippingAddress" aria-label="Status"><strong class="text-muted"><?php echo lang('need_shipping_address') ?></strong></md-switch>
-        <md-subheader ng-show='NeedShippingAddress == true' class="md-primary bg-white text-uppercase text-bold"><?php echo lang('shipping_address') ?></md-subheader>
-        <md-content  ng-show='NeedShippingAddress == true' layout-padding class="bg-white" ng-cloak>
+        <md-switch ng-model="NeedShippingAddress" aria-label="Status" class="md-block" > <strong class="text-muted"><?php echo lang('need_shipping_address') ?></strong></md-switch>
+        <md-subheader ng-show='true' class="md-primary bg-white text-uppercase text-bold"><?php echo lang('shipping_address') ?></md-subheader>
+        <md-content  ng-show='true' layout-padding class="bg-white" ng-cloak>
         <md-input-container class="md-block">
           <label><?php echo lang('address') ?></label>
           <textarea ng-model="project.address" md-maxlength="500" rows="2" md-select-on-focus></textarea>
@@ -648,11 +654,11 @@
 
         <md-input-container class="md-block">
           <label>Contact Name</label>
-          <input name="zipcode" ng-model="project.contact_number">
+          <input name="zipcode" ng-model="project.contact_name">
         </md-input-container>
         <md-input-container class="md-block">
           <label>Contact number</label>
-          <input name="zipcode" ng-model="project.contact_name">
+          <input name="zipcode" ng-model="project.contact_number">
         </md-input-container>
         </md-content>    
       
@@ -1305,7 +1311,14 @@
           <label><?php echo lang('zipcode'); ?></label>
           <input name="zipcode" ng-model="delivery.shipping_zip">
         </md-input-container>
-
+        <md-input-container class="md-block">
+          <label>Contact Name</label>
+          <input name="zipcode" ng-model="delivery.contact_name">
+        </md-input-container>
+        <md-input-container class="md-block">
+          <label>Contact number</label>
+          <input name="zipcode" ng-model="delivery.contact_number">
+        </md-input-container>
   </md-dialog-content>
   <md-dialog-actions>
     <span flex></span>
@@ -1355,7 +1368,7 @@
   <md-dialog aria-label="options dialog">
     <md-toolbar class="toolbar-white">
         <div class="md-toolbar-tools">
-          <h2><strong class="text-danger"><?php echo lang('delete_project_note') ?></strong></h2>
+          <h2><strong class="text-danger"><?php echo lang('delete_delivery_note') ?></strong></h2>
           <span flex></span>
           <md-button class="md-icon-button" ng-click="close()" aria-label="add">
             <md-icon class="ion-close-round" aria-label="Close dialog" style="color:black"></md-icon>
@@ -1685,8 +1698,31 @@
     </div>
   </div>
 </md-content>
+<script type="text/ng-template" id="delete_project.html">
+  <md-dialog aria-label="options dialog">
+    <md-toolbar class="toolbar-white">
+        <div class="md-toolbar-tools">
+          <h2><strong class="text-danger"><?php echo lang('delete_project_note') ?></strong></h2>
+          <span flex></span>
+          <md-button class="md-icon-button" ng-click="close()" aria-label="add">
+            <md-icon class="ion-close-round" aria-label="Close dialog" style="color:black"></md-icon>
+          </md-button>
+        </div>
+      </md-toolbar>
 
+  <md-dialog-actions>
+    <span flex></span>
+    <md-button ng-click="DeleteProject()" class="delete-button" ng-disabled="deletingProject == true" aria-label="add">
+      <span ng-hide="deletingProject == true"><?php echo lang('delete');?></span>
+      <md-progress-circular ng-show="deletingProject == true" md-mode="indeterminate" md-diameter="20"></md-progress-circular>
+    </md-button>
+    <md-button ng-click="close()" aria-label="add"><?php echo lang('cancel') ?>!</md-button>
+  </md-dialog-actions>
+  <?php echo form_close(); ?>
+  </md-dialog>
+</script>
 <script> 
+
 var minDate = new Date();
 
   var PROJECTID = "<?php echo $projects['id'];?>"; 

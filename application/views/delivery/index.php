@@ -35,24 +35,20 @@
               <md-checkbox md-no-ink aria-label="column select" class="md-primary" ng-model="table_columns.customer" ng-change="updateColumns('customer', table_columns.customer);">
                 <?php echo lang('customer') ?>
               </md-checkbox><br>
-              <md-checkbox md-no-ink aria-label="column select" class="md-primary" ng-model="table_columns.startdate" ng-change="updateColumns('startdate', table_columns.startdate);">
+              <md-checkbox md-no-ink aria-label="column select" class="md-primary" ng-model="table_columns.delivery_date" ng-change="updateColumns('startdate', table_columns.delivery_date);">
                 <?php echo lang('startdate') ?>
               </md-checkbox><br>
-              <md-checkbox md-no-ink aria-label="column select" class="md-primary" ng-model="table_columns.deadline" ng-change="updateColumns('deadline', table_columns.deadline);">
-                <?php echo lang('deadline') ?>
-              </md-checkbox><br>
+            
               <md-checkbox md-no-ink aria-label="column select" class="md-primary" ng-model="table_columns.status" ng-change="updateColumns('status', table_columns.status);">
                 <?php echo lang('status') ?>
               </md-checkbox><br>
               <md-checkbox md-no-ink aria-label="column select" class="md-primary" ng-model="table_columns.members" ng-change="updateColumns('members', table_columns.members);">
                 <?php echo lang('members') ?>
               </md-checkbox><br>
-              <md-checkbox md-no-ink aria-label="column select" class="md-primary" ng-model="table_columns.actions" ng-change="updateColumns('actions', table_columns.actions);">
+           <!--    <md-checkbox md-no-ink aria-label="column select" class="md-primary" ng-model="table_columns.actions" ng-change="updateColumns('actions', table_columns.actions);">
                 <?php echo lang('actions') ?>
-              </md-checkbox><br>
-              <md-checkbox md-no-ink aria-label="column select" class="md-primary" ng-model="table_columns.value" ng-change="updateColumns('value', table_columns.value);">
-                <?php echo lang('project') . ' ' . lang('value') ?>
-              </md-checkbox>
+              </md-checkbox><br> -->
+          
             </md-contet>
           </md-menu-content>
         </md-menu>
@@ -126,21 +122,11 @@
                   <span ng-bind="project.latest_status"></span>
                 </td>
                 <td md-cell ng-show="table_columns.delivery_date ">
-                  <span ng-bind="project.delivery_date | date:'MM/dd/yyyy'"></span>
+
+                  <span ng-show="project.delivery_date != NULL" class="badge" ng-bind="project.delivery_date"></span><br/>
                 </td>
                 <td md-cell ng-show="table_columns.status">
-                  <div class="progress-widget">
-                    <!--<div class="progress-data text-left"><span ng-hide="project.status_class == 'cancelled' || project.status_class == 'started'" class="progress-value" ng-bind="project.progress+'%'"></span> <span class="name" ng-bind="project.status"></span> </div>-->
-					          <div class="progress-data text-left"><span ng-show="project.status_class == 'started'" class="progress-value" ng-bind="project.percentage_completed+'%'"></span> <span class="name" ng-bind="project.status"></span> </div>
-                    <div ng-hide="project.status_class == 'cancelled' || project.status_class == 'started'" class="progress" style="height: 7px">
-                      <div ng-hide="project.progress == 100" style="width: {{project.progress}}%;" class="progress-bar progress-bar-primary"></div>
-                      <div ng-show="project.progress == 100" style="width: {{project.progress}}%;" class="progress-bar progress-bar-success"></div>
-                    </div>
-					          <div ng-show="project.status_class == 'started'" class="progress" style="height: 7px">
-                      <div ng-hide="project.progress == 100" style="width: {{project.percentage_completed}}%;" class="progress-bar progress-bar-primary"></div>
-                      <div ng-show="project.progress == 100" style="width: {{project.percentage_completed}}%;" class="progress-bar progress-bar-success"></div>
-                    </div>
-                  </div>
+                <span class="sup-label colorGreenBack" style="background: <?php echo '{{project.status_type}}' ?>;font-size: 12px !important; font-weight: bold; width: 20%;height: 35px;padding: 3px 9px;font-family: Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif" ng-bind="project.status"></span>
                 </td>
 
               </tr>
@@ -232,18 +218,18 @@
 		  </div>
           <div class="panel-body" style="padding: 0px;">
             <div class="project-stats-body pull-left">
-              <div class="project-progress-data"> <span class="project-progress-value pull-right" ng-bind="project.sumnotstarted"></span> <span class="project-name"><?php echo lang('notstarted'); ?></span> </div>
+              <div class="project-progress-data"> <span class="project-progress-value pull-right" ng-bind="project.sumnotstarted"></span> <span class="project-name"><?php echo lang('notsch'); ?></span> </div>
             
                 <h4 >{{stats.sumnotstarted}}</h4>
             </div>
             <!--<div class="project-stats-body pull-left">
-              <div class="project-progress-data"> <span class="project-progress-value pull-right" ng-bind="stats.started_percent+'%'"></span> <span class="project-name"><?php echo lang('started'); ?></span> </div>
+              <div class="project-progress-data"> <span class="project-progress-value pull-right" ng-bind="stats.started_percent+'%'"></span> <span class="project-name"><?php echo lang('schdule'); ?></span> </div>
               <div class="progress" style="height: 5px">
                 <div style="width: {{stats.started_percent}}%;" class="progress-bar progress-bar-success"></div>
               </div>
             </div>-->
 			      <div class="project-stats-body pull-left">
-              <div class="project-progress-data"> <span class="project-progress-value pull-right" ng-bind="stats.started_count"></span> <span class="project-name"><?php echo lang('started'); ?></span> </div>
+              <div class="project-progress-data"> <span class="project-progress-value pull-right" ng-bind="stats.started_count"></span> <span class="project-name"><?php echo lang('schdule'); ?></span> </div>
               <h4 >{{stats.sumstarted}}</h4>
             </div>
             <div class="project-stats-body pull-left">
@@ -353,11 +339,11 @@
         </md-input-container>
         <md-input-container class="md-block">
           <label>Contact Name</label>
-          <input name="zipcode" ng-model="delivery.contact_number">
+          <input name="zipcode" ng-model="delivery.contact_name">
         </md-input-container>
         <md-input-container class="md-block">
           <label>Contact number</label>
-          <input name="zipcode" ng-model="delivery.contact_name">
+          <input name="zipcode" ng-model="delivery.contact_number">
         </md-input-container>
 
         <bind-expression ng-init="delivery.shipping_country = '----'" expression="delivery.shipping_country" ng-model="delivery.shipping_country" />

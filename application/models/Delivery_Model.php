@@ -399,7 +399,7 @@ class Delivery_Model extends CI_Model {
 	}
 
 	function get_all_delivery() {
-		$this->db->select( '*,customers.company as customercompany,customers.namesurname as individual,customers.address as customeraddress,delivery.status_id as status, delivery.id as id, delivery.staff_id as staff_id, customers.email as customeremail,DATE_FORMAT(delivery_date, "%d/%m/%Y") AS deliverydate ' );
+		$this->db->select( '*,customers.company as customercompany,customers.namesurname as individual,customers.address as customeraddress,delivery.status_id as status, delivery.id as id, delivery.staff_id as staff_id, customers.email as customeremail,DATE_FORMAT(delivery_date, "%d/%m/%Y") AS deliverydate ,delivery.delivery_number' );
 		$this->db->join( 'projects', 'delivery.projectid = projects.id', 'left' );
 		$this->db->join( 'customers', 'projects.customer_id = customers.id', 'left' );
 		$this->db->order_by( 'delivery.id', 'desc' );
@@ -411,7 +411,7 @@ class Delivery_Model extends CI_Model {
 		return $this->db->get( 'delivery' )->result_array();
 	}
 	function get_delivery($delivery_uid) {
-		$this->db->select( '*,customers.company as customercompany,customers.namesurname as individual,customers.address as customeraddress,delivery.status_id as status, delivery.id as id, delivery.staff_id as staff_id, customers.email as customeremail ,delivery.address as custaddress,delivery.* ,projects.id as projectid' );
+		$this->db->select( '*,customers.company as customercompany,customers.namesurname as individual,customers.address as customeraddress,delivery.status_id as status, delivery.id as id, delivery.staff_id as staff_id, customers.email as customeremail ,delivery.address as custaddress,delivery.* ,projects.id as projectid ,delivery.*' );
 		$this->db->join( 'projects', 'delivery.projectid = projects.id', 'left' );
 		$this->db->join( 'customers', 'projects.customer_id = customers.id', 'left' );
 		$this->db->order_by( 'delivery.id', 'desc' );
@@ -487,6 +487,51 @@ class Delivery_Model extends CI_Model {
 	function StatusMarkAs() {
 		$response = $this->db->where( 'id', $_POST[ 'project_id' ] )->update( 'delivery',array( 'status_id' => $_POST[ 'status_id' ] ) );
 		
+	}
+
+
+	function get_members_index( $id ) {
+		$this->db->select( '*,staff.staffname as member,staff.staffavatar as memberavatar,staff.email as memberemail,deliverymembers.id as id' );
+		$this->db->join( 'staff', 'deliverymembers.staff_id = staff.id', 'left' );
+		//$this->db->limit(3);
+		return $this->db->get_where( 'deliverymembers', array( 'deliverymembers.project_id' => $id ) )->result_array();
+	}
+
+	function get_delivery_files( $id ) { 
+		$this->db->order_by( 'id', 'desc' );
+		$this->db->select( '*' );
+		return $this->db->get_where( 'files', array( 'files.relation_type' => 'delivery', 'files.relation' => $id ) )->result_array();
+	}
+
+	function delete_projects( $id, $number ) { 
+		$this->db->delete( 'delivery', array( 'id' => $id ) );
+		$this->db->delete( 'notes', array( 'relation' => $id, 'relation_type' => 'delivery' ) );
+		$this->db->delete( 'logs', array( 'project_id' => $id ) );
+		$this->db->delete( 'deliverymembers', array( 'delivery_id' => $id ) );
+
+		$files = $this->get_delivery_files( $id );
+		foreach ($files as $file) {
+			if ($file['is_old'] == '1') {
+				if (is_file('./uploads/files/' . $file['file_name'])) {
+			    	unlink('./uploads/files/' . $file['file_name']);
+			    }
+			}
+		}
+		$this->db->delete( 'files', array( 'relation' => $id, 'relation_type' => 'delivery' ) );
+		$folder = './uploads/files/delivery/'.$id;
+		if(is_dir($folder)) {
+			delete_files($folder, true);
+			rmdir($folder);
+		}
+		$loggedinuserid = $this->session->usr_id;
+		$staffname = $this->session->staffname;
+		$this->db->insert( 'logs', array(
+			'date' => date( 'Y-m-d H:i:s' ),
+			'detail' => ( '' ),
+			'detail' => ( ' ' .$staffname.' '.lang( 'project_deleted' ).' '.$number.'.'),
+			'staff_id' => $loggedinuserid,
+		));
+		return true;
 	}
 
 

@@ -20,6 +20,7 @@ $lang[ 'lock_meesage' ] = 'Do you confirm the lock of this Department?';
 $lang[ 'importmaterial' ] = 'Import Material';
 $lang['choosexlsfile']='Choose xls file.';
 $lang[ 'lockdepartment' ] = 'has been locked successfully';
+$lang['markascomplete']='Mark As Completed';
 // Firs Notifications
 
 $lang[ 'crmwelcome' ] = '';
@@ -2014,6 +2015,10 @@ $lang[ 'driver_name' ] = 'Driver Name';
 $lang[ 'driver_name' ] = 'Driver Name';
 $lang[ 'Delivery Vehicle' ] = 'Delivery Vehicle';
 $lang[ 'delivery_date' ] = 'Delivery Date';
+$lang[ 'notsch' ] = 'Not Scheduled';
+$lang[ 'schdule' ] = 'Scheduled';
+$lang['delete_delivery_note'] = 'Do you confirm the deletion of this delivery?';
+
 //Approval changes
 $lang[ 'value' ] = 'Value below ';
 ?>

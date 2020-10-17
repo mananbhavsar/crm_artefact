@@ -28,6 +28,10 @@ function Delivery_Controller($scope, $http, $mdSidenav, $mdDialog, $filter, $q) 
 		$scope.stages = Projects.data;
 	});
 
+	$http.get(BASE_URL + 'projects/get_projects').then(function (Projects) {
+		$scope.projectname = Projects.data;
+	});
+
 	$scope.projectLoader = true;
 	function buildToggler(navID) {
 		return function () {
@@ -75,9 +79,7 @@ function Delivery_Controller($scope, $http, $mdSidenav, $mdDialog, $filter, $q) 
 	var deferred = $q.defer();
 
 
-	$http.get(BASE_URL + 'projects/get_projects').then(function (Projects) {
-		$scope.projectname = Projects.data;
-	});
+
 	$http.get(BASE_URL + 'delivery/get_delivery').then(function (Projects) {
 		console.log(Projects)
 		$scope.projects = Projects.data;
@@ -328,7 +330,7 @@ function Delivery_Controller($scope, $http, $mdSidenav, $mdDialog, $filter, $q) 
 		};
 	$http.get(BASE_URL + 'delivery/get_deliverys/' + PROJECTID).then(function (Project) {
 		$scope.project = Project.data;
-		$scope.project.delivery_date = moment(Project.data.delivery_date).format("DD-MM-YYYY H:I")
+		$scope.project.delivery_date =Project.data.delivery_date;
 		if($scope.project.shipping_country_id){
 		$scope.getShippingStates($scope.project.shipping_country_id);
 		}
@@ -506,7 +508,14 @@ $scope.MarkAs = function () {
 		delivery_stage_id: subproject.delivery_stage_id,
 		deliveryid: PROJECTID,
 		delivery_date :$scope.delivery.changenewdelivery_date,
-		address :$scope.delivery.newaddress
+		address :$scope.delivery.address,
+		shipping_country_id: $scope.delivery.shipping_country_id,
+		shipping_state_id: $scope.delivery.shipping_state_id,
+		shipping_city: $scope.delivery.shipping_city,
+		shipping_zip: $scope.delivery.shipping_zip,
+		shipping_country: $scope.delivery.shipping_country,
+		contact_name: $scope.delivery.contact_name,
+		contact_number: $scope.delivery.contact_number,
 	});
 	var config = {
 		headers: {
@@ -746,13 +755,13 @@ $scope.InsertMember = function (ev) {
 			$scope.saving = true;
 			$scope.tempArr = [];
 			if ($scope.project.editdelivery_date) {
-				$scope.project.newdelivery_date = moment($scope.project.editdelivery_date).format("YYYY-MM-DD hh:mm")
+				$scope.project.editdelivery_date = moment($scope.project.editdelivery_date).format("YYYY-MM-DD hh:mm")
 			}
 			
 				var dataObj = $.param({
 					address: $scope.project.address,
 					description: $scope.project.description,
-					editdelivery_date: $scope.project.newdelivery_date,
+					editdelivery_date: $scope.project.editdelivery_date,
 					shipping_city: $scope.project.shipping_city,
 					shipping_zip: $scope.project.shipping_zip,
 					contact_number: $scope.project.contact_number,
@@ -895,6 +904,152 @@ $scope.InsertMember = function (ev) {
 					}
 				);
 		};
+
+
+		$scope.Delete = function () {
+			$mdDialog.show({
+				templateUrl: 'delete_project.html',
+				scope: $scope,
+				preserveScope: true,
+			});
+		};
+
+		$scope.deletingProject = false;
+		$scope.DeleteProject = function () {
+			$scope.deletingProject = true;
+			var config = {
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8;'
+				}
+			};
+			$http.post(BASE_URL + 'delivery/remove/' + PROJECTID, config)
+				.then(
+					function (response) {
+						if(response.data.success == true) {
+							$scope.deletingProject = false;
+							window.location.href = BASE_URL + 'delivery';
+						} else {
+							globals.mdToast('error', response.data.message);
+							$scope.deletingProject = false;
+						}
+					},
+					function (response) {
+						console.log(response);
+						$scope.deletingProject = false;
+					}
+				);
+		};
+
+
+		$scope.editNote = false;
+		$scope.saveNote = false;
+		$scope.addNote = false;
+		$http.get(BASE_URL + 'api/notes/project/' + PROJECTID).then(function (Notes) {
+			$scope.notes = Notes.data;
+			$scope.AddNote = function () {
+				$scope.addNote = true;
+				var dataObj = $.param({
+					description: $scope.note,
+					relation_type: 'project',
+					relation: PROJECTID,
+				});
+				var config = {
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8;'
+					}
+				};
+				var posturl = BASE_URL + 'trivia/addnote';
+				$http.post(posturl, dataObj, config)
+					.then(
+						function (response) {
+							$scope.addNote = false;
+							if (response.data.success == true) {
+								showToast(NTFTITLE, response.data.message, ' success');
+								$('.note-description').val('');
+								$scope.note = '';
+								$http.get(BASE_URL + 'api/notes/project/' + PROJECTID).then(function (Notes) {
+									$scope.notes = Notes.data;
+								});
+							} else {
+								showToast(NTFTITLE, response.data.message, ' danger');
+							}
+						},
+						function (response) {
+							$scope.addNote = false;
+						}
+					);
+			};
+	
+			$scope.EditNote = function (index) {
+				var note = $scope.notes[index];
+				$scope.editNote = true;
+				$scope.edit_note = note.description;
+				$scope.edit_note_id = note.id;
+				$('#note_focus').focus();
+				$('html, body').animate({
+					scrollTop: $("#note_focus").offset().top
+				}, 1000);
+			}
+	
+			$scope.SaveNote = function () {
+				$scope.saveNote = true;
+				var id = $scope.edit_note_id;
+				if (id) {
+					var dataObj = $.param({
+						description: $scope.edit_note,
+					});
+					var config = {
+						headers: {
+							'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8;'
+						}
+					};
+					var posturl = BASE_URL + 'trivia/updatenote/' + id;
+					$http.post(posturl, dataObj, config)
+						.then(
+							function (response) {
+								$scope.editNote = false;
+								$scope.saveNote = false;
+								$scope.edit_note = '';
+								$http.get(BASE_URL + 'api/notes/project/' + PROJECTID).then(function (Notes) {
+									$scope.notes = Notes.data;
+								});
+								showToast(NTFTITLE, response.data, ' success');
+							},
+							function (response) {
+								$scope.editNote = false;
+								$scope.saveNote = false;
+							}
+						);
+				} else {
+					$scope.editNote = false;
+				}
+			};
+	
+			$scope.modifyNote = false;
+			$scope.DeleteNote = function (index) {
+				$scope.modifyNote = true;
+				var note = $scope.notes[index];
+				var dataObj = $.param({
+					notes: note.id
+				});
+				var config = {
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8;'
+					}
+				};
+				var posturl = BASE_URL + 'trivia/removenote';
+				$http.post(posturl, dataObj, config)
+					.then(
+						function (response) {
+							$scope.modifyNote = false;
+							$scope.notes.splice($scope.notes.indexOf(note), 1);
+						},
+						function (response) {
+							$scope.modifyNote = false;
+						}
+					);
+			};
+		});
 
 };
 
