@@ -18,7 +18,7 @@ class Delivery extends CIUIS_Controller {
 
 	function index() {
 		$data[ 'title' ] = lang( 'Delivery' );
-	//	$data[ 'projects' ] = $this->Projects_Model->get_all_projects();
+		$data[ 'projects' ] = $this->Projects_Model->get_all_projects();
 		$data[ 'staff' ] = $this->Delivery_Model->get_all_staff();       
 		$data['countries'] = $this->Newcontacts_Model->get_countries();
 
@@ -48,12 +48,15 @@ class Delivery extends CIUIS_Controller {
 				$shipping_zip = $this->input->post( 'shipping_zip' );
 				$contact_number = $this->input->post( 'contact_number' );
 				$contact_name = $this->input->post( 'contact_name' );
+				$customer_id = $this->input->post( 'customerid' );
+				$addprojectname = $this->input->post( 'addprojectname' );
+				$showprojectdata = $this->input->post( 'showprojectdata' );
 				$hasError = false;
 				$data['message'] = '';
 				if ($installation == '') {
 					$hasError = true;
 					$data['message'] = lang('invalidmessage'). ' ' .lang('name');
-				} else if ($projectid == '') {
+				} else if ($projectid == '' && 	$showprojectdata  == false) {
 					$hasError = true;
 					$data['message'] = lang('selectinvalidmessage'). ' ' .lang('customer');
 				} 
@@ -61,11 +64,41 @@ class Delivery extends CIUIS_Controller {
 					$data['success'] = false;
 					echo json_encode($data);
 				}
+
+				if ($showprojectdata  == true) {
+					$appconfig = get_appconfig();
+					$params = array(
+						'name' => $addprojectname,
+						'customer_id' => $customer_id,
+						'staff_id' => $this->session->userdata( 'usr_id' ),
+						'created' => date( 'Y-m-d H:i:s' ), 
+					);
+
+					$this->db->insert( 'delivery_projects', $params );
+					$delivery_project_id = $this->db->insert_id();
+					
+					
+					$appconfig = get_appconfig();
+					$number = $appconfig['project_series'] ? $appconfig['project_series'] : $delivery_project_id;
+					$project_number = $appconfig['project_prefix'].$number;
+					$this->db->where('id', $delivery_project_id)->update( 'delivery_projects', array('project_number' => $project_number ) );
+					if($appconfig['project_series']){
+						$project_number = $appconfig['project_series'];
+						$project_number = $project_number + 1 ;
+						$this->Settings_Model->increment_series('project_series',$project_number);
+					}
+				}
+
+				if($projectid != ""){
+					$deliveryprojectid = $projectid;
+				}else{
+					$deliveryprojectid = $delivery_project_id;
+				}
 				if (!$hasError) {
 					$appconfig = get_appconfig();
 					$params = array(
 						'description' => $description,
-						'projectid' => $projectid,
+						'projectid' => $deliveryprojectid,
 						'delivery_date' => $delivery_date,
 						'staff_id' => $this->session->userdata( 'usr_id' ),
 						'stage_id' => $installation,
@@ -77,7 +110,8 @@ class Delivery extends CIUIS_Controller {
 						'contact_name' => $contact_name,
 						'contact_number' => $contact_number,
 						'status_id' => 1,
-  						'created' => date( 'Y-m-d H:i:s' ), 
+						'created' => date( 'Y-m-d H:i:s' ), 
+						'manualprojectadd' => $showprojectdata
 					);
 
 					$this->db->insert( 'delivery', $params );
@@ -205,6 +239,7 @@ class Delivery extends CIUIS_Controller {
 			$shipping_zip = $this->input->post( 'shipping_zip' );
 			$contact_number = $this->input->post( 'contact_number' );
 			$contact_name = $this->input->post( 'contact_name' );
+			$stage_id = $this->input->post( 'stage_id' );
 			$editdelivery_date =  date("Y-m-d H:i:s",strtotime($this->input->post( 'editdelivery_date' , true)));
 							$params = array(
 								'description' => $this->input->post( 'description', true ),
@@ -218,8 +253,11 @@ class Delivery extends CIUIS_Controller {
 								'shipping_zip' => $shipping_zip,
 								'contact_name' => $contact_name,
 								'contact_number' => $contact_number,
+								'stage_id' => $stage_id,
 							);
 							$this->Delivery_Model->update( $id, $params );
+   
+							$response = $this->db->where( array('delivery_stage_id'=>  $stage_id ,'deliveryid'=>  $id))->update( 'subdelivery', array( 'complete' => 1 ,'update' => date( 'Y-m-d H:i:s' )) );
 							$data['success'] = true;
 							$data['message'] = lang('project'). ' ' .lang('updatemessage');
 							echo json_encode($data);
@@ -703,7 +741,6 @@ class Delivery extends CIUIS_Controller {
 		if ( $this->Privileges_Model->check_privilege( 'projects', 'edit' ) ) {
 			if ( isset( $_POST ) && count( $_POST ) > 0 ) {
 				
-				$subdelivery = $_POST[ 'subdelivery' ];
 				$deliveryid = $_POST[ 'deliveryid' ];
 				$delivery_stage_id = $_POST[ 'delivery_stage_id' ];
 				$address = $_POST[ 'address' ];
@@ -713,12 +750,15 @@ class Delivery extends CIUIS_Controller {
 				$shipping_zip = $this->input->post( 'shipping_zip' );
 				$contact_number = $this->input->post( 'contact_number' );
 				$contact_name = $this->input->post( 'contact_name' );
+
+				
 				$deliverydata = $this->db->get_where( 'delivery', array( 'id'=>$deliveryid  ))-> result_array();
 				$appconfig = get_appconfig();
 				$params = array(
 					'description' => $deliverydata[0]["description"],
 					'projectid' => $deliverydata[0]["projectid"],
 					'delivery_date' => $deliverydata[0]["delivery_date"],
+					'manualprojectadd' => $deliverydata[0]["manualprojectadd"],
 					'staff_id' => $this->session->userdata( 'usr_id' ),
 					'address' => $address,
 					'stage_id' => $delivery_stage_id,
@@ -734,8 +774,9 @@ class Delivery extends CIUIS_Controller {
 
 				$this->db->insert( 'delivery', $params );
 				$newdelivery_id = $this->db->insert_id();
+				$array2 = array('deliveryid' => $deliveryid, 'delivery_stage_id' => $delivery_stage_id);
 
-				$response = $this->db->where( 'id', $subdelivery )->update( 'subdelivery', array( 'complete' => 1 ,'update' => date( 'Y-m-d H:i:s' )) );
+				$response = $this->db->where( $array2)->update( 'subdelivery', array( 'complete' => 1 ,'update' => date( 'Y-m-d H:i:s' )) );
 				$this->db->where( 'id', $deliveryid );
 				$this->db->update('delivery', array('stage_id'=>$delivery_stage_id));
 
@@ -850,6 +891,7 @@ class Delivery extends CIUIS_Controller {
 						'duedate' => $this->input->post( 'duedate' ),
 					);
 					$response = $this->Projects_Model->update_milestone( $id, $params );
+					
 					$data['success'] = true;
 					$data['message'] = lang('milestone'). ' ' .lang('createmessage');
 					echo json_encode($data);
@@ -1538,7 +1580,7 @@ class Delivery extends CIUIS_Controller {
 		
 		if($project) {
 			
-					$this->Projects_Model->delete_projects( $id, get_number('projects',$id,'project','project') );
+					$this->Delivery_Model->delete_delivery( $id, $project[0]["delivery_number"]);
 					$data['success'] = true;
 				
 		
@@ -2078,9 +2120,23 @@ class Delivery extends CIUIS_Controller {
 			$milestones = $this->Projects_Model->get_all_project_milestones( $id );
 			$projectmembers = $this->Delivery_Model->get_members( $id );
 			$get_last_status = $this->Delivery_Model->get_last_status( $id );
+			if($project[ 'manualprojectadd' ] ==  true){
+				$projectsdata = $this->Delivery_Model->get_manual_projects( $id);
+				$last_querry =  $this->db->last_query();
+
+
+			}else{
+				$projectsdata = $this->Delivery_Model->get_projects($id );
+				$last_querry =  $this->db->last_query();
+
+
+			}
+
+			
 			$fetquerry = $this->db->last_query();
 			$project_logs = $this->Logs_Model->project_logs( $id );
 			$last_status = 	$get_last_status[0]['stagename'];
+			$stageeid = 	$get_last_status[0]['stage_id'];
 			$percentage_completed = $this->Delivery_Model->GetdeliveryStatusByStage($id);
 			$customer = ($project['customercompany'])?$project['customercompany']:$project['namesurname'];
 			$enddate = $project[ 'delivery_date' ];
@@ -2136,18 +2192,24 @@ class Delivery extends CIUIS_Controller {
 				$billed = lang( 'no' );
 			}
 
-
+			if($project[ 'delivery_date' ]!=""){
+				$delivery_date = date("d-m-Y H:i:a",strtotime($project[ 'delivery_date' ]));
+				$day = date('D', strtotime($delivery_date));
+			}else{
+				$delivery_date = "";
+				$day="";
+			}		
 			$appconfig = get_appconfig();
 			$data_projectdetail = array(
 				'id' => $project[ 'id' ],
-				'name' => $project[ 'name' ],
+				'name' => $projectsdata[ 'name' ],
 				'value' => $project[ 'projectvalue' ],
 				'status_id' => $project[ 'status' ],
 				'tax' => $project[ 'tax' ],
 				'description' => $project[ 'description' ],
 				'start' => $project[ 'start_date' ],
 				'start_edit' => $project[ 'start_date' ],
-				'delivery_date' => date("d-m-Y H:i",strtotime($project[ 'delivery_date' ])),
+				'delivery_date' => $delivery_date. " ".$project["dayname"],
 				'editdelivery_date' => $project[ 'delivery_date' ],
 				'deadline_edit' => $project[ 'deadline' ],
 				'created' => $project[ 'created' ],
@@ -2157,8 +2219,8 @@ class Delivery extends CIUIS_Controller {
 				'status_class'=>$status_class,
 				'percentage_completed'=>$percentage_completed['percentageCompetion'],
 				'progress' => $progress,
-				'customer' => $customer,
-				'customer_id' => $project[ 'customer_id' ],
+				'customer' => $projectsdata['customercompany'],
+				'customer_id' => $projectsdata[ 'customer_id' ],
 				'ldt' => $ldt,
 				'authorization' => $authorization,
 				'billed' => $billed,
@@ -2178,7 +2240,9 @@ class Delivery extends CIUIS_Controller {
 				'delivery_number'=>  $project['delivery_number'],
 				'contact_number'=>  $project['contact_number'],
 				'contact_name'=>  $project['contact_name'],
+				'shipping_address'=>  $project['address'],
 				'status_type'=>  $status_type,
+				'stage_id'=>  $project['stage_id'],
 				'items'=> $this->Projects_Model->get_project_items($project[ 'projectid' ]),
 			);
 			echo json_encode( $data_projectdetail );
@@ -2328,10 +2392,27 @@ class Delivery extends CIUIS_Controller {
 				$progress = ( $totaltasks > 0 ? number_format( ( $completetasks * 100 ) / $totaltasks ) : 0 ); */
 				$percentage_completed = $this->Delivery_Model->GetdeliveryStatusByStage($delivery[ 'id' ]);
 				$get_last_status = $this->Delivery_Model->get_last_status($delivery[ 'id' ]);
+				if($delivery[ 'manualprojectadd' ] ==  true){
+					$projectsdata = $this->Delivery_Model->get_manual_projects( $delivery[ 'id' ]);
+					$last_querry =  $this->db->last_query();
 
+
+				}else{
+					$projectsdata = $this->Delivery_Model->get_projects( $delivery[ 'id' ] );
+					$last_querry =  $this->db->last_query();
+
+
+				}
 				$last_status = 	$get_last_status[0]['stagename'];
 				$project_id = $delivery[ 'id' ];
-
+				$enddate = $delivery[ 'delivery_date' ];
+				$current_date = new DateTime( date( 'Y-m-d' ), new DateTimeZone( $settings[ 'default_timezone' ] ) );
+				$end_date = new DateTime( "$enddate", new DateTimeZone( $settings[ 'default_timezone' ] ) );
+				$interval = $current_date->diff( $end_date );
+				$project_left_date = $interval->format( '%a day(s)' );
+				if ( date( "Y-m-d" ) > $delivery[ 'delivery_date' ] ) {
+					$ldt = 'Time\'s up!';
+				} else $ldt = $project_left_date;
 			
 				switch ( $delivery[ 'status' ] ) {
 					case '1':
@@ -2397,27 +2478,33 @@ class Delivery extends CIUIS_Controller {
 				$members = $this->Delivery_Model->get_members_index( $project_id );
 				$milestones = $this->Projects_Model->get_all_project_milestones( $project_id );
 				$appconfig = get_appconfig();
+				if($delivery[ 'delivery_date' ]!=""){
+					$delivery_date = date("d-m-Y H:i",strtotime($delivery[ 'delivery_date' ]));
+				}else{
+					$delivery_date = "";
+				}	
 				$data_projects[] = array(
+					
 					'id' => $delivery[ 'id' ],
 					'project_id' => $delivery[ 'id' ],
-					'name' => $delivery[ 'name' ],
+					'name' => $projectsdata[ 'name' ],
 					'pinned' => $delivery[ 'pinned' ],
 					'status_id' => $delivery[ 'status' ],
 					'progress' => $progress,
 					'percentage_completed' => $percentage_completed['percentageCompetion'],
-					'customer' => $customer,
+					'customer' => $projectsdata['customercompany'],
 					'customeremail' => $delivery[ 'customeremail' ],
 					'status_icon' => $icon,
 					'status' => $status,
 					'status_class' => $projectstatus,
-					'customer_id' => $delivery[ 'customer_id' ],
+					'customer_id' => $projectsdata[ 'customer_id' ],
 					'members' => $members,
 					'milestones' => $milestones,
 					lang('filterbystatus') => lang($projectstatus),
 					lang('filterbycustomer') => $customer,
 					'project_number' => get_number('projects', $delivery[ 'id' ], 'project','project'),
 					'delivery_number' => $delivery[ 'delivery_number' ],
-					'delivery_date' => date("d-m-Y H:i:m a",strtotime($delivery[ 'delivery_date' ])),
+					'delivery_date' => $delivery_date,
 					'sumstarted' => $deliverystatus[0][ 'sumstarted' ],
 					'sumnotstarted' => $deliverystatus[0][ 'sumnotstarted' ],
 					'sumhold' => $deliverystatus[0][ 'sumhold' ],
@@ -2425,6 +2512,9 @@ class Delivery extends CIUIS_Controller {
 					'sumcomplete' => $deliverystatus[0][ 'sumcomplete' ],
 					'latest_status'=> $last_status,
 					'status_type'=> $status_type,
+					'duration'=> $ldt,
+					'shipping_address'=>  $delivery['deliveryaddress'],
+
 
 				);
 			} 
@@ -2720,6 +2810,86 @@ class Delivery extends CIUIS_Controller {
 		}
 	}
 
+	//Add checklist
+	function deliverycheckist($id){
+		$project_tracking = $this->db->select( '*' )->get_where( 'delivery_checklist', array( 'delivery_id' => $id))->result_array();
+		if($project_tracking){
+			$delivery['items']=$project_tracking;
+		}else{
+			$delivery['items'][]=array("id"=>0,"description"=>"","qty"=>"");
+		}
+		echo json_encode($delivery);
+	}
+
+
+	//Add 
+	function create_delivery_checklist(){
+		if ( isset( $_POST ) && count( $_POST ) > 0 ) {
+			$hasError = false;
+			$data['message'] = '';
+			if($this->input->post('deliveryId') == '') {
+				$hasError = true;
+				$data['message'] = lang('invalidmessage').' '.lang('deliveryId');
+			}
+			if(!$hasError){
+				$checklistitem=$this->input->post('checklistitem');
+				$delivery_id=$this->input->post('deliveryId');
+				foreach($checklistitem as $eachItem){
+						if($eachItem['id']==0){
+							$trackingparams = array(
+								'delivery_id'=>$delivery_id,
+								'description'=>$eachItem['description'],
+								'qty'=>$eachItem['qty'],
+								'created_on'=> date('Y-m-d H:i:s'),
+								'created_by'=>$this->session->usr_id,
+							);
+							$this->db->insert( 'delivery_checklist', $trackingparams);
+						}else{
+							$this->db->where('id', $eachItem['id'])->update( 'delivery_checklist', array('delivery_id' =>$delivery_id,'description'=>$eachItem['description'],'qty'=>$eachItem['qty'],'created_on'=> date('Y-m-d H:i:s'),'created_by'=>$this->session->usr_id));
+						}
+					}
+				}
+				$data['success'] = true;
+				$data['message'] = lang('update').' '.lang('Delivery checklist');
+				echo json_encode($data);
+		
+		}else{
+			$data['success'] = false;
+			$data['message'] ='No data present';
+			echo json_encode($data);
+		}
+	}
+
+
+	function delect_delivery_checklist(){
+		if ( isset( $_POST ) && count( $_POST ) > 0 ) {
+			$hasError = false;
+			$data['message'] = '';
+			if($this->input->post('projectId') == '') {
+				$hasError = true;
+				$data['message'] = lang('invalidmessage').' '.lang('projectId');
+			}else if($this->input->post('deleteItemId') == 0) {
+				$hasError = true;
+				$data['message'] = lang('invalid_items');
+			}
+			if($hasError){
+				$data['success'] = false;
+				echo json_encode($data);
+			}
+			if(!$hasError){
+				$projectId=$this->input->post('projectId');
+				$deleteItemId=$this->input->post('deleteItemId');
+				$response = $this->db->delete( 'delivery_checklist', array( 'id' => $deleteItemId,'delivery_id'=>$projectId));
+				$data['success'] = true;
+				$data['message'] = lang('delete').' '.lang('Delivery checklist');
+				echo json_encode($data);
+			}	
+		}else{
+			$data['success'] = false;
+			$data['message'] ='No data present';
+			echo json_encode($data);
+		}
+	}
 
 	function StatusMarkAs() {
 			if ( isset( $_POST ) && count( $_POST ) > 0 ) {
@@ -2732,6 +2902,165 @@ class Delivery extends CIUIS_Controller {
 			}
 		
 		echo json_encode($data);
+	}
+
+
+	function getfilterdelivery() {
+		$filterdate = $this->input->post('date');
+		 $todaydate =	date('Y-m-d', strtotime("+1 days"));
+		$delivery = $this->Delivery_Model->get_filterdelivery( $filterdate, $todaydate);
+		$deliverystatus = $this->Delivery_Model->get_all_filterdeliverystatus($filterdate, $todaydate);
+		$data_projects = array();
+		if ($this->Privileges_Model->check_privilege( 'projects', 'all') ) {
+			foreach ( $delivery as $delivery ) {
+				$settings = $this->Settings_Model->get_settings_ciuis();
+			/* 	$totaltasks = $this->Report_Model->totalprojecttasks( $project[ 'id' ] );
+				$opentasks = $this->Report_Model->openprojecttasks( $project[ 'id' ] );
+				$completetasks = $this->Report_Model->completeprojecttasks( $project[ 'id' ] );
+				$progress = ( $totaltasks > 0 ? number_format( ( $completetasks * 100 ) / $totaltasks ) : 0 ); */
+				$percentage_completed = $this->Delivery_Model->GetdeliveryStatusByStage($delivery[ 'id' ]);
+				$get_last_status = $this->Delivery_Model->get_last_status($delivery[ 'id' ]);
+				if($delivery[ 'manualprojectadd' ] ==  true){
+					$projectsdata = $this->Delivery_Model->get_manual_projects( $delivery[ 'id' ]);
+					$last_querry =  $this->db->last_query();
+
+
+				}else{
+					$projectsdata = $this->Delivery_Model->get_projects( $delivery[ 'id' ] );
+					$last_querry =  $this->db->last_query();
+
+
+				}
+				$last_status = 	$get_last_status[0]['stagename'];
+				$project_id = $delivery[ 'id' ];
+				$enddate = $delivery[ 'delivery_date' ];
+				$current_date = new DateTime( date( 'Y-m-d' ), new DateTimeZone( $settings[ 'default_timezone' ] ) );
+				$end_date = new DateTime( "$enddate", new DateTimeZone( $settings[ 'default_timezone' ] ) );
+				$interval = $current_date->diff( $end_date );
+				$project_left_date = $interval->format( '%a day(s)' );
+				if ( date( "Y-m-d" ) > $delivery[ 'delivery_date' ] ) {
+					$ldt = 'Time\'s up!';
+				} else $ldt = $project_left_date;
+			
+				switch ( $delivery[ 'status' ] ) {
+					case '1':
+					$projectstatus = 'notstarted';
+					$icon = 'notstarted.png';
+					$status = lang( 'notsch' );
+					$status_type="#26c281";
+					break;
+					case '2':
+					$projectstatus = 'started';
+					$icon = 'started.png';
+					$status = lang( 'schdule' );
+					$status_type="#ff2946";
+					break;
+					case '3':
+					$projectstatus = 'hold';
+					$icon = 'percentage.png';
+					$status = lang( 'hold' );
+					$status_type="#0645f5";
+					break;
+					case '4':
+					$projectstatus = 'cancelled';
+					$icon = 'cancelled.png';
+					$status = lang( 'cancelled' );
+					$status_type="#e8ab00";
+					break;
+					case '5':
+					$projectstatus = 'complete';
+					$icon = 'complete.png';
+					$status = lang( 'complete' );
+					$status_type="#ff43df";
+					break;
+				}
+				if ($delivery[ 'status' ] == '5') {
+					$projectstatus = 'complete';
+					$icon = 'complete.png';
+					$status = lang( 'completed' );
+					$progress = 100;
+				}
+			
+				switch ( $settings[ 'dateformat' ] ) {
+					case 'yy.mm.dd':
+					$startdate = _rdate( $delivery[ 'delivery_date' ] );
+					break;
+					case 'dd.mm.yy':
+					$startdate = _udate( $delivery[ 'delivery_date' ] );
+					break;
+					case 'yy-mm-dd':
+					$startdate = _mdate( $delivery[ 'delivery_date' ] );
+					break;
+					case 'dd-mm-yy':
+					$startdate = _cdate( $delivery[ 'delivery_date' ] );
+					break;
+					case 'yy/mm/dd':
+					$startdate = _zdate( $delivery[ 'delivery_date' ] );
+					break;
+					case 'dd/mm/yy':
+					$startdate = _kdate( $delivery[ 'delivery_date' ] );
+					break;
+				};
+				$customer = ($delivery['customercompany'])?$delivery['customercompany']:$delivery['namesurname'];
+				$current_date = new DateTime( date( 'Y-m-d' ), new DateTimeZone( 'Asia/Dhaka' ) );
+				$members = $this->Delivery_Model->get_members_index( $project_id );
+				$milestones = $this->Projects_Model->get_all_project_milestones( $project_id );
+				$appconfig = get_appconfig();
+				if($delivery[ 'delivery_date' ]!=""){
+					$delivery_date = date("d-m-Y H:i",strtotime($delivery[ 'delivery_date' ]));
+				}else{
+					$delivery_date = "";
+				}	
+				$data_projects[] = array(
+					
+					'id' => $delivery[ 'id' ],
+					'project_id' => $delivery[ 'id' ],
+					'name' => $projectsdata[ 'name' ],
+					'pinned' => $delivery[ 'pinned' ],
+					'status_id' => $delivery[ 'status' ],
+					'progress' => $progress,
+					'percentage_completed' => $percentage_completed['percentageCompetion'],
+					'customer' => $projectsdata['customercompany'],
+					'customeremail' => $delivery[ 'customeremail' ],
+					'status_icon' => $icon,
+					'status' => $status,
+					'status_class' => $projectstatus,
+					'customer_id' => $projectsdata[ 'customer_id' ],
+					'members' => $members,
+					'milestones' => $milestones,
+					lang('filterbystatus') => lang($projectstatus),
+					lang('filterbycustomer') => $customer,
+					'project_number' => get_number('projects', $delivery[ 'id' ], 'project','project'),
+					'delivery_number' => $delivery[ 'delivery_number' ],
+					'delivery_date' => $delivery_date,
+					'sumstarted' => $deliverystatus[0][ 'sumstarted' ],
+					'sumnotstarted' => $deliverystatus[0][ 'sumnotstarted' ],
+					'sumhold' => $deliverystatus[0][ 'sumhold' ],
+					'sumcancelled' => $deliverystatus[0][ 'sumcancelled' ],
+					'sumcomplete' => $deliverystatus[0][ 'sumcomplete' ],
+					'latest_status'=> $last_status,
+					'status_type'=> $status_type,
+					'duration'=> $ldt,
+					'shipping_address'=>  $delivery['deliveryaddress'],
+
+
+				);
+			} 
+		}
+		echo json_encode( $data_projects );
+	}
+
+
+	function getfilterdelivery_stats() {
+		$filterdate = $this->input->post('date');
+		 $todaydate =	date('Y-m-d', strtotime("+1 days"));
+		$stats = $this->Delivery_Model->get_all_filterdeliverystatus($filterdate, $todaydate);
+		$finalstatus =  array('sumstarted' => $stats[0][ 'sumstarted' ],
+		'sumnotstarted' => $stats[0][ 'sumnotstarted' ],
+		'sumhold' => $stats[0][ 'sumhold' ],
+		'sumcancelled' => $stats[0][ 'sumcancelled' ],
+		'sumcomplete' => $stats[0][ 'sumcomplete' ]);
+		echo json_encode($finalstatus);
 	}
 
 

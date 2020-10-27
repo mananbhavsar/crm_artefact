@@ -1335,6 +1335,17 @@ class Staff_Model extends CI_Model {
 		
 		
 	}
+
+	function search_staff($q) {
+		$this->db->select( '*' );
+		$this->db->from('staff');
+		$this->db->where('(
+			staffname LIKE "%' . $q . '%"
+		)');
+		$this->db->order_by('id', 'desc');
+		return $this->db->get()->result_array();
+	}
+	
 		
 	
 }

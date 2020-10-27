@@ -31,6 +31,7 @@ class Orders extends CIUIS_Controller {
 				$relation_type = lang('customer');
 				$customer = $this->input->post('customer');
 				$project = $this->input->post('project');
+				$reference = $this->input->post('reference');
 				$client_contact_id = $this->input->post( 'client_contact_id');
 				$salesteam = $this->input->post( 'salesteam' );
 				$assigned = $this->session->usr_id;
@@ -61,9 +62,6 @@ class Orders extends CIUIS_Controller {
 				} else if ($customer == '') {
 					$hasError = true;
 					$data['message'] = lang('selectinvalidmessage'). ' ' .lang('customer');
-				} else if ($client_contact_id == '') {
-					$hasError = true;
-					$data['message'] = lang('selectinvalidmessage'). ' ' .lang('contacts');
 				} else if ($salesteam == '') {
 					$hasError = true;
 					$data['message'] = lang('selectinvalidmessage'). ' ' .lang('salesperson');
@@ -106,6 +104,7 @@ class Orders extends CIUIS_Controller {
 						'token' => md5( uniqid() ),
 						//'subject' => $this->input->post( 'subject' ),
 						'project' => $this->input->post( 'project' ),
+						'reference' => $this->input->post( 'reference' ),
 						//'customer' => $this->input->post( 'customer' ),
 						'client_contact_id' => $this->input->post( 'client_contact_id'),
 						'salesteam' => $this->input->post( 'salesteam' ),
@@ -218,6 +217,7 @@ class Orders extends CIUIS_Controller {
 						$params = array(
 							//'subject' => $this->input->post( 'subject' ),
 							'project' => $this->input->post( 'project' ),
+							'reference' => $this->input->post( 'reference' ),
 							'client_contact_id' => $this->input->post( 'client_contact_id'),
 							'content' => $this->input->post( 'content' ),
 							'salesteam' => $this->input->post( 'main_sales_team_id' ),
@@ -271,6 +271,7 @@ class Orders extends CIUIS_Controller {
 		$pro = $this->Orders_Model->get_pro_rel_type( $id );
 		$rel_type = $pro[ 'relation_type' ];
 		$ordersdata  = $this->Orders_Model->get_order_by_priviliges_by_salesteam( $id);
+		$data['customer_record'] = $this->Customers_Model->get_customers($ordersdata['relation']);
 		$approvalAccess=$this->Privileges_Model->has_approval_access('orders');
 		$maxvalue=$approvalAccess['maxvalue'];
 		$comperKey='total';
@@ -346,6 +347,7 @@ class Orders extends CIUIS_Controller {
 				mkdir('./uploads/files/orders/'.$id, 0777, true);
 			}
 			$data[ 'orders' ] = $order;
+			$data['customer_record'] = $this->Customers_Model->get_customers($order['relation']);
 			$data[ 'settings' ] = $this->Settings_Model->get_settings_ciuis();
 			$data['state'] = get_state_name($data['settings']['state'],$data['settings']['state_id']);
 			$data['country'] = get_country($data[ 'settings' ]['country_id']);
@@ -695,7 +697,7 @@ class Orders extends CIUIS_Controller {
 					'date' => date( 'Y-m-d H:i:s' )
 				) );*/
 
-				$response = $this->db->where( 'id', $id )->update( 'orders', array( 'invoice_id' => $invoice, 'is_invoiced' => 1, 'invoiced_date' => date( 'Y-m-d H:i:s' ) ) );
+				$response = $this->db->where( 'id', $id )->update( 'orders', array('status_id'=>12,'invoice_id' => $invoice, 'is_invoiced' => 1, 'invoiced_date' => date( 'Y-m-d H:i:s' ) ) );
 				$data['id'] = $invoice;
 				$data['success'] = true;
 				echo json_encode($data);
@@ -760,6 +762,9 @@ class Orders extends CIUIS_Controller {
 					break;
 				case '11':
 					$status = lang('rejected');
+					break;
+				case '12':
+					$status = lang('invoiced');
 					break;
 				default: 
 					$status = lang( 'open' );
@@ -924,6 +929,9 @@ class Orders extends CIUIS_Controller {
 				case '11':
 					$status = lang('rejected');
 					break;
+				case '12':
+					$status = lang('invoiced');
+					break;
 				default: 
 					$status = lang( 'open' );
 					break;
@@ -936,6 +944,7 @@ class Orders extends CIUIS_Controller {
 				'long_id' => get_number('orders', $order[ 'id' ], 'order','order'),
 				'subject' => $order[ 'subject' ],
 				'project'=> $order['project'],
+				'reference'=> $order['reference'],
 				//'projectname'=> $order['projectname'],
 				'client_contact_id'=> $order['client_contact_id'],
 				'salesteam'=> $order['salesteam'],
@@ -1082,6 +1091,10 @@ class Orders extends CIUIS_Controller {
 					$status = lang( 'rejected' );
 					$class = 'order-status-rejected proposal-status-declined';
 					break;
+				case '12':
+					$status = lang('invoiced');
+					$class = 'order-status-invoiced proposal-status-declined';
+					break;
 				default: 
 					$status = lang( 'open' );
 					$class = 'order-status-open proposal-status-open';
@@ -1093,6 +1106,7 @@ class Orders extends CIUIS_Controller {
 				'prefix' => lang( 'orderprefix' ),
 				'longid' => get_number('orders', $order[ 'id' ], 'order','order'),
 				'project' => $order[ 'project' ],
+				'reference'=> $order['reference'],
 				'customer' => $customer,
 				'relation' => $order[ 'relation' ],
 				'date' => $date,
@@ -1337,7 +1351,9 @@ class Orders extends CIUIS_Controller {
 			$orderData = $this->Orders_Model->get_order( $id );
 			$orderdocuments = $this->db->select( '*' )->get_where('order_documents', array('orderid' => $id))->result_array();
 			$start_date = date( 'Y-m-d' );
-			$deadline = date('Y-m-d', strtotime($start_date. ' +30 days'));
+			//$deadline = date('Y-m-d', strtotime($start_date. ' +30 days'));
+			$deadline = date('Y-m-d', strtotime($_POST['deadline_date']));
+			$is_tentative = isset($_POST['is_tentative']) ? $_POST['is_tentative'] : 0;
 			if ( $orderData[ 'is_converted' ] != '0' ) {
 				$data['success'] = false;
 				$data['message'] = lang('orderalreadyconverted');
@@ -1351,6 +1367,7 @@ class Orders extends CIUIS_Controller {
 					'tax' => $orderData[ 'total_tax' ],
 					'start_date' =>$start_date,
 					'deadline' =>$deadline,
+					'is_tentative'=>$is_tentative,
 					'staff_id' => $this->session->userdata( 'usr_id' ),
 					'status_id' => 1,
 					'template' => 0,

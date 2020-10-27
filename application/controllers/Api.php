@@ -2658,4 +2658,17 @@ class Api extends CIUIS_Controller {
 		};
 		echo json_encode( $data_notifications );
 	}
+
+	function search_staff($q) {
+		$staff = $this->Staff_Model->search_staff($q);
+		$data_projects = array();
+	    foreach ( $staff as $staff ) {
+			$data_projects[] = array(
+					'id' => $staff[ 'id' ],
+					'staff_number' => $staff[ 'staff_number' ],
+					'name' => $staff[ 'staffname' ],
+			);
+	    }
+	    echo json_encode( $data_projects );
+	}
 }

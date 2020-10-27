@@ -535,6 +535,17 @@ function Ciuis_Controller($scope, $http, $mdSidenav, $filter, $interval, $mdDial
 		$scope.searchPurchases.length = 0;
 		$scope.searchDeposits.length = 0;
 	}
+
+	$scope.search_staff = function(q) {
+		if (q.length > 0) {
+			$http.get(BASE_URL + 'api/search_staff/'+q).then(function (staff) {
+				$scope.staff = staff.data;
+			});
+		} else {
+			$scope.staff = [];
+		}
+		console.log('test');
+	};
 	$scope.searchInput = function(input) {
 		if (input.length > 1) {
 			$scope.searchInputMsg = 0;

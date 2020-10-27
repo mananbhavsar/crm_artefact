@@ -274,7 +274,7 @@ function Leads_Controller($scope, $http, $mdSidenav, $mdDialog, $mdConstant, $fi
 	$scope.GetLeads = function (index) { 
 			var status = index;
 			$http.post(BASE_URL + 'leads/get_leads/' + status, config).then(function (Leads) {
-			$scope.leads = Leads.data.data_leads;
+			$scope   .leads = Leads.data.data_leads;
 			//get_leads_count(index);
 			//$scope.changeCount('status',status);
 			for (var i = 0; i < $scope.leads.length; i++) {

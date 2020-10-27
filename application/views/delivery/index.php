@@ -1,7 +1,130 @@
 <?php include_once(APPPATH . 'views/inc/ciuis_data_table_header.php'); ?>
 <?php $appconfig = get_appconfig(); ?>
+<style>
+.selectpicker > .dropdown .dropdown-menu {
+	padding:5px;
+}
+.cursor{
+	cursor:pointer;
+}
+.pen body {
+	padding-top:50px;
+}
+
+/* Social Buttons - Twitter, Facebook, Google Plus */
+.btn-twitter {
+	background: #00acee;
+	color: #fff
+}
+.btn-twitter:link, .btn-twitter:visited {
+	color: #fff
+}
+.btn-twitter:active, .btn-twitter:hover {
+	background: #0087bd;
+	color: #fff
+}
+
+.btn-instagram {
+	color:#fff;
+	background-color:#3f729b;
+	border-color:rgba(0,0,0,0.2);
+}
+.btn-instagram:focus,.btn-instagram.focus {
+	color:#fff;
+	background-color:#305777;
+	border-color:rgba(0,0,0,0.2);
+}
+.btn-instagram:hover {
+	color:#fff;
+	background-color:#305777;
+	border-color:rgba(0,0,0,0.2);
+}
+
+.btn-github {
+	color:#fff;
+	background-color:#444;
+	border-color:rgba(0,0,0,0.2);
+}
+.btn-github:focus,.btn-github.focus {
+	color:#fff;
+	background-color:#2b2b2b;
+	border-color:rgba(0,0,0,0.2);
+}
+.btn-github:hover {
+	color:#fff;
+	background-color:#2b2b2b;
+	border-color:rgba(0,0,0,0.2);
+}
+
+/* MODAL FADE LEFT RIGHT BOTTOM */
+.modal.fade:not(.in).left .modal-dialog {
+	-webkit-transform: translate3d(-25%, 0, 0);
+	transform: translate3d(-25%, 0, 0);
+}
+.modal.fade:not(.in).right .modal-dialog {
+	-webkit-transform: translate3d(25%, 0, 0);
+	transform: translate3d(25%, 0, 0);
+}
+.modal.fade:not(.in).bottom .modal-dialog {
+	-webkit-transform: translate3d(0, 25%, 0);
+	transform: translate3d(0, 25%, 0);
+}
+
+.modal.right .modal-dialog {
+	position:absolute;
+	top:0;
+	right:0;
+	margin:0;
+}
+
+.modal.left .modal-dialog {
+	position:absolute;
+	top:0;
+	left:0;
+	margin:0;
+}
+
+.modal.left .modal-dialog.modal-sm {
+	max-width:300px;
+}
+
+.modal.left .modal-content, .modal.right .modal-content {
+    min-height:100vh;
+	border:0;
+}
+
+.modal-header {
+   
+    background-color: #000000	;
+
+ }
+.modal-title {
+    color: white !important;
+	line-height:0.42857143;
+	font-size: 20px;
+    letter-spacing: .005em;
+  }
+  .ciuis-invoice-summaries-b1{
+	  width:20% !important;
+  }
+  
+  .select2-default {
+	  color: rgba(0,0,0,0.12) !important;
+	  border-color:rgba(0,0,0,0.12) !important;
+	  font-family:inherit !important;
+	  font-size:inherit !important;
+	  
+  }
+  .md-dialog-container,.md-open-menu-container{
+	  z-index:2000;
+  }
+  .toBold { 
+    color: orange !important;
+};
+</style>
 <div class="ciuis-body-content" ng-controller="Delivery_Controller">
   <div class="main-content container-fluid col-xs-12 col-md-12 col-lg-9">
+
     <md-toolbar class="toolbar-white" style="margin-bottom: 1%;">
       <div class="md-toolbar-tools">
         <md-button class="md-icon-button" aria-label="File">
@@ -32,11 +155,11 @@
               <md-checkbox md-no-ink aria-label="column select" class="md-primary" ng-model="table_columns.name" ng-change="updateColumns('name', table_columns.name);">
                 <?php echo lang('project') . ' ' . lang('name') ?>
               </md-checkbox><br>
-              <md-checkbox md-no-ink aria-label="column select" class="md-primary" ng-model="table_columns.customer" ng-change="updateColumns('customer', table_columns.customer);">
+          <!--     <md-checkbox md-no-ink aria-label="column select" class="md-primary" ng-model="table_columns.customer" ng-change="updateColumns('customer', table_columns.customer);">
                 <?php echo lang('customer') ?>
-              </md-checkbox><br>
-              <md-checkbox md-no-ink aria-label="column select" class="md-primary" ng-model="table_columns.delivery_date" ng-change="updateColumns('startdate', table_columns.delivery_date);">
-                <?php echo lang('startdate') ?>
+              </md-checkbox><br> -->
+              <md-checkbox md-no-ink aria-label="column select" class="md-primary" ng-model="table_columns.address" ng-change="updateColumns('customer', table_columns.address);">
+                <?php echo lang('address') ?>
               </md-checkbox><br>
             
               <md-checkbox md-no-ink aria-label="column select" class="md-primary" ng-model="table_columns.status" ng-change="updateColumns('status', table_columns.status);">
@@ -44,6 +167,9 @@
               </md-checkbox><br>
               <md-checkbox md-no-ink aria-label="column select" class="md-primary" ng-model="table_columns.members" ng-change="updateColumns('members', table_columns.members);">
                 <?php echo lang('members') ?>
+              </md-checkbox><br>
+              <md-checkbox md-no-ink aria-label="column select" class="md-primary" ng-model="table_columns.duration" ng-change="updateColumns('duration', table_columns.duration);">
+              Duration
               </md-checkbox><br>
            <!--    <md-checkbox md-no-ink aria-label="column select" class="md-primary" ng-model="table_columns.actions" ng-change="updateColumns('actions', table_columns.actions);">
                 <?php echo lang('actions') ?>
@@ -65,6 +191,7 @@
       </div>
     </md-toolbar>
     <div class="row projectRow">
+    
       <div ng-show="projectLoader" layout-align="center center" class="text-center" id="circular_loader">
         <md-progress-circular md-mode="indeterminate" md-diameter="40"></md-progress-circular>
         <p style="font-size: 15px;margin-bottom: 5%;">
@@ -74,6 +201,53 @@
           </span>
         </p>
       </div>
+      	
+		<div class="panel-default" ng-show="!projectLoader">
+        <div class="ciuis-invoice-summary" >
+           <div>
+              <div class="row">
+                 <div class="col-md-12">
+                    <div style="border-top-left-radius: 10px;" class="ciuis-right-border-b1 ciuis-invoice-summaries-b1">
+                       <div class="box-header text-uppercase text-bold"><?php echo lang('notsch'); ?></div>
+                       <div class="box-content" style="width: 130px; height: 130px;">
+                          <div class="percentage cursor " ng-bind="stats.sumnotstarted" id="present" onclick="select_sts('Present');">
+                          </div>
+                          <canvas id="0" width="130" height="130" style="border: 1px solid;border-radius: 50%;"></canvas>
+                       </div>
+                    </div>
+                    <div class="ciuis-right-border-b1 ciuis-invoice-summaries-b1">
+                       <div class="box-header text-uppercase text-bold"><?php echo lang('schdule'); ?></div>
+                       <div class="box-content invoice-percent" style="width: 130px; height: 130px;">
+                          <div class="percentage cursor" ng-bind="stats.sumstarted" id="absent" onclick="select_sts('Absent');"></div>
+                          <canvas id="0" width="130" height="130" style="border: 1px solid;border-radius: 50%;"></canvas>
+                       </div>
+                    </div>
+                    <div class="ciuis-right-border-b1 ciuis-invoice-summaries-b1">
+                       <div class="box-header text-uppercase text-bold"><?php echo lang('hold'); ?></div>
+                       <div class="box-content invoice-percent" style="width: 130px; height: 130px;">
+                          <div class="percentage cursor"  ng-bind="stats.sumhold"  id="ontime" onclick="select_sts('Ok');"></div>
+                          <canvas id="0" width="130" height="130" style="border: 1px solid;border-radius: 50%;"></canvas>
+                       </div>
+                    </div>
+                    <div class="ciuis-right-border-b1 ciuis-invoice-summaries-b1">
+                       <div class="box-header text-uppercase text-bold"><?php echo lang('cancelled'); ?> </div>
+                       <div class="box-content invoice-percent-2" style="width: 130px; height: 130px;">
+                          <div class="percentage cursor" ng-bind="stats.sumcancelled" id="latein" onclick="select_sts('LateIn');"></div>
+                          <canvas id="1" width="130" height="130" style="border: 1px solid;border-radius: 50%;"></canvas>
+                       </div>
+                    </div>
+                    <div style="border-top-right-radius: 10px;" class="ciuis-invoice-summaries-b1">
+                       <div class="box-header text-uppercase text-bold"><?php echo lang('complete'); ?></div>
+                       <div class="box-content invoice-percent-3" style="width: 130px; height: 130px;">
+                          <div class="percentage cursor"  ng-bind="stats.sumcomplete" id="vacation"></div>
+                          <canvas id="2" width="130" height="130" style="border: 1px solid;border-radius: 50%;"></canvas>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+           </div>
+        </div>
+      </div>
       <div ng-show="!projectLoader" id="ciuisprojectcard" style="padding-left: 15px;padding-right: 15px;" ng-cloak>
         <md-table-container ng-show="showList==true" class="bg-white">
           <table md-table md-progress="promise">
@@ -81,12 +255,12 @@
               <tr md-row>
                 <th md-column><span>#</span></th>
                 <th ng-show="table_columns.name" md-column md-order-by="name"><span><?php echo lang('project'); ?></span></th>
-                <th ng-show="table_columns.customer" md-column md-order-by="customer"><span><?php echo lang('customer'); ?></span></th>
-                <th ng-show="table_columns.members" md-column><span><?php echo lang('members'); ?></span></th>
-                <th ng-show="table_columns.latest_status" md-column><span>Last Status</span></th>
-                <th ng-show="table_columns.delivery_date" md-column><span>Date</span></th>
-                <th ng-show="table_columns.status" md-column md-order-by="progress"><span><?php echo lang('status'); ?></span></th>
-
+<!--                 <th ng-show="table_columns.customer" md-column md-order-by="customer"><span><?php echo lang('customer'); ?></span></th>
+ -->                <th ng-show="table_columns.address" md-column md-order-by="address"><span>Address</span></th>
+                <th ng-show="table_columns.latest_status" md-column md-order-by="latest_status"><span>Last Status</span></th>
+                <th ng-show="table_columns.status" md-column md-order-by="status"><span><?php echo lang('status'); ?>/Date</span></th>
+                <th ng-show="table_columns.duration" md-column md-order-by="duration"><span>Duration</span></th>
+                <th ng-show="table_columns.members" md-column md-order-by="members"><span><?php echo lang('members'); ?></span></th>
               </tr>
             </thead>
             <tbody md-body>
@@ -97,16 +271,37 @@
                   </strong>
                 </td>
                 <td ng-show="table_columns.name" md-cell class="cursor" ng-click="goToLink('delivery/delivery/'+project.id)">
-                  <strong><span class="link" ng-bind="project.name"></span></strong>
+                  <strong><span class="link" ng-bind="project.name"></span> <br> (<strong ng-bind="project.customer"></strong>)</strong>
                 </td>
-                <td md-cell ng-show="table_columns.customer">
+            <!--     <td md-cell ng-show="table_columns.customer">
                   <strong ng-bind="project.customer"></strong><br>
                   <small ng-bind="project.customeremail"></small>
-                </td>
+  
+                </td> -->
 
               
             
+                <td md-cell ng-show="table_columns.address">
+             <Address ng-show="project.shipping_address != NULL"  ng-bind="project.shipping_address"></Address>   
 
+                </br>
+
+              
+                <td md-cell ng-show="table_columns.latest_status">
+                  <span ng-bind="project.latest_status" class="sup-label colorGreenBack" style="background:brown;font-size: 12px !important; font-weight: bold; width: 20%;height: 35px;padding: 3px 9px;font-family: Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif" ng-show="project.latest_status != NULL"></span>
+                </td>
+              
+           
+                <td md-cell ng-show="table_columns.status">
+                </br>
+
+                <span class="sup-label colorGreenBack" style="background: <?php echo '{{project.status_type}}' ?>;font-size: 12px !important; font-weight: bold; width: 20%;height: 35px;padding: 3px 9px;font-family: Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif;margin-top:5px;" ng-bind="project.status"></span></br>
+                <span ng-show="project.delivery_date != NULL" class="badge" ng-bind="project.delivery_date" style="font-size: 10px;"></span>   </br>
+
+                </td>
+                <td md-cell ng-show="table_columns.duration">
+                  <span ng-bind="project.duration"></span>
+                </td>
                 <td md-cell ng-show="table_columns.members">
                   <div class="bottom-right text-right">
                     <ul class="more-avatar">
@@ -118,17 +313,6 @@
                     </ul>
                   </div>
                 </td>
-                <td md-cell ng-show="table_columns.latest_status">
-                  <span ng-bind="project.latest_status"></span>
-                </td>
-                <td md-cell ng-show="table_columns.delivery_date ">
-
-                  <span ng-show="project.delivery_date != NULL" class="badge" ng-bind="project.delivery_date"></span><br/>
-                </td>
-                <td md-cell ng-show="table_columns.status">
-                <span class="sup-label colorGreenBack" style="background: <?php echo '{{project.status_type}}' ?>;font-size: 12px !important; font-weight: bold; width: 20%;height: 35px;padding: 3px 9px;font-family: Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif" ng-bind="project.status"></span>
-                </td>
-
               </tr>
             </tbody>
           </table>
@@ -217,17 +401,12 @@
           </md-button>
 		  </div>
           <div class="panel-body" style="padding: 0px;">
-            <div class="project-stats-body pull-left">
+            <!-- <div class="project-stats-body pull-left">
               <div class="project-progress-data"> <span class="project-progress-value pull-right" ng-bind="project.sumnotstarted"></span> <span class="project-name"><?php echo lang('notsch'); ?></span> </div>
             
                 <h4 >{{stats.sumnotstarted}}</h4>
             </div>
-            <!--<div class="project-stats-body pull-left">
-              <div class="project-progress-data"> <span class="project-progress-value pull-right" ng-bind="stats.started_percent+'%'"></span> <span class="project-name"><?php echo lang('schdule'); ?></span> </div>
-              <div class="progress" style="height: 5px">
-                <div style="width: {{stats.started_percent}}%;" class="progress-bar progress-bar-success"></div>
-              </div>
-            </div>-->
+         
 			      <div class="project-stats-body pull-left">
               <div class="project-progress-data"> <span class="project-progress-value pull-right" ng-bind="stats.started_count"></span> <span class="project-name"><?php echo lang('schdule'); ?></span> </div>
               <h4 >{{stats.sumstarted}}</h4>
@@ -243,7 +422,26 @@
             <div class="project-stats-body pull-left">
               <div class="project-progress-data"> <span class="project-progress-value pull-right" ng-bind="stats.complete_count"></span> <span class="project-name"><?php echo lang('complete'); ?></span> </div>
               <h4 >{{stats.sumcomplete}}</h4>
-            </div>
+            </div> -->
+
+            <md-list flex class="md-p-0 sm-p-0 lg-p-0" ng-cloak>
+                <md-list-item ng-click="GetDelivery('All');GetDeliveryStats('All');" class="md-pl-10">
+                  <p class="leadbytype_all alldaysCls"><strong>All</strong></p>
+                </md-list-item>
+                <md-list-item ng-click="GetDelivery('today');GetDeliveryStats('today');" class="md-pl-10">
+                  <p class="leadbytype_today alldaysCls"><strong>Today</strong></p>
+                </md-list-item>
+                <md-list-item ng-click="GetDelivery('yesterday');GetDeliveryStats('yesterday');" class="md-pl-10">
+                  <p class="leadbytype_yesterday alldaysCls"><strong>Yesterday</strong></p>
+                </md-list-item>
+                <md-list-item ng-click="GetDelivery('lastweek');GetDeliveryStats('lastweek');" class="md-pl-10">
+                  <p class="leadbytype_lastweek alldaysCls"><strong>Last Week</strong></p>
+                </md-list-item>
+                <md-list-item ng-click="GetDelivery('lastmonth');GetDeliveryStats('lastmonth');" class="md-pl-10">
+                  <p class="leadbytype_lastmonth alldaysCls"><strong>This Month</strong></p>
+                </md-list-item>
+              </md-list>
+            </md-content>
           </div>
         </div>
       </div>
@@ -276,7 +474,10 @@
       <div class="md-toolbar-tools">
         <md-button ng-click="close()" class="md-icon-button" aria-label="Close"> <i class="ion-android-arrow-forward"></i> </md-button>
         <h2 flex md-truncate><?php echo lang('create') ?></h2>
-      
+        <md-switch ng-model="delivery.showprojectdata" aria-label="Type">
+          <md-tooltip md-direction="bottom"><?php echo lang('addproject'); ?></md-tooltip>
+          <strong class="text-muted"><?php echo lang('addproject'); ?> <i class="ion-information-circled"></i></strong>
+        </md-switch>
       </div>
     </md-toolbar>
     <md-content>
@@ -289,11 +490,36 @@
             </md-option>
           </md-select>
         </md-input-container>
-        <md-input-container class="md-block" flex-gt-xs ng-hide="delivery.template">
+        <md-content  ng-show='delivery.showprojectdata == true' layout-padding class="bg-white" ng-cloak>
+
+        <md-input-container class="md-block" flex-gt-xs >
+
+        <md-input-container class="md-block">
+          <label><?php echo lang('deliveryprojectname'); ?></label>
+          <input name="addprojectname" ng-model="delivery.addprojectname">
+        </md-input-container>
+          <md-select required placeholder="<?php echo lang('choisecustomer'); ?>" ng-model="delivery.customerid" name="customer" style="min-width: 200px;" data-md-container-class="selectdemoSelectHeader">
+            <md-select-header class="demo-select-header">
+              <label style="display: none;width: 450px;"><?php echo lang('search').' '.lang('customer')?></label>
+              <input ng-submit="search_customers(search_input)" ng-model="search_input" type="text" placeholder="<?php echo lang('search').' '.lang('customers')?>" class="demo-header-searchbox md-text" ng-keyup="search_customers(search_input)">
+            </md-select-header>
+            <md-optgroup label="customers">
+              <md-option ng-value="customer.id" ng-repeat="customer in all_customers">
+                <span class="blur" ng-bind="customer.customer_number"></span> 
+                <strong ng-bind="customer.name"></strong><br>
+                <span class="blur">(<small ng-bind="customer.email"></small>)</span>
+              </md-option>
+            </md-optgroup>            
+          </md-select>
+        </md-input-container>
+
+    
+        </md-content>
+        <md-input-container class="md-block" flex-gt-xs ng-hide="delivery.template"  ng-show='delivery.showprojectdata == false'>
           <md-select required placeholder="<?php echo lang('choiseproject'); ?>" ng-model="delivery.projectname" name="project" style="min-width: 200px;" data-md-container-class="selectdemoSelectHeader">
             <md-select-header class="demo-select-header">
               <label style="display: none;width: 450px;"><?php echo lang('search').' '.lang('delivery')?></label>
-              <input ng-submit="search_customers(search_input)" ng-model="search_input" type="text" placeholder="<?php echo lang('search').' '.lang('delivery')?>" class="demo-header-searchbox md-text" ng-keyup="search_customers(search_input)">
+              <input ng-submit="search_projectsdelivery(search_input)" ng-model="search_input" type="text" placeholder="<?php echo lang('search').' '.lang('delivery')?>" class="demo-header-searchbox md-text" ng-keyup="search_projectsdelivery(search_input)">
             </md-select-header>
             <md-optgroup label="Projects">
               <md-option ng-value="projects.id" ng-repeat="projects in projectname">
@@ -305,14 +531,13 @@
   
         <md-input-container class="md-block">
           <label>Date</label>
-          <input mdc-datetime-picker="" date="true" time="true" type="text" id="datetime" placeholder="<?php echo lang('chooseadate') ?>" show-todays-date="" minutes="true" min-date="date" show-icon="true" ng-model="delivery.delivery_date" class=" dtp-no-msclear dtp-input md-input">
+          <input mdc-datetime-picker="" date="true" time="true" type="text" id="datetime" placeholder="<?php echo lang('chooseadate') ?>" show-todays-date="" minutes="true" min-date="date" show-icon="true" ng-model="delivery.delivery_date" class=" dtp-no-msclear dtp-input md-input" >
         </md-input-container>
         <md-input-container class="md-block">
           <label><?php echo lang('description') ?></label><br>
           <input type="text" id="location" class="form-control text-left" placeholder="" <?php echo lang('description'); ?>  ng-model="delivery.description">
         </md-input-container>
-        <md-switch ng-model="NeedShippingAddress" aria-label="Status"><strong class="text-muted"><?php echo lang('need_shipping_address') ?></strong></md-switch>
-        <md-subheader ng-show='NeedShippingAddress == true' class="md-primary bg-white text-uppercase text-bold"><?php echo lang('shipping_address') ?></md-subheader>
+        <md-switch ng-model="NeedShippingAddress" aria-label="Status"><strong class="text-muted"><?php echo lang('shipping_address') ?></strong></md-switch>
         <md-content  ng-show='NeedShippingAddress == true' layout-padding class="bg-white" ng-cloak>
         <md-input-container class="md-block">
           <label><?php echo lang('address') ?></label>

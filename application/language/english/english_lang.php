@@ -21,6 +21,15 @@ $lang[ 'importmaterial' ] = 'Import Material';
 $lang['choosexlsfile']='Choose xls file.';
 $lang[ 'lockdepartment' ] = 'has been locked successfully';
 $lang['markascomplete']='Mark As Completed';
+$lang['document_staff_remind']='Staff Document Remainder';
+$lang['staff_holiday']='Holiday';
+$lang['staff_payroll']='Staff Payroll';
+$lang['staff_recruitment']='Recruitment convert to status ';
+$lang['customers_new_added']='Customers new one added';
+$lang['vendor_aded_mail']='Vendors added mail';
+$lang['quote_salary_leave']='Request approvals  - salary';
+$lang['quote__leave']='Request approvals mail  - leave';
+$lang['documents_quotes']='Documents remind';
 // Firs Notifications
 
 $lang[ 'crmwelcome' ] = '';
@@ -1105,7 +1114,7 @@ $lang[ 'billing_address' ] = 'Billing Address';
 $lang[ 'need_shipping_address' ] = 'Need Shipping Address';
 $lang[ 'hide' ] = 'Hide';
 $lang[ 'copy_from_customer' ] = 'Copy From Customer';
-$lang[ 'shipping_address' ] = 'Shipping Address';
+$lang[ 'shipping_address' ] = 'Address';
 $lang[ 'billed_to' ] = 'BILLED TO';
 $lang[ 'ship_to' ] = 'SHIP TO';
 $lang[ 'discussions' ] = 'Discussions';
@@ -2008,7 +2017,7 @@ $lang[ 'delivery' ] = 'Delivery';
 $lang[ 'collection' ] = 'Collection';
 $lang[ 'removal&disposal' ] = 'Removal Disposal';
 $lang[ 'choiseproject' ] = 'Choose Project';
-$lang[ 'addvehicle' ] = 'Add Vehicle';
+$lang[ 'addvehicle' ] = 'Vehicle';
 $lang[ 'vehicle_number' ] = 'Vehicle Number';
 $lang[ 'vehicle_type' ] = 'Vehicle Type';
 $lang[ 'driver_name' ] = 'Driver Name';
@@ -2021,4 +2030,11 @@ $lang['delete_delivery_note'] = 'Do you confirm the deletion of this delivery?';
 
 //Approval changes
 $lang[ 'value' ] = 'Value below ';
+$lang[ 'checklist' ] = 'Check List';
+$lang[ 'descrition' ] = 'Description';
+$lang[ 'qty' ] = 'Qty';
+$lang[ 'Delivery checklist' ] = 'Checkist';
+$lang[ 'addproject' ] = 'Add project';
+$lang[ 'deliveryprojectname' ] = 'Project Name';
+
 ?>

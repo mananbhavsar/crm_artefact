@@ -1930,3 +1930,16 @@ function showToast(title, message, type) {
 		class_name: 'color '+type,
 	});
 }
+
+
+
+$scope.search_staff = function(q) {
+	if (q.length > 0) {
+		$http.get(BASE_URL + 'api/search_staff/'+q).then(function (staff) {
+			$scope.staff = staff.data;
+		});
+	} else {
+		$scope.staff = [];
+	}
+	console.log('test');
+};

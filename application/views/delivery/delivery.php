@@ -34,7 +34,7 @@
             <span ng-show="project.template == 1" class="badge" ng-cloak><strong><?php echo lang('template').' '.lang('project') ?></strong></span>
           </h2>
           <?php if (check_privilege('invoices', 'create')) { ?> 
-            <md-button ng-show="project.authorization === 'true' && project.template == 0" ng-click="ConvertDialog()" class="md-icon-button" aria-label="Convert" ng-cloak>
+            <md-button class="md-icon-button" aria-label="Convert" ng-cloak ng-click="MarkasPopup($index)">
               <md-tooltip md-direction="bottom"><?php echo lang('convertinvoice') ?></md-tooltip>
               <md-icon area-label="Delete"><i class="ion-loop text-success"></i></md-icon>
             </md-button>
@@ -105,54 +105,7 @@
             </md-menu-content>
           </md-menu> -->
           <?php if (check_privilege('projects', 'edit') || check_privilege('projects', 'delete')) { ?>      
-          <md-menu ng-show="project.authorization === 'true'" md-position-mode="target-right target" ng-cloak>
-            <md-button aria-label="Open demo menu" class="md-icon-button" ng-click="$mdMenu.open($event)">
-              <md-icon><i class="ion-android-more-vertical text-muted"></i></md-icon>
-            </md-button>
-            <md-menu-content width="4">
-            <md-menu-item>
-                  <md-button ng-click="Update()" aria-label="Delete">
-                    <div layout="row" flex>
-                      <p flex ng-bind="lang.updateproject"></p>
-                      <md-icon md-menu-align-target class="ion-compose" style="margin: auto 3px auto 0;"></md-icon>
-                    </div>
-                  </md-button>
-                
-                </md-menu-item>
-                <md-menu-item>
-                <md-button ng-click="Delete()" aria-label="Delete">
-                    <div layout="row" flex>
-                      <p flex ng-bind="lang.delete"></p>
-                      <md-icon md-menu-align-target class="ion-trash-b" style="margin: auto 3px auto 0;"></md-icon>
-                    </div>
-                  </md-button>
-                  </md-menu-item>
-                <md-menu-item  ng-repeat="status in subprojects">
-                  <md-button ng-click="MarkasPopup($index)" aria-label="Delete">
-                    <div layout="row" flex>
-                      <p flex ng-bind="'Mark as ' + status.stagename">Mark as {{status.stagename}}</p>
-                    </div>
-                  </md-button>
-                </md-menu-item>
-                <!--<md-menu-item ng-hide="project.status_id == '1'">
-                  <md-button ng-click="MarkAs(1,'<?php echo lang("notstarted") ?>')" aria-label="Delete">
-                    <div layout="row" flex>
-                      <p flex ng-bind="lang.markasprojectnotstarted"></p>
-                      <md-icon md-menu-align-target class="ion-ios-close-empty" style="margin: auto 3px auto 0;"></md-icon>
-                    </div>
-                  </md-button>
-                </md-menu-item>
-                <md-menu-item ng-hide="project.status_id == '2'">
-                  <md-button ng-click="MarkAs(2,'<?php echo lang("started") ?>')" aria-label="Delete">
-                    <div layout="row" flex>
-                      <p flex ng-bind="lang.markasprojectstarted"></p>
-                      <md-icon md-menu-align-target class="ion-toggle-filled" style="margin: auto 3px auto 0;"></md-icon>
-                    </div>
-                  </md-button>
-                </md-menu-item>-->
-                
-            </md-menu-content>
-          </md-menu>
+        
           <md-menu ng-show="project.authorization === 'true'" md-position-mode="target-right target" ng-cloak>
             <md-button aria-label="Open demo menu" class="md-icon-button" ng-click="$mdMenu.open($event)">
               <md-icon><i class="ion-android-more-vertical text-muted"></i></md-icon>
@@ -202,6 +155,56 @@
                 
             </md-menu-content>
           </md-menu>
+
+          <md-menu ng-show="project.authorization === 'true'" md-position-mode="target-right target" ng-cloak>
+            <md-button aria-label="Open demo menu" class="md-icon-button" ng-click="$mdMenu.open($event)">
+              <md-icon><i class="ion-android-more-vertical text-muted"></i></md-icon>
+            </md-button>
+            <md-menu-content width="4">
+            <md-menu-item>
+                  <md-button ng-click="Update()" aria-label="Delete">
+                    <div layout="row" flex>
+                      <p flex ng-bind="lang.updateproject"></p>
+                      <md-icon md-menu-align-target class="ion-compose" style="margin: auto 3px auto 0;"></md-icon>
+                    </div>
+                  </md-button>
+                
+                </md-menu-item>
+                <md-menu-item>
+                <md-button ng-click="Delete()" aria-label="Delete">
+                    <div layout="row" flex>
+                      <p flex ng-bind="lang.delete"></p>
+                      <md-icon md-menu-align-target class="ion-trash-b" style="margin: auto 3px auto 0;"></md-icon>
+                    </div>
+                  </md-button>
+                  </md-menu-item>
+             <!--    <md-menu-item >
+                  <md-button ng-click="MarkasPopup($index)" aria-label="Delete">
+                    <div layout="row" flex>
+                    <p >Open Category</p>
+                    <md-icon md-menu-align-target class="ion-open-b" style="margin: auto 3px auto 0;"></md-icon>
+                    </div>
+                  </md-button>
+                </md-menu-item> -->
+                <!--<md-menu-item ng-hide="project.status_id == '1'">
+                  <md-button ng-click="MarkAs(1,'<?php echo lang("notstarted") ?>')" aria-label="Delete">
+                    <div layout="row" flex>
+                      <p flex ng-bind="lang.markasprojectnotstarted"></p>
+                      <md-icon md-menu-align-target class="ion-ios-close-empty" style="margin: auto 3px auto 0;"></md-icon>
+                    </div>
+                  </md-button>
+                </md-menu-item>
+                <md-menu-item ng-hide="project.status_id == '2'">
+                  <md-button ng-click="MarkAs(2,'<?php echo lang("started") ?>')" aria-label="Delete">
+                    <div layout="row" flex>
+                      <p flex ng-bind="lang.markasprojectstarted"></p>
+                      <md-icon md-menu-align-target class="ion-toggle-filled" style="margin: auto 3px auto 0;"></md-icon>
+                    </div>
+                  </md-button>
+                </md-menu-item>-->
+                
+            </md-menu-content>
+          </md-menu>
         <?php } ?>
         </div>
       </md-toolbar>
@@ -245,7 +248,7 @@
       </md-content>
       <md-tabs ng-show="!projectLoader" md-dynamic-height md-border-bottom ng-cloak>
         <md-tab label="<?php echo lang('summary') ?>">
-          <h4 layout-padding class="m-xs text-success text-bold" ng-show="project.template == 0">
+          <h4 layout-padding class="m-xs text-success text-bold" >
             <md-button class="md-icon-button auto-cursor">
               <md-icon><i class="ico-ciuis-staffdetail text-success"></i>
               </md-icon> 
@@ -359,7 +362,7 @@
             </article>
           </md-content>
         </md-tab> -->
-        <md-tab label="<?php echo lang('milestones') ?>">
+<!--         <md-tab label="<?php echo lang('milestones') ?>">
           <md-content class="md-padding bg-white">
             <article class="project_milestone_detail">
               <ul class="milestone_project">
@@ -402,8 +405,76 @@
               </ul>
             </article>
           </md-content>
-        </md-tab>
+        </md-tab> -->
        
+      
+
+        
+        <md-tab label="<?php echo lang('checklist') ?>">
+          <md-content class="md-padding bg-white">
+            <md-list-item ng-repeat="item in checklist.items">
+				<div layout-gt-sm="row">
+				<input type="hidden" class="min_input_width" ng-model="item.id">
+				<md-input-container class="md-block">
+					<label><?php echo lang('descrition'); ?></label>
+					<input class="min_input_width" ng-model="item.description">
+				</md-input-container>
+				<md-input-container class="md-block">
+					<label><?php echo lang('qty'); ?></label>
+					<input class="min_input_width" ng-model="item.qty">
+				</md-input-container>
+			
+				</div>
+				<md-icon aria-label="Remove Line" ng-click="checklist_remove($index,item.id)" class="md-secondary ion-trash-b text-muted"></md-icon>
+			</md-list-item>
+			<md-content class="bg-white" layout-padding>
+				<div class="col-md-6">
+				<md-button ng-click="add_checkist()" class="md-fab pull-left" ng-disabled="false" aria-label="Add Line">
+					<md-icon class="ion-plus-round text-muted"></md-icon>
+				</md-button>
+				<md-button ng-click="save_checklist()" class="md-fab pull-left" ng-disabled="false" aria-label="Add Line">
+					<md-icon class="ion-checkmark text-muted"></md-icon>
+				</md-button>
+				</div>
+			</md-content>
+          </md-content>
+        </md-tab>
+     
+        <md-tab label="<?php echo lang('addvehicle') ?>">
+          <md-content class="md-padding bg-white">
+            <md-list-item ng-repeat="item in vehicle.items">
+				<div layout-gt-sm="row">
+				<input type="hidden" class="min_input_width" ng-model="item.id">
+				<md-input-container class="md-block">
+					<label><?php echo lang('vehicle_number'); ?></label>
+					<input class="min_input_width" ng-model="item.vehicle_number">
+				</md-input-container>
+				<md-input-container class="md-block">
+					<label><?php echo lang('vehicle_type'); ?></label>
+					<input class="min_input_width" ng-model="item.vehicle_type">
+				</md-input-container>
+				<md-input-container class="md-block">
+					<label><?php echo lang('driver_name'); ?></label>
+					<input class="min_input_width" ng-model="item.driver_name" >
+				</md-input-container>
+			
+				
+				</div>
+				<md-icon aria-label="Remove Line" ng-click="vehicle_remove($index,item.id)" class="md-secondary ion-trash-b text-muted"></md-icon>
+			</md-list-item>
+			<md-content class="bg-white" layout-padding>
+				<div class="col-md-6">
+				<md-button ng-click="add_vehicle()" class="md-fab pull-left" ng-disabled="false" aria-label="Add Line">
+					<md-icon class="ion-plus-round text-muted"></md-icon>
+				</md-button>
+				<md-button ng-click="save_vehicle()" class="md-fab pull-left" ng-disabled="false" aria-label="Add Line">
+					<md-icon class="ion-checkmark text-muted"></md-icon>
+				</md-button>
+				</div>
+			</md-content>
+          </md-content>
+        </md-tab>
+
         <md-tab label=" <?php echo lang('notes') ?>">
           <md-content class="md-padding bg-white">
             <section class="md-pb-30">
@@ -448,43 +519,6 @@
             </section>
           </md-content>
         </md-tab>
-     
-        <md-tab label="<?php echo lang('addvehicle') ?>">
-          <md-content class="md-padding bg-white">
-            <md-list-item ng-repeat="item in vehicle.items">
-				<div layout-gt-sm="row">
-				<input type="hidden" class="min_input_width" ng-model="item.id">
-				<md-input-container class="md-block">
-					<label><?php echo lang('vehicle_number'); ?></label>
-					<input class="min_input_width" ng-model="item.vehicle_number">
-				</md-input-container>
-				<md-input-container class="md-block">
-					<label><?php echo lang('vehicle_type'); ?></label>
-					<input class="min_input_width" ng-model="item.vehicle_type">
-				</md-input-container>
-				<md-input-container class="md-block">
-					<label><?php echo lang('driver_name'); ?></label>
-					<input class="min_input_width" ng-model="item.driver_name" >
-				</md-input-container>
-			
-				
-				</div>
-				<md-icon aria-label="Remove Line" ng-click="vehicle_remove($index,item.id)" class="md-secondary ion-trash-b text-muted"></md-icon>
-			</md-list-item>
-			<md-content class="bg-white" layout-padding>
-				<div class="col-md-6">
-				<md-button ng-click="add_vehicle()" class="md-fab pull-left" ng-disabled="false" aria-label="Add Line">
-					<md-icon class="ion-plus-round text-muted"></md-icon>
-				</md-button>
-				<md-button ng-click="save_vehicle()" class="md-fab pull-left" ng-disabled="false" aria-label="Add Line">
-					<md-icon class="ion-checkmark text-muted"></md-icon>
-				</md-button>
-				</div>
-			</md-content>
-          </md-content>
-        </md-tab>
-
-
       </md-tabs>
     </md-content>
   </div>
@@ -595,6 +629,14 @@
     </md-toolbar>
     <md-content>
       <md-content layout-padding>
+      <md-input-container class="md-block" flex-gt-xs>
+          <label><?php echo lang('installation') ?></label>
+          <md-select ng-model="project.stage_id" name="delivery" >
+            <md-option  ng-value="allstage.id" ng-repeat="allstage in stages">
+            <strong ng-bind="allstage.name"></strong><br>
+            </md-option>
+          </md-select>
+        </md-input-container>
         <md-input-container class="md-block">
           <label><?php echo lang('name') ?></label>
           <input required type="text" ng-model="project.name" class="form-control" id="title" placeholder="<?php echo lang('name'); ?>" disabled/>
@@ -625,8 +667,7 @@
           <label><?php echo lang('description') ?></label><br>
           <input type="text" id="location" class="form-control text-left" placeholder="" <?php echo lang('description'); ?>  ng-model="project.description">
         </md-input-container>
-        <md-switch ng-model="NeedShippingAddress" aria-label="Status" class="md-block" > <strong class="text-muted"><?php echo lang('need_shipping_address') ?></strong></md-switch>
-        <md-subheader ng-show='true' class="md-primary bg-white text-uppercase text-bold"><?php echo lang('shipping_address') ?></md-subheader>
+        <md-switch ng-model="NeedShippingAddress" aria-label="Status"><strong class="text-muted"><?php echo lang('shipping_address') ?></strong></md-switch>
         <md-content  ng-show='true' layout-padding class="bg-white" ng-cloak>
         <md-input-container class="md-block">
           <label><?php echo lang('address') ?></label>
@@ -1269,9 +1310,19 @@
   <md-dialog aria-label="options dialog">
   <md-dialog-content layout-padding>
     <h2 class="md-title"><?php echo lang('assigned'); ?></h2>
-    <md-select required ng-model="insertedStaff" style="min-width: 200px;" aria-label="AddMember">
+   <!--  <md-select required ng-model="insertedStaff" style="min-width: 200px;" aria-label="AddMember">
       <md-option ng-value="staff.id" ng-repeat="staff in staff">{{staff.name}}</md-option>
+    </md-select> -->
+
+    <md-input-container>
+    <label></label>
+    <md-select ng-model="insertedStaff" style="min-width: 200px;" aria-label="AddMember">
+      
+    <md-optgroup>
+        <md-option ng-value="staff.id" ng-repeat="staff in staff">{{staff.name}}</md-option>
+    </md-optgroup>
     </md-select>
+</md-input-container>
   </md-dialog-content>
   <md-dialog-actions>
     <span flex></span>
@@ -1285,6 +1336,12 @@
   <md-dialog aria-label="options dialog">
   <md-dialog-content layout-padding>
     <input mdc-datetime-picker="" date="true" time="true" type="text" id="datetime" placeholder="<?php echo lang('chooseadate') ?>" show-todays-date="" minutes="true" min-date="date" show-icon="true" ng-model="delivery.addnewdelivery_date" class=" dtp-no-msclear dtp-input md-input">
+    <md-input-container class="md-block">
+          <md-select placeholder="<?php echo lang('state'); ?>" ng-model="delivery.delivery_stage_id" name="delivery_stage_id" style="min-width: 200px;">
+            <md-option ng-value="status.delivery_stage_id" ng-repeat="status in subprojects"> {{status.stagename}}</md-option>
+          </md-select>
+    </md-input-container>
+
     <md-switch ng-model="editNeedShippingAddress" aria-label="Status"><strong class="text-muted"><?php echo lang('need_shipping_address') ?></strong></md-switch>
         <md-subheader ng-show='editNeedShippingAddress == true' class="md-primary bg-white text-uppercase text-bold"><?php echo lang('shipping_address') ?></md-subheader>
         <md-content  ng-show='editNeedShippingAddress == true' layout-padding class="bg-white" ng-cloak>
@@ -1448,6 +1505,7 @@
       <div layout-gt-xs="row">
         <md-input-container class="md-block" flex-gt-xs>
           <label><?php echo lang('assigned'); ?></label> 
+        
           <md-select required placeholder="<?php echo lang('assigned'); ?>" ng-model="newproposal.assigned" name="assigned" style="min-width: 200px;">
             <md-option ng-value="staff.id" ng-repeat="staff in staff">{{staff.name}}</md-option>
           </md-select>

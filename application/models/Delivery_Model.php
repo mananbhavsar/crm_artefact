@@ -399,8 +399,9 @@ class Delivery_Model extends CI_Model {
 	}
 
 	function get_all_delivery() {
-		$this->db->select( '*,customers.company as customercompany,customers.namesurname as individual,customers.address as customeraddress,delivery.status_id as status, delivery.id as id, delivery.staff_id as staff_id, customers.email as customeremail,DATE_FORMAT(delivery_date, "%d/%m/%Y") AS deliverydate ,delivery.delivery_number' );
+		$this->db->select( '*,customers.company as customercompany,customers.namesurname as individual,customers.address as customeraddress,delivery.status_id as status, delivery.id as id, delivery.staff_id as staff_id, customers.email as customeremail,DATE_FORMAT(delivery_date, "%d/%m/%Y") AS deliverydate ,delivery.delivery_number,delivery.address as deliveryaddress' );
 		$this->db->join( 'projects', 'delivery.projectid = projects.id', 'left' );
+		$this->db->join( 'delivery_projects', 'delivery.projectid = delivery_projects.id', 'left' );
 		$this->db->join( 'customers', 'projects.customer_id = customers.id', 'left' );
 		$this->db->order_by( 'delivery.id', 'desc' );
 		return $this->db->get( 'delivery' )->result_array();
@@ -411,7 +412,7 @@ class Delivery_Model extends CI_Model {
 		return $this->db->get( 'delivery' )->result_array();
 	}
 	function get_delivery($delivery_uid) {
-		$this->db->select( '*,customers.company as customercompany,customers.namesurname as individual,customers.address as customeraddress,delivery.status_id as status, delivery.id as id, delivery.staff_id as staff_id, customers.email as customeremail ,delivery.address as custaddress,delivery.* ,projects.id as projectid ,delivery.*' );
+		$this->db->select( '*,customers.company as customercompany,customers.namesurname as individual,customers.address as customeraddress,delivery.status_id as status, delivery.id as id, delivery.staff_id as staff_id, customers.email as customeremail ,delivery.address as custaddress,delivery.* ,projects.id as projectid ,delivery.*,DAYNAME(delivery.delivery_date) as dayname' );
 		$this->db->join( 'projects', 'delivery.projectid = projects.id', 'left' );
 		$this->db->join( 'customers', 'projects.customer_id = customers.id', 'left' );
 		$this->db->order_by( 'delivery.id', 'desc' );
@@ -451,7 +452,7 @@ class Delivery_Model extends CI_Model {
 	}
 
 	function get_last_status( $id ) {
-		$this->db->select('subdelivery.id, subdelivery.deliveryid, subdelivery.delivery_stage_id, subdelivery.finished, subdelivery.created, subdelivery.staff_id, subdelivery.complete, installation.name as stagename');
+		$this->db->select('subdelivery.id, subdelivery.deliveryid, subdelivery.delivery_stage_id, subdelivery.finished, subdelivery.created, subdelivery.staff_id, subdelivery.complete, installation.name as stagename, installation.id  as stage_id');
 		$this->db->order_by( 'subdelivery.update', 'desc' );
 		$this->db->join( 'installation', 'subdelivery.delivery_stage_id = installation.id');
 		return $this->db->get_where( 'subdelivery', array( 'subdelivery.deliveryid' => $id, 'subdelivery.complete' => 1 ) )->result_array();
@@ -503,11 +504,11 @@ class Delivery_Model extends CI_Model {
 		return $this->db->get_where( 'files', array( 'files.relation_type' => 'delivery', 'files.relation' => $id ) )->result_array();
 	}
 
-	function delete_projects( $id, $number ) { 
+	function delete_delivery( $id, $number ) { 
 		$this->db->delete( 'delivery', array( 'id' => $id ) );
 		$this->db->delete( 'notes', array( 'relation' => $id, 'relation_type' => 'delivery' ) );
 		$this->db->delete( 'logs', array( 'project_id' => $id ) );
-		$this->db->delete( 'deliverymembers', array( 'delivery_id' => $id ) );
+		$this->db->delete( 'deliverymembers', array( 'project_id' => $id ) );
 
 		$files = $this->get_delivery_files( $id );
 		foreach ($files as $file) {
@@ -534,5 +535,43 @@ class Delivery_Model extends CI_Model {
 		return true;
 	}
 
+
+	function get_manual_projects( $delivery_uid ) {
+		$this->db->select( '*,customers.company as customercompany,customers.namesurname as individual,customers.address as customeraddress,delivery.status_id as status, delivery.id as id, delivery.staff_id as staff_id, customers.email as customeremail ,delivery.address as custaddress,delivery.* ,delivery_projects.id as projectid ,delivery.*' );
+		$this->db->join( 'delivery_projects', 'delivery.projectid = delivery_projects.id', 'delivery.manualprojectadd = true','left' );
+		$this->db->join( 'customers', 'delivery_projects.customer_id = customers.id', 'left' );
+		$this->db->order_by( 'delivery.id', 'desc' );
+		return $this->db->get_where( 'delivery', array( 'delivery.id' => $delivery_uid ) )->row_array();
+	}  
+
+	function get_projects( $delivery_uid ) {
+		$this->db->select( '*,customers.company as customercompany,customers.namesurname as individual,customers.address as customeraddress,delivery.status_id as status, delivery.id as id, delivery.staff_id as staff_id, customers.email as customeremail ,delivery.address as custaddress,delivery.* ,projects.id as projectid ,delivery.*' );
+		$this->db->join( 'projects', 'delivery.projectid = projects.id', 'left' );
+		$this->db->join( 'customers', 'projects.customer_id = customers.id', 'left' );
+		$this->db->order_by( 'delivery.id', 'desc' );
+		return $this->db->get_where( 'delivery', array( 'delivery.id' => $delivery_uid ) )->row_array();
+	}
+
+
+
+
+	function get_filterdelivery($date,$todaydate) {
+		$this->db->select( '*,customers.company as customercompany,customers.namesurname as individual,customers.address as customeraddress,delivery.status_id as status, delivery.id as id, delivery.staff_id as staff_id, customers.email as customeremail,DATE_FORMAT(delivery_date, "%d/%m/%Y") AS deliverydate ,delivery.delivery_number,delivery.address as deliveryaddress' );
+		$this->db->join( 'projects', 'delivery.projectid = projects.id', 'left' );
+		$this->db->join( 'delivery_projects', 'delivery.projectid = delivery_projects.id', 'left' );
+		$this->db->join( 'customers', 'projects.customer_id = customers.id', 'left' );
+		$this->db->where('delivery.delivery_date >=', $date);
+		$this->db->where('delivery.delivery_date <=', $todaydate);
+		$this->db->order_by( 'delivery.id', 'desc' );
+		return $this->db->get( 'delivery' )->result_array();
+	}
+	
+
+	function get_all_filterdeliverystatus($date,$todaydate) {
+		$this->db->select( ' SUM(if(delivery.status_id = 1, 1, 0)) AS sumnotstarted,SUM(if(delivery.status_id = 2, 1, 0)) AS sumstarted,SUM(if(delivery.status_id = 3, 1, 0)) AS sumhold,SUM(if(delivery.status_id = 4, 1, 0)) AS sumcancelled,SUM(if(delivery.status_id = 5, 1, 0)) AS sumcomplete' );
+		$this->db->where('delivery.delivery_date >=', $date);
+		$this->db->where('delivery.delivery_date <=', $todaydate);
+		return $this->db->get( 'delivery' )->result_array();
+	}
 
 }

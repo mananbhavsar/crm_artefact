@@ -10,6 +10,11 @@ function Delivery_Controller($scope, $http, $mdSidenav, $mdDialog, $filter, $q) 
 	});
 
 
+	  $scope.expandCompareRow = function (fields) {
+		fields.expanded = ! fields.expanded;
+	};
+	
+
 	$scope.get_customers();
 	$scope.get_staff();
 
@@ -51,7 +56,7 @@ function Delivery_Controller($scope, $http, $mdSidenav, $mdDialog, $filter, $q) 
 			column: column,
 			value: +value,
 		});
-		var posturl = BASE_URL + 'api/update_columns/projects';
+		var posturl = BASE_URL + 'api/update_columns/delivery';
 		$http.post(posturl, dataObj, config)
 		.then(
 			function (response) {
@@ -85,8 +90,11 @@ function Delivery_Controller($scope, $http, $mdSidenav, $mdDialog, $filter, $q) 
 		$scope.projects = Projects.data;
 		$scope.projectLoader = false;
 		var searchCustomer = $scope.projects.name?cust.split(' ')[0]:'';
-		$scope.search_customers(searchCustomer);
+	
 
+		var cust = $scope.project.customer;
+		var searchCustomer = $scope.project.customer?cust.split(' ')[0]:'';
+		$scope.search_customers(searchCustomer);
 		deferred.resolve();
 		$scope.limitOptions = [5, 10, 15, 20];
 		if($scope.projects.length > 20 ) {
@@ -143,6 +151,17 @@ function Delivery_Controller($scope, $http, $mdSidenav, $mdDialog, $filter, $q) 
 			}
 		};
 	});
+
+	$scope.search_projectsdelivery = function(q) {
+		if (q.length > 0) {
+			$http.get(BASE_URL + 'api/search_projects/'+q).then(function (Projects) {
+				$scope.projectname = Projects.data;
+			});
+		} else {
+			$scope.projectname = [];
+		}
+		console.log('test');
+	};
 
 	$http.get(BASE_URL + 'delivery/get_all_installation').then(function (Projects){
 		$scope.stages = Projects.data;
@@ -239,6 +258,10 @@ function Delivery_Controller($scope, $http, $mdSidenav, $mdDialog, $filter, $q) 
 				contact_name: $scope.delivery.contact_name,
 				contact_number: $scope.delivery.contact_number,
 				custom_fields: $scope.tempArr,
+				showprojectdata: $scope.delivery.showprojectdata,
+				addprojectname: $scope.delivery.addprojectname,
+				customerid: $scope.delivery.customerid
+
 			});
 		
 
@@ -278,6 +301,98 @@ function Delivery_Controller($scope, $http, $mdSidenav, $mdDialog, $filter, $q) 
 				}
 			);
 	};
+
+	$scope.GetDelivery = function(data) {
+		if(data !="All"){
+		$scope.today = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+		$scope.yesterday = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()-1);
+		$scope.lastweek = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()-7);
+		$scope.months = new Date(new Date().getFullYear(), new Date().getMonth()-1, new Date().getDate());
+
+		var date;
+		if(data == "today"){
+			date = $scope.today ;
+		}
+		if(data == "yesterday"){
+			date = $scope.yesterday ;
+		}
+		if(data == "lastweek"){
+			date = $scope.lastweek ;
+		}
+		if(data == "lastmonth"){
+			date = $scope.months ;
+		}
+		var dataObj = $.param({
+			date:    moment(date).format("YYYY-MM-DD")
+		});
+		var config = {
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8;'
+			}
+		};
+		var posturl = BASE_URL + 'delivery/getfilterdelivery/';
+		$http.post(posturl, dataObj, config)
+			.then(
+				function (Projects) {
+					$scope.projects = Projects.data;
+					console.log($scope.projects)
+					
+				},
+			);
+		}else{
+			$http.get(BASE_URL + 'delivery/get_delivery').then(function (Projects) {
+				$scope.projects = Projects.data;
+			});
+		}
+	};
+
+
+
+	$scope.GetDeliveryStats = function(data) {
+		if(data !="All"){
+		$scope.today = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+		$scope.yesterday = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()-1);
+		$scope.lastweek = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()-7);
+		$scope.months = new Date(new Date().getFullYear(), new Date().getMonth()-1, new Date().getDate());
+
+		var date;
+		if(data == "today"){
+			date = $scope.today ;
+		}
+		if(data == "yesterday"){
+			date = $scope.yesterday ;
+		}
+		if(data == "lastweek"){
+			date = $scope.lastweek ;
+		}
+		if(data == "lastmonth"){
+			date = $scope.months ;
+		}
+		var dataObj = $.param({
+			date:    moment(date).format("YYYY-MM-DD")
+		});
+		var config = {
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8;'
+			}
+		};
+		var posturl = BASE_URL + 'delivery/getfilterdelivery_stats/';
+		$http.post(posturl, dataObj, config)
+			.then(
+				function (Stats) {
+					$scope.stats = Stats.data;
+
+					
+				},
+			);
+		}else{
+			$http.get(BASE_URL + 'delivery/delivery_stats/' ).then(function(Stats) {
+				$scope.stats = Stats.data;
+			});
+		}
+	};
+
+
 
 }
 	//edit delivery
@@ -334,7 +449,9 @@ function Delivery_Controller($scope, $http, $mdSidenav, $mdDialog, $filter, $q) 
 		if($scope.project.shipping_country_id){
 		$scope.getShippingStates($scope.project.shipping_country_id);
 		}
-		var cust = $scope.project.customer;
+	/* 	var searchCustomer = $scope.insertedStaff;
+		
+		$scope.search_staff(searchCustomer); */
 	});
 
 
@@ -504,8 +621,7 @@ $scope.MarkAs = function () {
 	}
 	var subproject = $scope.subprojects[subprojectindex];
 	var dataObj = $.param({
-		subdelivery: subproject.id,
-		delivery_stage_id: subproject.delivery_stage_id,
+		delivery_stage_id: $scope.delivery.delivery_stage_id,
 		deliveryid: PROJECTID,
 		delivery_date :$scope.delivery.changenewdelivery_date,
 		address :$scope.delivery.address,
@@ -768,6 +884,7 @@ $scope.InsertMember = function (ev) {
 					contact_name: $scope.project.contact_name,
 					shipping_state_id: $scope.project.shipping_state_id,
 					shipping_country_id: $scope.project.shipping_country_id,
+					stage_id: $scope.project.stage_id,
 				});
 			
 
@@ -791,6 +908,8 @@ $scope.InsertMember = function (ev) {
 						/* 	$http.get(BASE_URL + 'delivery/get_project/'+PROJECTID).then(function (Projects) {
 								$scope.project = Projects.data;
 							}); */
+							location.reload();
+
 						} else {
 							globals.mdToast('error', response.data.message);
 						}
@@ -855,6 +974,69 @@ $scope.InsertMember = function (ev) {
 					}
 				};
 				var posturl = BASE_URL + 'delivery/delect_delivery_vehicle/';
+				$http.post(posturl, dataObj, config)
+				.then(
+					function(response) {
+						console.log(response.data);
+						if (response.data.success == true) {
+							globals.mdToast('success', response.data.message);
+						} else {
+							globals.mdToast('error', response.data.message);
+						}
+					}
+				);
+			}
+		};
+		$http.get(BASE_URL + 'delivery/deliverycheckist/' + PROJECTID).then(function (deliverychecklist){
+			$scope.checklist = deliverychecklist.data;
+		});
+		$scope.add_checkist = function () {
+			$scope.checklist.items.push({
+				id:'0',
+				description  : '',
+				qty: '',
+			
+			});
+		};
+		$scope.save_checklist = function (){
+			$scope.saving = true;
+			var dataObj = $.param({
+				checklistitem: $scope.checklist.items,
+				deliveryId:PROJECTID
+			});
+			var config = {
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8;'
+				}
+			};
+			var posturl = BASE_URL + 'delivery/create_delivery_checklist/';
+			$http.post(posturl, dataObj, config)
+			.then(
+				function(response) {
+					console.log(response.data);
+					if (response.data.success == true) {
+						globals.mdToast('success', response.data.message);
+					} else {
+						globals.mdToast('error', response.data.message);
+					}
+				}
+			);
+		};
+
+
+		$scope.checklist_remove = function (index,itemId) {
+			$scope.checklist.items.splice(index, 1);
+			if(itemId !='0'){
+				var dataObj = $.param({
+					deleteItemId: itemId,
+					projectId:PROJECTID
+				});
+				var config = {
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8;'
+					}
+				};
+				var posturl = BASE_URL + 'delivery/delect_delivery_checklist/';
 				$http.post(posturl, dataObj, config)
 				.then(
 					function(response) {
@@ -1051,6 +1233,25 @@ $scope.InsertMember = function (ev) {
 			};
 		});
 
+
+
+		$http.get(BASE_URL + 'delivery/get_all_installation').then(function (Projects) {
+			$scope.stages = Projects.data;
+		});
+	
+	
+		$scope.search_staff = function(q) {
+			if (q.length > 0) {
+				$http.get(BASE_URL + 'api/search_staff/'+q).then(function (staff) {
+					$scope.staff = staff.data;
+				});
+			} else {
+				$scope.staff = [];
+			}
+			console.log('test');
+		};
+
+	
 };
 
 CiuisCRM.controller('Delivery_Controller', Delivery_Controller);

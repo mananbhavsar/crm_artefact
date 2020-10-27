@@ -127,6 +127,42 @@ class Projects extends CIUIS_Controller {
 						$project_number = $project_number + 1 ;
 						$this->Settings_Model->increment_series('project_series',$project_number);
 					}
+
+					//Adding delivery
+					$params = array(
+						'projectid' => $project_id,
+						'staff_id' => $this->session->userdata( 'usr_id' ),
+						'status_id' => 2,
+  						'created' => date( 'Y-m-d H:i:s' ), 
+					);
+
+					$this->db->insert( 'delivery', $params );
+					$delivery_id = $this->db->insert_id();
+					$allProjectStages = $this->db->get_where( 'installation', array( '' ))->result_array();
+					
+					foreach($allProjectStages as $eachProjectStage) {
+						$subprojectparams = array(
+							'deliveryid' => $delivery_id,
+							'delivery_stage_id' => $eachProjectStage['id'],
+							'finished' => 0,
+							'created' => date( 'Y-m-d H:i:s' ),
+							'update' => date( 'Y-m-d H:i:s' ),
+							'staff_id' => $this->session->userdata( 'usr_id' ),
+							'complete' => 0
+						);
+						$this->db->insert( 'subdelivery', $subprojectparams );
+					}
+
+					
+					$appconfig = get_appconfig();
+					$number = $appconfig['project_series'] ? $appconfig['project_series'] : $delivery_id;
+					$delivery_number = $appconfig['delivery_prefix'].$number;
+					$this->db->where('id', $delivery_id)->update( 'delivery', array('delivery_number' => $delivery_number ) );
+					if($appconfig['project_series']){
+						$project_number = $appconfig['project_series'];
+						$project_number = $project_number + 1 ;
+						$this->Settings_Model->increment_series('delivery_series',$project_number);
+					}
 					
 					// Custom Field Post
 					if ( $this->input->post( 'custom_fields' ) ) {
